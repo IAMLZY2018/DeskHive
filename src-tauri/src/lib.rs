@@ -1,3 +1,5 @@
+use tauri::Manager;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
@@ -9,6 +11,13 @@ pub fn run() {
             .build(),
         )?;
       }
+      
+      // 获取主窗口
+      if let Some(window) = app.get_webview_window("main") {
+        // 确保窗口始终在底层
+        window.set_always_on_bottom(true).unwrap();
+      }
+      
       Ok(())
     })
     .run(tauri::generate_context!())

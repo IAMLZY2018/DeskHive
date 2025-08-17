@@ -5,18 +5,26 @@
   "identifier": "com.tauri.dev",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:5174",
+    "devUrl": "http://localhost:5173",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"
   },
   "app": {
     "windows": [
       {
-        "title": "deskhive",
-        "width": 800,
-        "height": 600,
-        "resizable": true,
-        "fullscreen": false
+        "label": "main",
+        "title": "Todo 桌面助手",
+        "width": 300,
+        "height": 420,
+        "x": 100,
+        "y": 100,
+        "resizable": false,
+        "fullscreen": false,
+        "alwaysOnBottom": false,
+        "skipTaskbar": true,
+        "decorations": false,
+        "transparent": true,
+        "focus": true
       }
     ],
     "security": {
