@@ -1,7 +1,7 @@
 <template>
   <div class="container">
-    <header>
-      <div class="header-title">📋 Todo 桌面助手</div>
+    <header data-tauri-drag-region>
+      <div class="header-title" data-tauri-drag-region>📋 Todo 桌面助手</div>
       <div class="header-right">
         <div class="progress-indicator">{{ completedTasks }}/{{ totalTasks }}</div>
         <button class="settings-btn" @click="openSettings">⚙️</button>
