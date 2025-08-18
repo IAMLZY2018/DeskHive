@@ -18,6 +18,22 @@ pub fn run() {
       
       // 获取主窗口
       if let Some(window) = app.get_webview_window("main") {
+        // 使用更简单的方法优化启动体验
+        #[cfg(target_os = "windows")]
+        {
+          // 先隐藏窗口
+          let _ = window.hide();
+          
+          // 创建一个线程，短暂延迟后显示窗口
+          let win_load = window.clone();
+          std::thread::spawn(move || {
+            // 等待一小段时间，让前端有时间渲染
+            std::thread::sleep(std::time::Duration::from_millis(300));
+            // 显示窗口
+            let _ = win_load.show();
+          });
+        }
+        
         
         // 在Tauri 2.x中处理窗口事件
         #[cfg(target_os = "windows")]
@@ -54,14 +70,12 @@ pub fn run() {
             }
           });
           
-          // 添加定时器，但只在检测到Win+D时才尝试恢复窗口，并使用更长的检查间隔减少CPU占用
+          // 添加定时器，但只在检测到Win+D时才尝试恢复窗口
           let win_handle2 = window.clone();
           std::thread::spawn(move || {
-            // 先等待一段时间，让应用完全启动
-            std::thread::sleep(std::time::Duration::from_millis(1000));
-            
+            // 不需要初始等待，直接开始监听
             loop {
-              std::thread::sleep(std::time::Duration::from_millis(1000)); // 增加检查间隔到1秒
+              std::thread::sleep(std::time::Duration::from_millis(800)); // 使用适中的检查间隔
               
               // 只有当WIN_D_PRESSED为true时才检查窗口可见性
               if WIN_D_PRESSED.load(Ordering::SeqCst) {

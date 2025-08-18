@@ -57,7 +57,7 @@ function toggleTodo(index: number) {
   todos.value[index].completed = !todos.value[index].completed;
 }
 
-// 简化onMounted钩子，减少不必要的延迟
+// 简化onMounted钩子
 onMounted(() => {
   console.log('前端渲染完成');
 });
