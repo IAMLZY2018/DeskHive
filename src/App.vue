@@ -7,6 +7,7 @@
         <button class="settings-btn" @click="openSettings">⚙️</button>
       </div>
     </header>
+
     <div class="todo-container">
       <div class="todo-section">
         <h3 class="section-title">待完成</h3>
@@ -40,8 +41,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { TransitionGroup } from 'vue';
+import { invoke } from '@tauri-apps/api/core';
 
 interface Todo {
   text: string;
@@ -61,8 +63,12 @@ const newTaskText = ref('');
 const totalTasks = computed(() => pendingTodos.value.length + completedTodos.value.length);
 const completedTasks = computed(() => completedTodos.value.length);
 
-function openSettings() {
-  alert('设置功能开发中...🚀 可添加的功能： • 主题切换 • 任务分类 • 导入/导出 • 提醒设置');
+async function openSettings() {
+  try {
+    await invoke('open_settings_window');
+  } catch (error) {
+    console.error('打开设置窗口失败:', error);
+  }
 }
 
 function addTask() {

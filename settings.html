@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设置</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(104, 58, 183, 0.1);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .setting-group {
+            margin-bottom: 24px;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(104, 58, 183, 0.1);
+            box-shadow: 0 4px 16px rgba(104, 58, 183, 0.1);
+        }
+        
+        .setting-group h3 {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .setting-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .setting-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .setting-control input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .setting-control input[type="number"],
+        .setting-control select {
+            padding: 6px 10px;
+            border: 1px solid rgba(104, 58, 183, 0.2);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.8);
+            color: #333;
+            font-size: 0.9rem;
+            min-width: 80px;
+        }
+        
+        .footer {
+            padding: 20px;
+            border-top: 1px solid rgba(104, 58, 183, 0.1);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.8);
+            color: #666;
+            border: 1px solid rgba(104, 58, 183, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ 设置</h1>
+        </div>
+        
+        <div class="content">
+            <div class="setting-group">
+                <h3>外观设置</h3>
+                <div class="setting-item">
+                    <span class="setting-label">窗口透明度</span>
+                    <div class="setting-control">
+                        <input type="range" id="opacity" min="0.5" max="1" step="0.1" value="0.95">
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">始终置顶</span>
+                    <div class="setting-control">
+                        <input type="checkbox" id="alwaysOnTop">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <h3>行为设置</h3>
+                <div class="setting-item">
+                    <span class="setting-label">启动时自动显示</span>
+                    <div class="setting-control">
+                        <input type="checkbox" id="autoShow" checked>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">最小化到系统托盘</span>
+                    <div class="setting-control">
+                        <input type="checkbox" id="minimizeToTray" checked>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <h3>快捷键设置</h3>
+                <div class="setting-item">
+                    <span class="setting-label">显示/隐藏快捷键</span>
+                    <div class="setting-control">
+                        <select id="hotkey">
+                            <option value="ctrl+shift+t">Ctrl+Shift+T</option>
+                            <option value="alt+space">Alt+Space</option>
+                            <option value="ctrl+`">Ctrl+`</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <button class="btn btn-secondary" onclick="closeWindow()">取消</button>
+            <button class="btn btn-primary" onclick="saveSettings()">保存</button>
+        </div>
+    </div>
+
+    <script>
+        // 加载设置
+        function loadSettings() {
+            // 这里可以从 Tauri 后端加载设置
+            console.log('加载设置');
+        }
+        
+        // 保存设置
+        function saveSettings() {
+            const settings = {
+                opacity: document.getElementById('opacity').value,
+                alwaysOnTop: document.getElementById('alwaysOnTop').checked,
+                autoShow: document.getElementById('autoShow').checked,
+                minimizeToTray: document.getElementById('minimizeToTray').checked,
+                hotkey: document.getElementById('hotkey').value
+            };
+            
+            console.log('保存设置:', settings);
+            
+            // 这里可以调用 Tauri 命令保存设置
+            // 暂时直接关闭窗口
+            closeWindow();
+        }
+        
+        // 关闭窗口
+        function closeWindow() {
+            if (window.__TAURI__) {
+                window.__TAURI__.window.getCurrent().close();
+            }
+        }
+        
+        // 页面加载完成后加载设置
+        document.addEventListener('DOMContentLoaded', loadSettings);
+    </script>
+</body>
+</html>
