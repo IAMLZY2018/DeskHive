@@ -8,10 +8,12 @@
       </div>
     </header>
     <div class="todo-list">
-      <div v-for="(todo, index) in todos" :key="index" :class="['todo-item', { completed: todo.completed }]">
-        <div :class="['todo-checkbox', { completed: todo.completed }]" @click="toggleTodo(index)"></div>
-        <span>{{ todo.text }}</span>
-      </div>
+      <TransitionGroup name="todo-list" tag="div">
+        <div v-for="(todo, index) in todos" :key="index" :class="['todo-item', { completed: todo.completed }]" @dblclick="deleteTodo(index)">
+          <div :class="['todo-checkbox', { completed: todo.completed }]" @click="toggleTodo(index)"></div>
+          <span>{{ todo.text }}</span>
+        </div>
+      </TransitionGroup>
     </div>
     <div class="add-task">
       <input type="text" placeholder="添加新任务..." v-model="newTaskText" @keypress.enter="addTask">
@@ -22,6 +24,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue';
+import { TransitionGroup } from 'vue';
 
 interface Todo {
   text: string;
@@ -55,6 +58,10 @@ function addTask() {
 
 function toggleTodo(index: number) {
   todos.value[index].completed = !todos.value[index].completed;
+}
+
+function deleteTodo(index: number) {
+  todos.value.splice(index, 1);
 }
 
 // 简化onMounted钩子
@@ -185,11 +192,22 @@ header {
   border: 1px solid rgba(104, 58, 183, 0.08);
   backdrop-filter: blur(10px);
   min-height: clamp(30px, 5vh, 36px);
+  cursor: pointer;
+  position: relative;
 }
 .todo-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(104, 58, 183, 0.15);
   border-color: rgba(104, 58, 183, 0.2);
+}
+
+.todo-item:hover::after {
+  content: '双击删除';
+  position: absolute;
+  right: 10px;
+  font-size: 0.7rem;
+  color: #888;
+  opacity: 0.7;
 }
 .todo-checkbox {
   width: clamp(14px, 2.5vw, 18px);
@@ -293,5 +311,22 @@ header {
   background: rgba(255, 255, 255, 0.95);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
+}
+
+/* Todo列表过渡动画 */
+.todo-list-enter-active,
+.todo-list-leave-active {
+  transition: all 0.5s ease;
+}
+.todo-list-enter-from {
+  opacity: 0;
+  transform: translateY(30px);
+}
+.todo-list-leave-to {
+  opacity: 0;
+  transform: translateX(100px);
+}
+.todo-list-move {
+  transition: transform 0.5s ease;
 }
 </style>
