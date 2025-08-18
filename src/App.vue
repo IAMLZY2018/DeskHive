@@ -7,13 +7,30 @@
         <button class="settings-btn" @click="openSettings">⚙️</button>
       </div>
     </header>
-    <div class="todo-list">
-      <TransitionGroup name="todo-list" tag="div">
-        <div v-for="(todo, index) in todos" :key="index" :class="['todo-item', { completed: todo.completed }]" @dblclick="deleteTodo(index)">
-          <div :class="['todo-checkbox', { completed: todo.completed }]" @click="toggleTodo(index)"></div>
-          <span>{{ todo.text }}</span>
+    <div class="todo-container">
+      <div class="todo-section">
+        <h3 class="section-title">待完成</h3>
+        <div class="todo-list">
+          <TransitionGroup name="todo-list" tag="div">
+            <div v-for="(todo, index) in pendingTodos" :key="index" :class="['todo-item']" @dblclick="deleteTodo(index)">
+              <div class="todo-checkbox" @click="toggleTodo(index)"></div>
+              <span>{{ todo.text }}</span>
+            </div>
+          </TransitionGroup>
         </div>
-      </TransitionGroup>
+      </div>
+      
+      <div v-if="completedTodos.length > 0" class="todo-section completed-section">
+        <h3 class="section-title">已完成</h3>
+        <div class="todo-list">
+          <TransitionGroup name="todo-list" tag="div">
+            <div v-for="(todo, index) in completedTodos" :key="index" class="todo-item completed" @dblclick="deleteCompletedTodo(index)">
+              <div class="todo-checkbox completed" @click="toggleCompletedTodo(index)"></div>
+              <span>{{ todo.text }}</span>
+            </div>
+          </TransitionGroup>
+        </div>
+      </div>
     </div>
     <div class="add-task">
       <input type="text" placeholder="添加新任务..." v-model="newTaskText" @keypress.enter="addTask">
@@ -31,15 +48,18 @@ interface Todo {
   completed: boolean;
 }
 
-const todos = ref<Todo[]>([
-  { text: '完成UI设计', completed: true },
+const pendingTodos = ref<Todo[]>([
   { text: '学习SpringBoot3.5', completed: false },
   { text: '测试部署到服务器', completed: false }
 ]);
 
+const completedTodos = ref<Todo[]>([
+  { text: '完成UI设计', completed: true }
+]);
+
 const newTaskText = ref('');
-const totalTasks = computed(() => todos.value.length);
-const completedTasks = computed(() => todos.value.filter(todo => todo.completed).length);
+const totalTasks = computed(() => pendingTodos.value.length + completedTodos.value.length);
+const completedTasks = computed(() => completedTodos.value.length);
 
 function openSettings() {
   alert('设置功能开发中...🚀 可添加的功能： • 主题切换 • 任务分类 • 导入/导出 • 提醒设置');
@@ -48,7 +68,7 @@ function openSettings() {
 function addTask() {
   const taskText = newTaskText.value.trim();
   if (taskText) {
-    todos.value.push({
+    pendingTodos.value.push({
       text: taskText,
       completed: false
     });
@@ -57,11 +77,29 @@ function addTask() {
 }
 
 function toggleTodo(index: number) {
-  todos.value[index].completed = !todos.value[index].completed;
+  const todo = pendingTodos.value[index];
+  pendingTodos.value.splice(index, 1);
+  completedTodos.value.push({
+    text: todo.text,
+    completed: true
+  });
+}
+
+function toggleCompletedTodo(index: number) {
+  const todo = completedTodos.value[index];
+  completedTodos.value.splice(index, 1);
+  pendingTodos.value.push({
+    text: todo.text,
+    completed: false
+  });
 }
 
 function deleteTodo(index: number) {
-  todos.value.splice(index, 1);
+  pendingTodos.value.splice(index, 1);
+}
+
+function deleteCompletedTodo(index: number) {
+  completedTodos.value.splice(index, 1);
 }
 
 // 简化onMounted钩子
@@ -160,25 +198,52 @@ header {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
   background: rgba(255, 255, 255, 0.95);
 }
-.todo-list {
+.todo-container {
   flex: 1;
-  padding: clamp(8px, 2vh, 12px);
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   background: transparent;
   min-height: 0;
 }
-.todo-list::-webkit-scrollbar {
+
+.todo-container::-webkit-scrollbar {
   width: 5px;
 }
-.todo-list::-webkit-scrollbar-track {
+
+.todo-container::-webkit-scrollbar-track {
   background: rgba(104, 58, 183, 0.1);
   border-radius: 3px;
 }
-.todo-list::-webkit-scrollbar-thumb {
+
+.todo-container::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.8);
   border-radius: 3px;
   border: 1px solid rgba(255, 255, 255, 0.4);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.todo-section {
+  margin-bottom: 10px;
+  padding: clamp(8px, 2vh, 12px);
+}
+
+.section-title {
+  font-size: clamp(0.8rem, 2.2vw, 0.9rem);
+  color: #555;
+  margin-bottom: 8px;
+  font-weight: 600;
+  padding-left: 5px;
+}
+
+.completed-section {
+  margin-top: auto;
+  border-top: 1px dashed rgba(104, 58, 183, 0.2);
+  padding-top: 10px;
+}
+
+.todo-list {
+  min-height: 0;
 }
 .todo-item {
   background: rgba(255, 255, 255, 0.7);
