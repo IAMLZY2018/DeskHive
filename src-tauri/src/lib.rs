@@ -1,8 +1,88 @@
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::path::PathBuf;
+use std::fs;
+use serde::{Deserialize, Serialize};
 use tauri::Manager;
 
 // 创建一个全局变量来跟踪Win+D状态
 static WIN_D_PRESSED: AtomicBool = AtomicBool::new(false);
+
+// Todo数据结构
+#[derive(Serialize, Deserialize, Clone)]
+struct Todo {
+    text: String,
+    completed: bool,
+}
+
+#[derive(Serialize, Deserialize)]
+struct TodoData {
+    pending_todos: Vec<Todo>,
+    completed_todos: Vec<Todo>,
+}
+
+// 获取数据目录路径
+fn get_data_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let app_dir = app.path().app_data_dir()
+        .map_err(|e| format!("获取应用数据目录失败: {}", e))?;
+    
+    let data_dir = app_dir.join("data");
+    
+    // 确保data目录存在
+    if !data_dir.exists() {
+        fs::create_dir_all(&data_dir)
+            .map_err(|e| format!("创建data目录失败: {}", e))?;
+    }
+    
+    Ok(data_dir)
+}
+
+// Tauri 命令：保存todo数据
+#[tauri::command]
+async fn save_todo_data(app: tauri::AppHandle, pending_todos: Vec<Todo>, completed_todos: Vec<Todo>) -> Result<(), String> {
+    let data_dir = get_data_dir(&app)?;
+    let file_path = data_dir.join("todo_list.json");
+    
+    let todo_data = TodoData {
+        pending_todos,
+        completed_todos,
+    };
+    
+    let json_data = serde_json::to_string_pretty(&todo_data)
+        .map_err(|e| format!("序列化数据失败: {}", e))?;
+    
+    fs::write(&file_path, json_data)
+        .map_err(|e| format!("写入文件失败: {}", e))?;
+    
+    Ok(())
+}
+
+// Tauri 命令：加载todo数据
+#[tauri::command]
+async fn load_todo_data(app: tauri::AppHandle) -> Result<TodoData, String> {
+    let data_dir = get_data_dir(&app)?;
+    let file_path = data_dir.join("todo_list.json");
+    
+    if !file_path.exists() {
+        // 如果文件不存在，返回默认数据
+        return Ok(TodoData {
+            pending_todos: vec![
+                Todo { text: "学习SpringBoot3.5".to_string(), completed: false },
+                Todo { text: "测试部署到服务器".to_string(), completed: false },
+            ],
+            completed_todos: vec![
+                Todo { text: "完成UI设计".to_string(), completed: true },
+            ],
+        });
+    }
+    
+    let json_data = fs::read_to_string(&file_path)
+        .map_err(|e| format!("读取文件失败: {}", e))?;
+    
+    let todo_data: TodoData = serde_json::from_str(&json_data)
+        .map_err(|e| format!("解析JSON失败: {}", e))?;
+    
+    Ok(todo_data)
+}
 
 // Tauri 命令：打开设置窗口
 #[tauri::command]
@@ -38,7 +118,7 @@ async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![open_settings_window])
+        .invoke_handler(tauri::generate_handler![open_settings_window, save_todo_data, load_todo_data])
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(

@@ -50,18 +50,48 @@ interface Todo {
   completed: boolean;
 }
 
-const pendingTodos = ref<Todo[]>([
-  { text: '学习SpringBoot3.5', completed: false },
-  { text: '测试部署到服务器', completed: false }
-]);
-
-const completedTodos = ref<Todo[]>([
-  { text: '完成UI设计', completed: true }
-]);
+const pendingTodos = ref<Todo[]>([]);
+const completedTodos = ref<Todo[]>([]);
 
 const newTaskText = ref('');
 const totalTasks = computed(() => pendingTodos.value.length + completedTodos.value.length);
 const completedTasks = computed(() => completedTodos.value.length);
+
+// 保存数据到本地文件
+async function saveTodoData() {
+  try {
+    await invoke('save_todo_data', {
+      pendingTodos: pendingTodos.value,
+      completedTodos: completedTodos.value
+    });
+    console.log('数据保存成功');
+  } catch (error) {
+    console.error('保存数据失败:', error);
+  }
+}
+
+// 从本地文件加载数据
+async function loadTodoData() {
+  try {
+    const data = await invoke('load_todo_data') as {
+      pending_todos: Todo[],
+      completed_todos: Todo[]
+    };
+    pendingTodos.value = data.pending_todos;
+    completedTodos.value = data.completed_todos;
+    console.log('数据加载成功');
+  } catch (error) {
+    console.error('加载数据失败:', error);
+    // 如果加载失败，使用默认数据
+    pendingTodos.value = [
+      { text: '学习SpringBoot3.5', completed: false },
+      { text: '测试部署到服务器', completed: false }
+    ];
+    completedTodos.value = [
+      { text: '完成UI设计', completed: true }
+    ];
+  }
+}
 
 async function openSettings() {
   try {
@@ -79,6 +109,8 @@ function addTask() {
       completed: false
     });
     newTaskText.value = '';
+    // 保存数据
+    saveTodoData();
   }
 }
 
@@ -89,6 +121,8 @@ function toggleTodo(index: number) {
     text: todo.text,
     completed: true
   });
+  // 保存数据
+  saveTodoData();
 }
 
 function toggleCompletedTodo(index: number) {
@@ -98,19 +132,26 @@ function toggleCompletedTodo(index: number) {
     text: todo.text,
     completed: false
   });
+  // 保存数据
+  saveTodoData();
 }
 
 function deleteTodo(index: number) {
   pendingTodos.value.splice(index, 1);
+  // 保存数据
+  saveTodoData();
 }
 
 function deleteCompletedTodo(index: number) {
   completedTodos.value.splice(index, 1);
+  // 保存数据
+  saveTodoData();
 }
 
-// 简化onMounted钩子
+// 组件挂载时加载数据
 onMounted(() => {
   console.log('前端渲染完成');
+  loadTodoData();
 });
 </script>
 
