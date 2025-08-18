@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <header data-tauri-drag-region>
-      <div class="header-title" data-tauri-drag-region>📋 Todo 桌面助手</div>
+      <div class="header-title" data-tauri-drag-region>🐝 DeskHive</div>
       <div class="header-right">
         <div class="progress-indicator">{{ completedTasks }}/{{ totalTasks }}</div>
         <button class="settings-btn" @click="openSettings">⚙️</button>
@@ -109,6 +109,8 @@ header {
 .header-title {
   flex: 1;
   text-align: center;
+  cursor: default;
+  user-select: none;
 }
 .header-right {
   display: flex;
@@ -117,39 +119,39 @@ header {
 }
 .progress-indicator {
   font-size: clamp(0.7rem, 1.8vw, 0.8rem);
-  color: #8e7cc3;
+  color: #333;
   font-weight: 600;
-  background: rgba(142, 124, 195, 0.1);
+  background: rgba(255, 255, 255, 0.8);
   padding: clamp(2px, 0.5vh, 4px) clamp(6px, 1.5vw, 8px);
   border-radius: clamp(8px, 1.5vw, 12px);
-  border: 1px solid rgba(142, 124, 195, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   min-width: clamp(28px, 6vw, 35px);
   text-align: center;
   backdrop-filter: blur(5px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .settings-btn {
   width: clamp(24px, 4.5vw, 28px);
   height: clamp(24px, 4.5vw, 28px);
   border: none;
   border-radius: 50%;
-  background: linear-gradient(135deg, #8e7cc3, #6a4c93);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.8);
+  color: #333;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: clamp(0.65rem, 1.8vw, 0.8rem);
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(104, 58, 183, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 .settings-btn:hover {
   transform: rotate(90deg) scale(1.08);
-  box-shadow: 0 6px 16px rgba(104, 58, 183, 0.4);
-}
-.settings-btn:hover {
-  transform: rotate(90deg) scale(1.1);
-  box-shadow: 0 0 15px rgba(255, 0, 255, 0.6);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.95);
 }
 .todo-list {
   flex: 1;
@@ -166,8 +168,10 @@ header {
   border-radius: 3px;
 }
 .todo-list::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #8e7cc3, #6a4c93);
+  background: rgba(255, 255, 255, 0.8);
   border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 .todo-item {
   background: rgba(255, 255, 255, 0.7);
@@ -190,17 +194,22 @@ header {
 .todo-checkbox {
   width: clamp(14px, 2.5vw, 18px);
   height: clamp(14px, 2.5vw, 18px);
-  border: 2px solid #8e7cc3;
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 50%;
   margin-right: clamp(6px, 1.5vw, 10px);
   cursor: pointer;
   transition: all 0.3s ease;
   flex-shrink: 0;
   position: relative;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
 }
 .todo-checkbox.completed {
-  background: linear-gradient(135deg, #8e7cc3, #6a4c93);
-  border-color: #6a4c93;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
 }
 .todo-checkbox.completed::after {
   content: '✓';
@@ -208,7 +217,7 @@ header {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: white;
+  color: #333;
   font-size: clamp(8px, 1.5vw, 10px);
   font-weight: bold;
 }
@@ -257,19 +266,21 @@ header {
 .add-task button {
   width: clamp(28px, 4.5vh, 32px);
   height: clamp(28px, 4.5vh, 32px);
-  background: linear-gradient(135deg, #8e7cc3, #6a4c93);
+  background: rgba(255, 255, 255, 0.8);
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  color: #fff;
+  color: #333;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(104, 58, 183, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   font-size: clamp(0.7rem, 2vw, 0.85rem);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 .add-task button:hover {
   transform: translateY(-1px);
@@ -279,6 +290,8 @@ header {
   transform: translateY(0);
 }
 .add-task button:hover {
-  background: linear-gradient(135deg, magenta, cyan);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
 }
 </style>
