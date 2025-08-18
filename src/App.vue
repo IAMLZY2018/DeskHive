@@ -311,6 +311,7 @@ header {
   line-height: 1.2;
   font-weight: 500;
   color: #333;
+  user-select: none;
 }
 .todo-item.completed span {
   text-decoration: line-through;
