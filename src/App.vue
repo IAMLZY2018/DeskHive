@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
 
 interface Todo {
   text: string;
@@ -56,6 +56,11 @@ function addTask() {
 function toggleTodo(index: number) {
   todos.value[index].completed = !todos.value[index].completed;
 }
+
+// 简化onMounted钩子，减少不必要的延迟
+onMounted(() => {
+  console.log('前端渲染完成');
+});
 </script>
 
 <style>
@@ -71,7 +76,7 @@ html, body, #app {
 }
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #e8e4f3, #d1c4e9);
+  background: #e8e4f3;
   color: #333;
 }
 #app {
@@ -82,11 +87,10 @@ body {
 .container {
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.8);
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  backdrop-filter: blur(10px);
   border-radius: 0;
 }
 header {

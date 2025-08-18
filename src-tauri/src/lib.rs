@@ -1,11 +1,6 @@
 use tauri::Manager;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-#[cfg(target_os = "windows")]
-use windows::Win32::UI::WindowsAndMessaging::{WM_SYSCOMMAND, SC_MINIMIZE, WM_SHOWWINDOW};
-#[cfg(target_os = "windows")]
-use windows::Win32::Foundation::{HWND, WPARAM, LPARAM, LRESULT, BOOL};
-
 // 创建一个全局变量来跟踪Win+D状态
 static WIN_D_PRESSED: AtomicBool = AtomicBool::new(false);
 
@@ -23,8 +18,6 @@ pub fn run() {
       
       // 获取主窗口
       if let Some(window) = app.get_webview_window("main") {
-        // 使用alwaysOnTop而不是alwaysOnBottom
-        // window.set_always_on_bottom(true).unwrap();
         
         // 在Tauri 2.x中处理窗口事件
         #[cfg(target_os = "windows")]
@@ -45,10 +38,9 @@ pub fn run() {
                   std::thread::spawn(move || {
                     std::thread::sleep(std::time::Duration::from_millis(100));
                     if WIN_D_PRESSED.load(Ordering::SeqCst) {
-                      // 尝试恢复窗口
-                      let _ = win.show();
-                      let _ = win.set_focus();
-                      WIN_D_PRESSED.store(false, Ordering::SeqCst);
+                  // 尝试恢复窗口，但不强制获取焦点
+                  let _ = win.show();
+                  WIN_D_PRESSED.store(false, Ordering::SeqCst);
                     }
                   });
                 }
@@ -62,11 +54,14 @@ pub fn run() {
             }
           });
           
-          // 添加定时器，但只在检测到Win+D时才尝试恢复窗口
+          // 添加定时器，但只在检测到Win+D时才尝试恢复窗口，并使用更长的检查间隔减少CPU占用
           let win_handle2 = window.clone();
           std::thread::spawn(move || {
+            // 先等待一段时间，让应用完全启动
+            std::thread::sleep(std::time::Duration::from_millis(1000));
+            
             loop {
-              std::thread::sleep(std::time::Duration::from_millis(500));
+              std::thread::sleep(std::time::Duration::from_millis(1000)); // 增加检查间隔到1秒
               
               // 只有当WIN_D_PRESSED为true时才检查窗口可见性
               if WIN_D_PRESSED.load(Ordering::SeqCst) {
@@ -74,9 +69,8 @@ pub fn run() {
                 match win_handle2.is_visible() {
                   Ok(visible) => {
                     if !visible {
-                      // 窗口不可见，尝试恢复
+                      // 窗口不可见，尝试恢复，但不强制获取焦点
                       let _ = win_handle2.show();
-                      let _ = win_handle2.set_focus();
                       // 恢复后重置标志
                       WIN_D_PRESSED.store(false, Ordering::SeqCst);
                     } else {

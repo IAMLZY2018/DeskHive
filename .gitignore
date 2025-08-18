@@ -28,3 +28,9 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+.git_disabled/config
+.git_disabled/description
+.git_disabled/HEAD
+.git_disabled/index
+.git_disabled/hooks/applypatch-msg.sample
+.git_disabled/hooks/commit-msg.sample
