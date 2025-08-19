@@ -102,10 +102,10 @@ async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
         tauri::WebviewUrl::App("settings.html".into()),
     )
     .title("设置")
-    .inner_size(400.0, 500.0)
-    .min_inner_size(350.0, 450.0)
+    .inner_size(800.0, 600.0)
+    .min_inner_size(800.0, 600.0)
     .center()
-    .resizable(true)
+    .resizable(false)
     .decorations(true)
     .always_on_top(false)
     .skip_taskbar(false)

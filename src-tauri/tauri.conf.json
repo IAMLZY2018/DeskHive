@@ -26,6 +26,21 @@
         "skipTaskbar": true,
         "transparent": false,
         "focus": false
+      },
+      {
+        "label": "settings",
+        "title": "设置",
+        "width": 800,
+        "height": 600,
+        "resizable": false,
+        "fullscreen": false,
+        "decorations": true,
+        "alwaysOnTop": false,
+        "visible": false,
+        "skipTaskbar": false,
+        "transparent": false,
+        "center": true,
+        "url": "settings.html"
       }
     ],
     "security": {

@@ -1,238 +1,491 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>设置</title>
+    <script type="module">
+        import { invoke } from '@tauri-apps/api/core';
+        import { getCurrentWindow } from '@tauri-apps/api/window';
+        window.__TAURI_INVOKE__ = invoke;
+        window.__TAURI_WINDOW__ = getCurrentWindow();
+    </script>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
-            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f2f2f7;
+            color: #000;
+            margin: 0;
+            padding: 0;
             overflow: hidden;
+            height: 100vh;
         }
-        
+
         .container {
             width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            height: 100vh;
+            background: #ffffff;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: #f8f8f8;
+            border-right: 1px solid #e5e5e5;
             display: flex;
             flex-direction: column;
         }
-        
-        .header {
-            padding: 20px;
-            border-bottom: 1px solid rgba(104, 58, 183, 0.1);
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
+
+        .sidebar-header {
+            padding: 20px 16px 16px;
+            border-bottom: 1px solid #e5e5e5;
         }
-        
-        .header h1 {
-            font-size: 1.5rem;
-            color: #333;
+
+        .sidebar-header h1 {
+            font-size: 22px;
             font-weight: 600;
+            color: #000;
+            margin: 0;
         }
-        
+
+        .sidebar-menu {
+            flex: 1;
+            padding: 8px 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-size: 15px;
+            color: #000;
+        }
+
+        .menu-item:hover {
+            background: #e8e8e8;
+        }
+
+        .menu-item.active {
+            background: #007aff;
+            color: #ffffff;
+        }
+
+        .menu-item-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
         .content {
             flex: 1;
-            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content-header {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .content-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #000;
+            margin: 0;
+        }
+
+        .content-body {
+            flex: 1;
+            padding: 24px;
             overflow-y: auto;
         }
-        
-        .setting-group {
-            margin-bottom: 24px;
-            background: rgba(255, 255, 255, 0.7);
-            padding: 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(104, 58, 183, 0.1);
-            box-shadow: 0 4px 16px rgba(104, 58, 183, 0.1);
+
+        .setting-section {
+            margin-bottom: 32px;
         }
-        
-        .setting-group h3 {
-            font-size: 1.1rem;
-            color: #555;
-            margin-bottom: 12px;
+
+        .setting-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 13px;
             font-weight: 600;
+            color: #6d6d70;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
-        
+
+        .setting-group {
+            background: #ffffff;
+            border-radius: 10px;
+            border: 1px solid #e5e5e5;
+            overflow: hidden;
+        }
+
         .setting-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e5e5;
+            min-height: 44px;
         }
-        
+
         .setting-item:last-child {
-            margin-bottom: 0;
+            border-bottom: none;
         }
-        
+
         .setting-label {
-            font-size: 0.9rem;
-            color: #666;
+            font-size: 17px;
+            color: #000;
+            font-weight: 400;
         }
-        
-        .setting-control input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+
+        .setting-description {
+            font-size: 13px;
+            color: #6d6d70;
+            margin-top: 2px;
+        }
+
+        .setting-control {
+            display: flex;
+            align-items: center;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 51px;
+            height: 31px;
+            background: #e5e5e5;
+            border-radius: 16px;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
-        
-        .setting-control input[type="number"],
+
+        .toggle-switch.active {
+            background: #34c759;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 27px;
+            height: 27px;
+            background: #ffffff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        .setting-control input[type="range"] {
+            width: 120px;
+            margin-right: 8px;
+        }
+
         .setting-control select {
-            padding: 6px 10px;
-            border: 1px solid rgba(104, 58, 183, 0.2);
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.8);
-            color: #333;
-            font-size: 0.9rem;
-            min-width: 80px;
+            padding: 8px 12px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #000;
+            font-size: 17px;
+            min-width: 120px;
         }
-        
-        .footer {
-            padding: 20px;
-            border-top: 1px solid rgba(104, 58, 183, 0.1);
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
+
+        .range-value {
+            font-size: 17px;
+            color: #007aff;
+            font-weight: 500;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .content-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e5e5e5;
+            background: #f8f8f8;
             display: flex;
             gap: 12px;
             justify-content: flex-end;
         }
-        
+
         .btn {
-            padding: 8px 16px;
+            padding: 10px 20px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 17px;
             font-weight: 500;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
-        
+
         .btn-primary {
-            background: #667eea;
+            background: #007aff;
             color: white;
         }
-        
+
         .btn-primary:hover {
-            background: #5a6fd8;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            background: #0056cc;
         }
-        
+
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.8);
-            color: #666;
-            border: 1px solid rgba(104, 58, 183, 0.2);
+            background: #ffffff;
+            color: #007aff;
+            border: 1px solid #007aff;
         }
-        
+
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.95);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: #f0f8ff;
+        }
+
+        .hidden {
+            display: none;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <div class="header">
-            <h1>⚙️ 设置</h1>
+        <!-- 左侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>设置</h1>
+            </div>
+            <div class="sidebar-menu">
+                <button class="menu-item active" onclick="showSection('appearance')">
+                    <span class="menu-item-icon">🎨</span>
+                    外观
+                </button>
+                <button class="menu-item" onclick="showSection('behavior')">
+                    <span class="menu-item-icon">⚡</span>
+                    行为
+                </button>
+                <button class="menu-item" onclick="showSection('shortcuts')">
+                    <span class="menu-item-icon">⌨️</span>
+                    快捷键
+                </button>
+                <button class="menu-item" onclick="showSection('about')">
+                    <span class="menu-item-icon">ℹ️</span>
+                    关于
+                </button>
+            </div>
         </div>
-        
+
+        <!-- 右侧内容区 -->
         <div class="content">
-            <div class="setting-group">
-                <h3>外观设置</h3>
-                <div class="setting-item">
-                    <span class="setting-label">窗口透明度</span>
-                    <div class="setting-control">
-                        <input type="range" id="opacity" min="0.5" max="1" step="0.1" value="0.95">
+            <div class="content-header">
+                <h2 id="content-title">外观</h2>
+            </div>
+
+            <div class="content-body">
+                <!-- 外观设置 -->
+                <div id="appearance-section" class="setting-section">
+                    <div class="section-title">窗口外观</div>
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">窗口透明度</div>
+                                <div class="setting-description">调整窗口的透明程度</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="range" id="opacity" min="0.5" max="1" step="0.1" value="0.95"
+                                    oninput="updateRangeValue(this, 'opacity-value')">
+                                <span class="range-value" id="opacity-value">95%</span>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">始终置顶</div>
+                                <div class="setting-description">窗口始终显示在其他应用之上</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="toggle-switch" id="alwaysOnTop" onclick="toggleSwitch(this)"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="setting-item">
-                    <span class="setting-label">始终置顶</span>
-                    <div class="setting-control">
-                        <input type="checkbox" id="alwaysOnTop">
+
+                <!-- 行为设置 -->
+                <div id="behavior-section" class="setting-section hidden">
+                    <div class="section-title">启动行为</div>
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">启动时自动显示</div>
+                                <div class="setting-description">应用启动时自动显示主窗口</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="toggle-switch active" id="autoShow" onclick="toggleSwitch(this)"></div>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">最小化到系统托盘</div>
+                                <div class="setting-description">关闭窗口时最小化到系统托盘</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="toggle-switch active" id="minimizeToTray" onclick="toggleSwitch(this)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 快捷键设置 -->
+                <div id="shortcuts-section" class="setting-section hidden">
+                    <div class="section-title">全局快捷键</div>
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">显示/隐藏快捷键</div>
+                                <div class="setting-description">用于快速显示或隐藏应用窗口</div>
+                            </div>
+                            <div class="setting-control">
+                                <select id="hotkey">
+                                    <option value="ctrl+shift+t">Ctrl+Shift+T</option>
+                                    <option value="alt+space">Alt+Space</option>
+                                    <option value="ctrl+`">Ctrl+`</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 关于页面 -->
+                <div id="about-section" class="setting-section hidden">
+                    <div class="section-title">应用信息</div>
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">版本</div>
+                                <div class="setting-description">当前应用版本号</div>
+                            </div>
+                            <div class="setting-control">
+                                <span style="color: #6d6d70;">1.0.0</span>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">构建时间</div>
+                                <div class="setting-description">应用构建日期</div>
+                            </div>
+                            <div class="setting-control">
+                                <span style="color: #6d6d70;">2024-01-01</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="setting-group">
-                <h3>行为设置</h3>
-                <div class="setting-item">
-                    <span class="setting-label">启动时自动显示</span>
-                    <div class="setting-control">
-                        <input type="checkbox" id="autoShow" checked>
-                    </div>
-                </div>
-                <div class="setting-item">
-                    <span class="setting-label">最小化到系统托盘</span>
-                    <div class="setting-control">
-                        <input type="checkbox" id="minimizeToTray" checked>
-                    </div>
-                </div>
+
+            <div class="content-footer">
+                <button class="btn btn-secondary" onclick="closeWindow()">取消</button>
+                <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
             </div>
-            
-            <div class="setting-group">
-                <h3>快捷键设置</h3>
-                <div class="setting-item">
-                    <span class="setting-label">显示/隐藏快捷键</span>
-                    <div class="setting-control">
-                        <select id="hotkey">
-                            <option value="ctrl+shift+t">Ctrl+Shift+T</option>
-                            <option value="alt+space">Alt+Space</option>
-                            <option value="ctrl+`">Ctrl+`</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <button class="btn btn-secondary" onclick="closeWindow()">取消</button>
-            <button class="btn btn-primary" onclick="saveSettings()">保存</button>
         </div>
     </div>
 
     <script>
+        // 显示指定的设置部分
+        function showSection(sectionName) {
+            // 隐藏所有部分
+            const sections = document.querySelectorAll('.setting-section');
+            sections.forEach(section => section.classList.add('hidden'));
+
+            // 移除所有菜单项的激活状态
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => item.classList.remove('active'));
+
+            // 显示选中的部分
+            const targetSection = document.getElementById(sectionName + '-section');
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+            }
+
+            // 激活对应的菜单项
+            event.target.classList.add('active');
+
+            // 更新标题
+            const titles = {
+                'appearance': '外观',
+                'behavior': '行为',
+                'shortcuts': '快捷键',
+                'about': '关于'
+            };
+            document.getElementById('content-title').textContent = titles[sectionName] || '设置';
+        }
+
+        // 切换开关状态
+        function toggleSwitch(element) {
+            element.classList.toggle('active');
+        }
+
+        // 更新范围滑块显示值
+        function updateRangeValue(slider, valueId) {
+            const value = Math.round(slider.value * 100);
+            document.getElementById(valueId).textContent = value + '%';
+        }
+
         // 加载设置
         function loadSettings() {
+            // 初始化透明度显示值
+            updateRangeValue(document.getElementById('opacity'), 'opacity-value');
+
             // 这里可以从 Tauri 后端加载设置
             console.log('加载设置');
         }
-        
+
         // 保存设置
         function saveSettings() {
             const settings = {
                 opacity: document.getElementById('opacity').value,
-                alwaysOnTop: document.getElementById('alwaysOnTop').checked,
-                autoShow: document.getElementById('autoShow').checked,
-                minimizeToTray: document.getElementById('minimizeToTray').checked,
+                alwaysOnTop: document.getElementById('alwaysOnTop').classList.contains('active'),
+                autoShow: document.getElementById('autoShow').classList.contains('active'),
+                minimizeToTray: document.getElementById('minimizeToTray').classList.contains('active'),
                 hotkey: document.getElementById('hotkey').value
             };
-            
+
             console.log('保存设置:', settings);
-            
+
             // 这里可以调用 Tauri 命令保存设置
             // 暂时直接关闭窗口
             closeWindow();
         }
-        
+
         // 关闭窗口
         function closeWindow() {
             if (window.__TAURI__) {
                 window.__TAURI__.window.getCurrent().close();
+            } else {
+                window.close();
             }
         }
-        
+
         // 页面加载完成后加载设置
         document.addEventListener('DOMContentLoaded', loadSettings);
     </script>
 </body>
+
 </html>
