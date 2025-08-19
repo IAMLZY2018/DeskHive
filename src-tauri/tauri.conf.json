@@ -34,7 +34,7 @@
         "height": 600,
         "resizable": false,
         "fullscreen": false,
-        "decorations": true,
+        "decorations": false,
         "alwaysOnTop": false,
         "visible": false,
         "skipTaskbar": false,
