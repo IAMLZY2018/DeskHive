@@ -2,7 +2,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::path::PathBuf;
 use std::fs;
 use serde::{Deserialize, Serialize};
-use tauri::Manager;
+use tauri::{Manager, Emitter};
 
 #[cfg(target_os = "windows")]
 use windows::Win32::UI::WindowsAndMessaging::{SetWindowLongPtrW, GetWindowLongPtrW, SetLayeredWindowAttributes, GWL_EXSTYLE, WS_EX_LAYERED, LWA_ALPHA};
@@ -32,6 +32,7 @@ struct TodoData {
 struct AppSettings {
     opacity: f64,
     always_on_top: bool,
+    disable_drag: bool,
     auto_show: bool,
     minimize_to_tray: bool,
     hotkey: String,
@@ -129,6 +130,9 @@ async fn save_app_settings(app: tauri::AppHandle, settings: AppSettings) -> Resu
         
         // 设置置顶状态
         let _ = main_window.set_always_on_top(settings.always_on_top);
+        
+        // 通知前端更新拖动设置
+        let _ = main_window.emit("drag-setting-changed", settings.disable_drag);
     }
     
     Ok(())
@@ -145,6 +149,7 @@ async fn load_app_settings(app: tauri::AppHandle) -> Result<AppSettings, String>
         return Ok(AppSettings {
             opacity: 0.95,
             always_on_top: false,
+            disable_drag: false,
             auto_show: true,
             minimize_to_tray: true,
             hotkey: "ctrl+shift+t".to_string(),

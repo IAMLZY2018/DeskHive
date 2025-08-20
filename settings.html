@@ -366,6 +366,15 @@
                                 <div class="toggle-switch" id="alwaysOnTop" onclick="toggleSwitch(this)"></div>
                             </div>
                         </div>
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">禁止拖动窗口</div>
+                                <div class="setting-description">禁用标题栏拖动功能，防止意外移动窗口</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="toggle-switch" id="disableDrag" onclick="toggleSwitch(this)"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -544,6 +553,13 @@
                         alwaysOnTopSwitch.classList.remove('active');
                     }
 
+                    const disableDragSwitch = document.getElementById('disableDrag');
+                    if (settings.disable_drag) {
+                        disableDragSwitch.classList.add('active');
+                    } else {
+                        disableDragSwitch.classList.remove('active');
+                    }
+
                     const autoShowSwitch = document.getElementById('autoShow');
                     if (settings.auto_show) {
                         autoShowSwitch.classList.add('active');
@@ -576,6 +592,7 @@
                     const settings = {
                         opacity: parseFloat(document.getElementById('opacity').value),
                         always_on_top: document.getElementById('alwaysOnTop').classList.contains('active'),
+                        disable_drag: document.getElementById('disableDrag').classList.contains('active'),
                         auto_show: document.getElementById('autoShow').classList.contains('active'),
                         minimize_to_tray: document.getElementById('minimizeToTray').classList.contains('active'),
                         hotkey: document.getElementById('hotkey').value

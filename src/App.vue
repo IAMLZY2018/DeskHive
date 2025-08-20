@@ -1,7 +1,7 @@
 <template>
   <div class="container">
-    <header data-tauri-drag-region>
-      <div class="header-title" data-tauri-drag-region>🐝 DeskHive</div>
+    <header :data-tauri-drag-region="!isDragDisabled ? '' : null">
+      <div class="header-title" :data-tauri-drag-region="!isDragDisabled ? '' : null">🐝 DeskHive</div>
       <div class="header-right">
         <div class="progress-indicator">{{ completedTasks }}/{{ totalTasks }}</div>
         <button class="settings-btn" @click="openSettings">⚙️</button>
@@ -44,6 +44,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { TransitionGroup } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 
 interface Todo {
   text: string;
@@ -56,6 +57,9 @@ const completedTodos = ref<Todo[]>([]);
 const newTaskText = ref('');
 const totalTasks = computed(() => pendingTodos.value.length + completedTodos.value.length);
 const completedTasks = computed(() => completedTodos.value.length);
+
+// 拖动设置状态
+const isDragDisabled = ref(false);
 
 // 保存数据到本地文件
 async function saveTodoData() {
@@ -148,12 +152,40 @@ function deleteCompletedTodo(index: number) {
   saveTodoData();
 }
 
+// 加载应用设置
+async function loadAppSettings() {
+  try {
+    const settings = await invoke('load_app_settings') as {
+      opacity: number,
+      always_on_top: boolean,
+      disable_drag: boolean,
+      auto_show: boolean,
+      minimize_to_tray: boolean,
+      hotkey: string
+    };
+    isDragDisabled.value = settings.disable_drag;
+    console.log('应用设置加载成功，拖动禁用状态:', isDragDisabled.value);
+  } catch (error) {
+    console.error('加载应用设置失败:', error);
+  }
+}
+
 // 组件挂载时加载数据
-onMounted(() => {
+onMounted(async () => {
   console.log('前端渲染完成');
   console.log('Vue 组件已挂载');
   console.log('待办事项数量:', pendingTodos.value.length);
-  loadTodoData();
+  
+  // 加载todo数据和应用设置
+  await loadTodoData();
+  await loadAppSettings();
+  
+  // 监听拖动设置变化
+  const currentWindow = getCurrentWindow();
+  await currentWindow.listen('drag-setting-changed', (event) => {
+    isDragDisabled.value = event.payload as boolean;
+    console.log('拖动设置已更新:', isDragDisabled.value);
+  });
 });
 </script>
 
