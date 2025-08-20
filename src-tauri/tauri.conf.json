@@ -22,10 +22,10 @@
         "fullscreen": false,
         "decorations": false,
         "alwaysOnTop": false,
-        "visible": false,
+        "visible": true,
         "skipTaskbar": true,
         "transparent": false,
-        "focus": false
+        "focus": true
       },
       {
         "label": "settings",

@@ -8,8 +8,40 @@
     <script type="module">
         import { invoke } from '@tauri-apps/api/core';
         import { getCurrentWindow } from '@tauri-apps/api/window';
+
+        // 初始化 Tauri API
         window.__TAURI_INVOKE__ = invoke;
-        window.__TAURI_WINDOW__ = getCurrentWindow();
+
+        // 获取当前窗口实例
+        const currentWindow = getCurrentWindow();
+        window.__TAURI_WINDOW__ = currentWindow;
+
+        // 将关闭窗口函数暴露到全局作用域
+        window.closeWindow = async function () {
+            try {
+                console.log('调用后端命令关闭设置窗口...');
+                await invoke('close_settings_window');
+                console.log('设置窗口关闭成功');
+            } catch (error) {
+                console.error('调用后端关闭命令失败:', error);
+
+                // 备用方案：直接调用窗口的 close 方法
+                try {
+                    await currentWindow.close();
+                    console.log('使用窗口 API 关闭成功');
+                } catch (fallbackError) {
+                    console.error('备用关闭方法也失败:', fallbackError);
+                }
+            }
+        };
+
+        // 确保窗口对象可用
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('设置页面加载完成');
+            if (!window.__TAURI_WINDOW__) {
+                window.__TAURI_WINDOW__ = getCurrentWindow();
+            }
+        });
     </script>
     <style>
         * {
@@ -35,6 +67,10 @@
             display: flex;
             overflow: hidden;
         }
+
+
+
+
 
         .sidebar {
             width: 240px;
@@ -273,6 +309,7 @@
 
 <body>
     <div class="container">
+
         <!-- 左侧边栏 -->
         <div class="sidebar">
             <div class="sidebar-header">
@@ -407,88 +444,81 @@
             <div class="content-footer">
                 <button class="btn btn-secondary" onclick="closeWindow()">取消</button>
                 <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
+            </div>
         </div>
-    </div>
 
-    <script>
-        // 显示指定的设置部分
-        function showSection(sectionName) {
-            // 隐藏所有部分
-            const sections = document.querySelectorAll('.setting-section');
-            sections.forEach(section => section.classList.add('hidden'));
+        <script>
+            // 显示指定的设置部分
+            function showSection(sectionName) {
+                // 隐藏所有部分
+                const sections = document.querySelectorAll('.setting-section');
+                sections.forEach(section => section.classList.add('hidden'));
 
-            // 移除所有菜单项的激活状态
-            const menuItems = document.querySelectorAll('.menu-item');
-            menuItems.forEach(item => item.classList.remove('active'));
+                // 移除所有菜单项的激活状态
+                const menuItems = document.querySelectorAll('.menu-item');
+                menuItems.forEach(item => item.classList.remove('active'));
 
-            // 显示选中的部分
-            const targetSection = document.getElementById(sectionName + '-section');
-            if (targetSection) {
-                targetSection.classList.remove('hidden');
+                // 显示选中的部分
+                const targetSection = document.getElementById(sectionName + '-section');
+                if (targetSection) {
+                    targetSection.classList.remove('hidden');
+                }
+
+                // 激活对应的菜单项
+                event.target.classList.add('active');
+
+                // 更新标题
+                const titles = {
+                    'appearance': '外观',
+                    'behavior': '行为',
+                    'shortcuts': '快捷键',
+                    'about': '关于'
+                };
+                document.getElementById('content-title').textContent = titles[sectionName] || '设置';
             }
 
-            // 激活对应的菜单项
-            event.target.classList.add('active');
-
-            // 更新标题
-            const titles = {
-                'appearance': '外观',
-                'behavior': '行为',
-                'shortcuts': '快捷键',
-                'about': '关于'
-            };
-            document.getElementById('content-title').textContent = titles[sectionName] || '设置';
-        }
-
-        // 切换开关状态
-        function toggleSwitch(element) {
-            element.classList.toggle('active');
-        }
-
-        // 更新范围滑块显示值
-        function updateRangeValue(slider, valueId) {
-            const value = Math.round(slider.value * 100);
-            document.getElementById(valueId).textContent = value + '%';
-        }
-
-        // 加载设置
-        function loadSettings() {
-            // 初始化透明度显示值
-            updateRangeValue(document.getElementById('opacity'), 'opacity-value');
-
-            // 这里可以从 Tauri 后端加载设置
-            console.log('加载设置');
-        }
-
-        // 保存设置
-        function saveSettings() {
-            const settings = {
-                opacity: document.getElementById('opacity').value,
-                alwaysOnTop: document.getElementById('alwaysOnTop').classList.contains('active'),
-                autoShow: document.getElementById('autoShow').classList.contains('active'),
-                minimizeToTray: document.getElementById('minimizeToTray').classList.contains('active'),
-                hotkey: document.getElementById('hotkey').value
-            };
-
-            console.log('保存设置:', settings);
-
-            // 这里可以调用 Tauri 命令保存设置
-            // 暂时直接关闭窗口
-            closeWindow();
-        }
-
-        // 关闭窗口
-        function closeWindow() {
-            if (window.__TAURI_WINDOW__) {
-                window.__TAURI_WINDOW__.close();
-            } else {
-                window.close();
+            // 切换开关状态
+            function toggleSwitch(element) {
+                element.classList.toggle('active');
             }
-        }
 
-        // 页面加载完成后加载设置
-        document.addEventListener('DOMContentLoaded', loadSettings);
-    </script>
+            // 更新范围滑块显示值
+            function updateRangeValue(slider, valueId) {
+                const value = Math.round(slider.value * 100);
+                document.getElementById(valueId).textContent = value + '%';
+            }
+
+            // 加载设置
+            function loadSettings() {
+                // 初始化透明度显示值
+                updateRangeValue(document.getElementById('opacity'), 'opacity-value');
+
+                // 这里可以从 Tauri 后端加载设置
+                console.log('加载设置');
+            }
+
+            // 保存设置
+            function saveSettings() {
+                const settings = {
+                    opacity: document.getElementById('opacity').value,
+                    alwaysOnTop: document.getElementById('alwaysOnTop').classList.contains('active'),
+                    autoShow: document.getElementById('autoShow').classList.contains('active'),
+                    minimizeToTray: document.getElementById('minimizeToTray').classList.contains('active'),
+                    hotkey: document.getElementById('hotkey').value
+                };
+
+                console.log('保存设置:', settings);
+
+                // 这里可以调用 Tauri 命令保存设置
+                // 暂时直接关闭窗口
+                closeWindow();
+            }
+
+            // 关闭窗口函数已在模块脚本中定义
+
+            // 页面加载完成后加载设置
+            document.addEventListener('DOMContentLoaded', loadSettings);
+        </script>
 </body>
 
 </html>

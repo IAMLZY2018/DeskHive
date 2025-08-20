@@ -84,6 +84,15 @@ async fn load_todo_data(app: tauri::AppHandle) -> Result<TodoData, String> {
     Ok(todo_data)
 }
 
+// Tauri 命令：关闭设置窗口
+#[tauri::command]
+async fn close_settings_window(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("settings") {
+        window.close().map_err(|e| format!("关闭设置窗口失败: {}", e))?;
+    }
+    Ok(())
+}
+
 // Tauri 命令：打开设置窗口
 #[tauri::command]
 async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
@@ -106,7 +115,7 @@ async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
     .min_inner_size(800.0, 600.0)
     .center()
     .resizable(false)
-    .decorations(true)
+    .decorations(false)
     .always_on_top(false)
     .skip_taskbar(false)
     .build()
@@ -118,7 +127,7 @@ async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![open_settings_window, save_todo_data, load_todo_data])
+        .invoke_handler(tauri::generate_handler![open_settings_window, close_settings_window, save_todo_data, load_todo_data])
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -130,21 +139,9 @@ pub fn run() {
 
             // 获取主窗口
             if let Some(window) = app.get_webview_window("main") {
-                // 使用更简单的方法优化启动体验
-                #[cfg(target_os = "windows")]
-                {
-                    // 先隐藏窗口
-                    let _ = window.hide();
-
-                    // 创建一个线程，短暂延迟后显示窗口
-                    let win_load = window.clone();
-                    std::thread::spawn(move || {
-                        // 等待一小段时间，让前端有时间渲染
-                        std::thread::sleep(std::time::Duration::from_millis(300));
-                        // 显示窗口
-                        let _ = win_load.show();
-                    });
-                }
+                // 简化启动逻辑，直接显示窗口
+                let _ = window.show();
+                let _ = window.set_focus();
 
                 // 在Tauri 2.x中处理窗口事件
                 #[cfg(target_os = "windows")]

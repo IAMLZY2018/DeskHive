@@ -151,6 +151,8 @@ function deleteCompletedTodo(index: number) {
 // 组件挂载时加载数据
 onMounted(() => {
   console.log('前端渲染完成');
+  console.log('Vue 组件已挂载');
+  console.log('待办事项数量:', pendingTodos.value.length);
   loadTodoData();
 });
 </script>
