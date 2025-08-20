@@ -486,32 +486,91 @@
             function updateRangeValue(slider, valueId) {
                 const value = Math.round(slider.value * 100);
                 document.getElementById(valueId).textContent = value + '%';
+                
+                // 如果是透明度滑块，实时应用到主窗口
+                if (slider.id === 'opacity') {
+                    applyOpacityPreview(slider.value);
+                }
+            }
+            
+            // 实时预览透明度
+            async function applyOpacityPreview(opacity) {
+                try {
+                    await window.__TAURI_INVOKE__('apply_opacity', { opacity: parseFloat(opacity) });
+                } catch (error) {
+                    console.error('应用透明度预览失败:', error);
+                }
             }
 
             // 加载设置
-            function loadSettings() {
-                // 初始化透明度显示值
-                updateRangeValue(document.getElementById('opacity'), 'opacity-value');
-
-                // 这里可以从 Tauri 后端加载设置
-                console.log('加载设置');
+            async function loadSettings() {
+                try {
+                    console.log('开始加载设置...');
+                    const settings = await window.__TAURI_INVOKE__('load_app_settings');
+                    console.log('加载的设置:', settings);
+                    
+                    // 应用设置到界面
+                    const opacitySlider = document.getElementById('opacity');
+                    opacitySlider.value = settings.opacity;
+                    updateRangeValue(opacitySlider, 'opacity-value');
+                    
+                    // 设置开关状态
+                    const alwaysOnTopSwitch = document.getElementById('alwaysOnTop');
+                    if (settings.always_on_top) {
+                        alwaysOnTopSwitch.classList.add('active');
+                    } else {
+                        alwaysOnTopSwitch.classList.remove('active');
+                    }
+                    
+                    const autoShowSwitch = document.getElementById('autoShow');
+                    if (settings.auto_show) {
+                        autoShowSwitch.classList.add('active');
+                    } else {
+                        autoShowSwitch.classList.remove('active');
+                    }
+                    
+                    const minimizeToTraySwitch = document.getElementById('minimizeToTray');
+                    if (settings.minimize_to_tray) {
+                        minimizeToTraySwitch.classList.add('active');
+                    } else {
+                        minimizeToTraySwitch.classList.remove('active');
+                    }
+                    
+                    // 设置快捷键
+                    const hotkeySelect = document.getElementById('hotkey');
+                    hotkeySelect.value = settings.hotkey;
+                    
+                    console.log('设置加载完成');
+                } catch (error) {
+                    console.error('加载设置失败:', error);
+                    // 使用默认值
+                    updateRangeValue(document.getElementById('opacity'), 'opacity-value');
+                }
             }
 
             // 保存设置
-            function saveSettings() {
-                const settings = {
-                    opacity: document.getElementById('opacity').value,
-                    alwaysOnTop: document.getElementById('alwaysOnTop').classList.contains('active'),
-                    autoShow: document.getElementById('autoShow').classList.contains('active'),
-                    minimizeToTray: document.getElementById('minimizeToTray').classList.contains('active'),
-                    hotkey: document.getElementById('hotkey').value
-                };
+            async function saveSettings() {
+                try {
+                    const settings = {
+                        opacity: parseFloat(document.getElementById('opacity').value),
+                        always_on_top: document.getElementById('alwaysOnTop').classList.contains('active'),
+                        auto_show: document.getElementById('autoShow').classList.contains('active'),
+                        minimize_to_tray: document.getElementById('minimizeToTray').classList.contains('active'),
+                        hotkey: document.getElementById('hotkey').value
+                    };
 
-                console.log('保存设置:', settings);
+                    console.log('保存设置:', settings);
 
-                // 这里可以调用 Tauri 命令保存设置
-                // 暂时直接关闭窗口
-                closeWindow();
+                    // 调用 Tauri 命令保存设置
+                    await window.__TAURI_INVOKE__('save_app_settings', { settings });
+                    console.log('设置保存成功');
+                    
+                    // 关闭设置窗口
+                    closeWindow();
+                } catch (error) {
+                    console.error('保存设置失败:', error);
+                    alert('保存设置失败: ' + error);
+                }
             }
 
             // 关闭窗口函数已在模块脚本中定义
