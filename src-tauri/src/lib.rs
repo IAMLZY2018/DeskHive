@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use std::fs;
 use std::time::{Duration, Instant};
 use serde::{Deserialize, Serialize};
-use tauri::{Manager, Emitter};
+use tauri::{Manager, Emitter, tray::{TrayIconBuilder, TrayIconEvent}, menu::{MenuBuilder, MenuItemBuilder}};
 
 #[cfg(target_os = "windows")]
 use windows::Win32::UI::WindowsAndMessaging::{SetWindowLongPtrW, GetWindowLongPtrW, SetLayeredWindowAttributes, GWL_EXSTYLE, WS_EX_LAYERED, LWA_ALPHA};
@@ -479,6 +479,55 @@ fn set_window_opacity(_window: &tauri::WebviewWindow, _opacity: f64) -> Result<(
     Ok(())
 }
 
+// Tauri 命令：显示/隐藏主窗口
+#[tauri::command]
+async fn toggle_main_window(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("main") {
+        match window.is_visible() {
+            Ok(true) => {
+                let _ = window.hide();
+            }
+            Ok(false) => {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+            Err(_) => {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }
+    }
+    Ok(())
+}
+
+// Tauri 命令：最小化到托盘
+#[tauri::command]
+async fn minimize_to_tray(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.hide();
+    }
+    Ok(())
+}
+
+// Tauri 命令：从托盘恢复
+#[tauri::command]
+async fn restore_from_tray(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+    Ok(())
+}
+
+// Tauri 命令：退出应用
+#[tauri::command]
+async fn quit_app(app: tauri::AppHandle) -> Result<(), String> {
+    app.exit(0);
+    Ok(())
+}
+
+
+
 // Tauri 命令：打开设置窗口
 #[tauri::command]
 async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
@@ -522,7 +571,11 @@ pub fn run() {
             load_app_settings,
             apply_opacity,
             save_window_position,
-            load_window_position
+            load_window_position,
+            toggle_main_window,
+            quit_app,
+            minimize_to_tray,
+            restore_from_tray
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {
@@ -532,6 +585,56 @@ pub fn run() {
                         .build(),
                 )?;
             }
+
+            // 创建系统托盘菜单
+            let show_hide = MenuItemBuilder::with_id("show_hide", "显示/隐藏").build(app)?;
+            let settings = MenuItemBuilder::with_id("settings", "设置").build(app)?;
+            let quit = MenuItemBuilder::with_id("quit", "退出").build(app)?;
+            
+            let menu = MenuBuilder::new(app)
+                .items(&[&show_hide, &settings, &quit])
+                .build()?;
+
+            // 创建系统托盘图标
+            let _tray = TrayIconBuilder::with_id("main")
+                .menu(&menu)
+                .tooltip("Todo 桌面助手")
+                .icon(app.default_window_icon().unwrap().clone())
+                .on_tray_icon_event(|tray, event| {
+                    match event {
+                        TrayIconEvent::Click { button: tauri::tray::MouseButton::Left, .. } => {
+                            let app = tray.app_handle().clone();
+                            tauri::async_runtime::spawn(async move {
+                                let _ = toggle_main_window(app).await;
+                            });
+                        }
+                        _ => {}
+                    }
+                })
+                .on_menu_event(|app, event| {
+                    match event.id().as_ref() {
+                        "show_hide" => {
+                            let app_handle = app.clone();
+                            tauri::async_runtime::spawn(async move {
+                                let _ = toggle_main_window(app_handle).await;
+                            });
+                        }
+                        "settings" => {
+                            let app_handle = app.clone();
+                            tauri::async_runtime::spawn(async move {
+                                let _ = open_settings_window(app_handle).await;
+                            });
+                        }
+                        "quit" => {
+                            let app_handle = app.clone();
+                            tauri::async_runtime::spawn(async move {
+                                let _ = quit_app(app_handle).await;
+                            });
+                        }
+                        _ => {}
+                    }
+                })
+                .build(app)?;
 
             // 获取主窗口
             if let Some(window) = app.get_webview_window("main") {
@@ -642,15 +745,21 @@ pub fn run() {
                                 // 记录拖动事件，但不立即处理
                                 debouncer_for_events.on_drag_move(position.x, position.y);
                             }
-                            // 检测窗口隐藏事件
-                            tauri::WindowEvent::CloseRequested { .. } => {
-                                // 在关闭前保存当前位置
+                            // 检测窗口关闭请求事件 - 最小化到托盘而不是退出
+                            tauri::WindowEvent::CloseRequested { api, .. } => {
+                                // 阻止默认的关闭行为
+                                api.prevent_close();
+                                
+                                // 在隐藏前保存当前位置
                                 if let Ok(current_position) = win_handle.outer_position() {
                                     let app_handle = app_handle_for_events.clone();
                                     tauri::async_runtime::spawn(async move {
                                         let _ = save_window_position(app_handle, current_position.x, current_position.y).await;
                                     });
                                 }
+                                
+                                // 隐藏窗口到托盘
+                                let _ = win_handle.hide();
                             }
                             // 其他事件
                             _ => {}
