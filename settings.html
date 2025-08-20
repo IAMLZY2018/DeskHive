@@ -442,12 +442,15 @@
             </div>
 
             <div class="content-footer">
-                <button class="btn btn-secondary" onclick="closeWindow()">取消</button>
+                <button class="btn btn-secondary" onclick="cancelSettings()">取消</button>
                 <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
             </div>
         </div>
 
         <script>
+            // 保存原始透明度值，用于取消时恢复
+            let originalOpacity = 0.95;
+
             // 显示指定的设置部分
             function showSection(sectionName) {
                 // 隐藏所有部分
@@ -486,14 +489,14 @@
             function updateRangeValue(slider, valueId) {
                 const value = Math.round(slider.value * 100);
                 document.getElementById(valueId).textContent = value + '%';
-                
-                // 如果是透明度滑块，实时应用到主窗口
+
+                // 如果是透明度滑块，实时预览透明度效果
                 if (slider.id === 'opacity') {
                     applyOpacityPreview(slider.value);
                 }
             }
-            
-            // 实时预览透明度
+
+            // 实时预览透明度（仅用于预览，不保存设置）
             async function applyOpacityPreview(opacity) {
                 try {
                     await window.__TAURI_INVOKE__('apply_opacity', { opacity: parseFloat(opacity) });
@@ -502,18 +505,37 @@
                 }
             }
 
+            // 恢复原始透明度
+            async function restoreOriginalOpacity() {
+                try {
+                    await window.__TAURI_INVOKE__('apply_opacity', { opacity: originalOpacity });
+                    console.log('已恢复原始透明度:', originalOpacity);
+                } catch (error) {
+                    console.error('恢复原始透明度失败:', error);
+                }
+            }
+
+            // 取消设置（恢复原始透明度并关闭窗口）
+            async function cancelSettings() {
+                await restoreOriginalOpacity();
+                closeWindow();
+            }
+
             // 加载设置
             async function loadSettings() {
                 try {
                     console.log('开始加载设置...');
                     const settings = await window.__TAURI_INVOKE__('load_app_settings');
                     console.log('加载的设置:', settings);
-                    
+
+                    // 保存原始透明度值
+                    originalOpacity = settings.opacity;
+
                     // 应用设置到界面
                     const opacitySlider = document.getElementById('opacity');
                     opacitySlider.value = settings.opacity;
                     updateRangeValue(opacitySlider, 'opacity-value');
-                    
+
                     // 设置开关状态
                     const alwaysOnTopSwitch = document.getElementById('alwaysOnTop');
                     if (settings.always_on_top) {
@@ -521,25 +543,25 @@
                     } else {
                         alwaysOnTopSwitch.classList.remove('active');
                     }
-                    
+
                     const autoShowSwitch = document.getElementById('autoShow');
                     if (settings.auto_show) {
                         autoShowSwitch.classList.add('active');
                     } else {
                         autoShowSwitch.classList.remove('active');
                     }
-                    
+
                     const minimizeToTraySwitch = document.getElementById('minimizeToTray');
                     if (settings.minimize_to_tray) {
                         minimizeToTraySwitch.classList.add('active');
                     } else {
                         minimizeToTraySwitch.classList.remove('active');
                     }
-                    
+
                     // 设置快捷键
                     const hotkeySelect = document.getElementById('hotkey');
                     hotkeySelect.value = settings.hotkey;
-                    
+
                     console.log('设置加载完成');
                 } catch (error) {
                     console.error('加载设置失败:', error);
@@ -564,7 +586,7 @@
                     // 调用 Tauri 命令保存设置
                     await window.__TAURI_INVOKE__('save_app_settings', { settings });
                     console.log('设置保存成功');
-                    
+
                     // 关闭设置窗口
                     closeWindow();
                 } catch (error) {
