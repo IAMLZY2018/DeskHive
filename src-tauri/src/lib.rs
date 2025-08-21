@@ -144,8 +144,8 @@ async fn save_app_settings(app: tauri::AppHandle, settings: AppSettings) -> Resu
         // 设置透明度
         let _ = set_window_opacity(&main_window, settings.opacity);
         
-        // 设置置顶状态
-        let _ = main_window.set_always_on_top(settings.always_on_top);
+        // 不再设置置顶状态，always_on_top 现在表示"记住窗口位置"
+        // let _ = main_window.set_always_on_top(settings.always_on_top);
         
         // 通知前端更新拖动设置
         let _ = main_window.emit("drag-setting-changed", settings.disable_drag);
@@ -647,8 +647,7 @@ pub fn run() {
                         if let Some(main_window) = app_handle.get_webview_window("main") {
                             // 应用透明度设置
                             let _ = set_window_opacity(&main_window, settings.opacity);
-                            // 应用置顶设置
-                            let _ = main_window.set_always_on_top(settings.always_on_top);
+                            // 不再应用置顶设置，always_on_top 现在表示"记住窗口位置"
                         }
                     }
                     

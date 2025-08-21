@@ -360,10 +360,10 @@
                         <div class="setting-item">
                             <div>
                                 <div class="setting-label">记住窗口位置</div>
-                                <div class="setting-description">窗口始终显示在其他应用之上</div>
+                                <div class="setting-description">关闭后重新打开时恢复上次的窗口位置</div>
                             </div>
                             <div class="setting-control">
-                                <div class="toggle-switch" id="alwaysOnTop" onclick="toggleSwitch(this)"></div>
+                                <div class="toggle-switch" id="rememberPosition" onclick="toggleSwitch(this)"></div>
                             </div>
                         </div>
                         <div class="setting-item">
@@ -384,21 +384,20 @@
                     <div class="setting-group">
                         <div class="setting-item">
                             <div>
-                                <div class="setting-label">启动时自动显示</div>
-                                <div class="setting-description">应用启动时自动显示主窗口</div>
+                                <div class="setting-label">开机自启动</div>
+                                <div class="setting-description">系统启动时自动运行应用程序</div>
                             </div>
                             <div class="setting-control">
-                                <div class="toggle-switch active" id="autoShow" onclick="toggleSwitch(this)"></div>
+                                <div class="toggle-switch" id="autoStart" onclick="toggleSwitch(this)"></div>
                             </div>
                         </div>
                         <div class="setting-item">
                             <div>
-                                <div class="setting-label">最小化到系统托盘</div>
-                                <div class="setting-description">关闭窗口时最小化到系统托盘</div>
+                                <div class="setting-label">静默启动</div>
+                                <div class="setting-description">启动时不显示主窗口，直接最小化到系统托盘</div>
                             </div>
                             <div class="setting-control">
-                                <div class="toggle-switch active" id="minimizeToTray" onclick="toggleSwitch(this)">
-                                </div>
+                                <div class="toggle-switch" id="silentStart" onclick="toggleSwitch(this)"></div>
                             </div>
                         </div>
                     </div>
@@ -546,11 +545,11 @@
                     updateRangeValue(opacitySlider, 'opacity-value');
 
                     // 设置开关状态
-                    const alwaysOnTopSwitch = document.getElementById('alwaysOnTop');
+                    const rememberPositionSwitch = document.getElementById('rememberPosition');
                     if (settings.always_on_top) {
-                        alwaysOnTopSwitch.classList.add('active');
+                        rememberPositionSwitch.classList.add('active');
                     } else {
-                        alwaysOnTopSwitch.classList.remove('active');
+                        rememberPositionSwitch.classList.remove('active');
                     }
 
                     const disableDragSwitch = document.getElementById('disableDrag');
@@ -560,18 +559,18 @@
                         disableDragSwitch.classList.remove('active');
                     }
 
-                    const autoShowSwitch = document.getElementById('autoShow');
-                    if (settings.auto_show) {
-                        autoShowSwitch.classList.add('active');
+                    const autoStartSwitch = document.getElementById('autoStart');
+                    if (settings.auto_start) {
+                        autoStartSwitch.classList.add('active');
                     } else {
-                        autoShowSwitch.classList.remove('active');
+                        autoStartSwitch.classList.remove('active');
                     }
 
-                    const minimizeToTraySwitch = document.getElementById('minimizeToTray');
-                    if (settings.minimize_to_tray) {
-                        minimizeToTraySwitch.classList.add('active');
+                    const silentStartSwitch = document.getElementById('silentStart');
+                    if (settings.silent_start) {
+                        silentStartSwitch.classList.add('active');
                     } else {
-                        minimizeToTraySwitch.classList.remove('active');
+                        silentStartSwitch.classList.remove('active');
                     }
 
                     // 设置快捷键
@@ -591,10 +590,10 @@
                 try {
                     const settings = {
                         opacity: parseFloat(document.getElementById('opacity').value),
-                        always_on_top: document.getElementById('alwaysOnTop').classList.contains('active'),
+                        always_on_top: document.getElementById('rememberPosition').classList.contains('active'),
                         disable_drag: document.getElementById('disableDrag').classList.contains('active'),
-                        auto_show: document.getElementById('autoShow').classList.contains('active'),
-                        minimize_to_tray: document.getElementById('minimizeToTray').classList.contains('active'),
+                        auto_start: document.getElementById('autoStart').classList.contains('active'),
+                        silent_start: document.getElementById('silentStart').classList.contains('active'),
                         hotkey: document.getElementById('hotkey').value
                     };
 
