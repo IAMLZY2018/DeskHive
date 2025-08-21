@@ -11,6 +11,8 @@ use windows::Win32::UI::WindowsAndMessaging::{SetWindowLongPtrW, GetWindowLongPt
 #[cfg(target_os = "windows")]
 use windows::Win32::Foundation::{HWND, COLORREF};
 #[cfg(target_os = "windows")]
+use windows::Win32::System::Registry::{HKEY_CURRENT_USER, RegSetValueExW, RegDeleteValueW, RegOpenKeyExW, RegCloseKey, KEY_WRITE, REG_SZ};
+#[cfg(target_os = "windows")]
 use raw_window_handle::{HasWindowHandle, RawWindowHandle};
 
 // 创建一个全局变量来跟踪Win+D状态
@@ -46,6 +48,10 @@ struct AppSettings {
     auto_show: bool,
     #[serde(default = "default_minimize_to_tray")]
     minimize_to_tray: bool,
+    #[serde(default = "default_auto_start")]
+    auto_start: bool,
+    #[serde(default = "default_silent_start")]
+    silent_start: bool,
     hotkey: String,
 }
 
@@ -56,6 +62,92 @@ fn default_auto_show() -> bool {
 
 fn default_minimize_to_tray() -> bool {
     true
+}
+
+fn default_auto_start() -> bool {
+    false
+}
+
+fn default_silent_start() -> bool {
+    false
+}
+
+// Windows平台下的开机自启动实现
+#[cfg(target_os = "windows")]
+fn set_auto_start(app_handle: &tauri::AppHandle, enable: bool) -> Result<(), String> {
+    use std::ffi::OsStr;
+    use std::os::windows::ffi::OsStrExt;
+    
+    unsafe {
+        // 打开注册表键
+        let subkey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+        let subkey_wide: Vec<u16> = OsStr::new(subkey).encode_wide().chain(Some(0)).collect();
+        
+        let mut hkey = windows::Win32::System::Registry::HKEY::default();
+        let result = RegOpenKeyExW(
+            HKEY_CURRENT_USER,
+            windows::core::PCWSTR(subkey_wide.as_ptr()),
+            0,
+            KEY_WRITE,
+            &mut hkey,
+        );
+        
+        if result.is_err() {
+            return Err(format!("无法打开注册表键: {:?}", result));
+        }
+        
+        // 获取应用程序路径
+        let app_name = app_handle.package_info().name.clone();
+        let app_path = std::env::current_exe()
+            .map_err(|e| format!("无法获取应用程序路径: {}", e))?;
+        
+        if enable {
+            // 将应用程序路径写入注册表
+            let path_str = app_path.to_string_lossy().to_string();
+            let path_wide: Vec<u16> = OsStr::new(&path_str).encode_wide().chain(Some(0)).collect();
+            let app_name_wide: Vec<u16> = OsStr::new(&app_name).encode_wide().chain(Some(0)).collect();
+            
+            let path_bytes = path_wide.as_ptr() as *const u8;
+            let path_bytes_len = (path_wide.len() * 2) as u32;
+            
+            let result = RegSetValueExW(
+                hkey,
+                windows::core::PCWSTR(app_name_wide.as_ptr()),
+                0,
+                REG_SZ,
+                Some(std::slice::from_raw_parts(path_bytes, path_bytes_len as usize)),
+            );
+            
+            if result.is_err() {
+                RegCloseKey(hkey);
+                return Err(format!("无法设置注册表值: {:?}", result));
+            }
+        } else {
+            // 从注册表中删除应用程序路径
+            let app_name_wide: Vec<u16> = OsStr::new(&app_name).encode_wide().chain(Some(0)).collect();
+            
+            let result = RegDeleteValueW(
+                hkey,
+                windows::core::PCWSTR(app_name_wide.as_ptr()),
+            );
+            
+            if result.is_err() && !result.to_hresult().is_ok() {
+                // 忽略"找不到"错误，因为这可能是首次禁用
+                RegCloseKey(hkey);
+                return Err(format!("无法删除注册表值: {:?}", result));
+            }
+        }
+        
+        RegCloseKey(hkey);
+    }
+    
+    Ok(())
+}
+
+#[cfg(not(target_os = "windows"))]
+fn set_auto_start(_app_handle: &tauri::AppHandle, _enable: bool) -> Result<(), String> {
+    // 在非Windows平台上，暂时不支持开机自启动
+    Err("当前平台不支持开机自启动功能".to_string())
 }
 
 // 窗口位置结构
@@ -144,6 +236,17 @@ async fn save_app_settings(app: tauri::AppHandle, settings: AppSettings) -> Resu
     let data_dir = get_data_dir(&app)?;
     let file_path = data_dir.join("app_settings.json");
     
+    // 处理开机自启动设置
+    if let Ok(old_settings) = load_app_settings(app.clone()).await {
+        // 如果开机自启动设置发生了变化，则更新系统设置
+        if old_settings.auto_start != settings.auto_start {
+            set_auto_start(&app, settings.auto_start)?;
+        }
+    } else {
+        // 如果无法加载旧设置，直接应用新设置
+        set_auto_start(&app, settings.auto_start)?;
+    }
+    
     let json_data = serde_json::to_string_pretty(&settings)
         .map_err(|e| format!("序列化设置失败: {}", e))?;
     
@@ -179,6 +282,8 @@ async fn load_app_settings(app: tauri::AppHandle) -> Result<AppSettings, String>
             disable_drag: false,
             auto_show: true,
             minimize_to_tray: true,
+            auto_start: false,
+            silent_start: false,
             hotkey: "ctrl+shift+t".to_string(),
         });
     }

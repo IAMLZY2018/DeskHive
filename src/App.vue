@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { TransitionGroup } from 'vue';
+
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 
