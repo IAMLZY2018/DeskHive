@@ -42,9 +42,20 @@ struct AppSettings {
     opacity: f64,
     always_on_top: bool,
     disable_drag: bool,
+    #[serde(default = "default_auto_show")]
     auto_show: bool,
+    #[serde(default = "default_minimize_to_tray")]
     minimize_to_tray: bool,
     hotkey: String,
+}
+
+// 默认值函数
+fn default_auto_show() -> bool {
+    true
+}
+
+fn default_minimize_to_tray() -> bool {
+    true
 }
 
 // 窗口位置结构
