@@ -9,25 +9,53 @@
         import { invoke } from '@tauri-apps/api/core';
         import { getCurrentWindow } from '@tauri-apps/api/window';
 
-        // 初始化 Tauri API
-        window.__TAURI_INVOKE__ = invoke;
+        // 确保 Tauri API 在所有环境中都能正确工作
+        let tauriInvoke, currentWindow;
+        
+        try {
+            tauriInvoke = invoke;
+            currentWindow = getCurrentWindow();
+            console.log('Tauri API 初始化成功');
+        } catch (error) {
+            console.error('Tauri API 初始化失败:', error);
+            // 在生产环境中，API 可能需要延迟初始化
+        }
 
-        // 获取当前窗口实例
-        const currentWindow = getCurrentWindow();
-        window.__TAURI_WINDOW__ = currentWindow;
+        // 安全的 invoke 包装函数
+        window.safeInvoke = async function(command, args) {
+            if (typeof tauriInvoke === 'function') {
+                return await tauriInvoke(command, args);
+            } else if (typeof window.__TAURI_INVOKE__ === 'function') {
+                return await window.__TAURI_INVOKE__(command, args);
+            } else {
+                throw new Error('Tauri invoke function is not available');
+            }
+        };
+
+        // 获取当前窗口的安全函数
+        window.getCurrentWindowSafe = function() {
+            if (currentWindow) {
+                return currentWindow;
+            } else if (window.__TAURI_WINDOW__) {
+                return window.__TAURI_WINDOW__;
+            } else {
+                return getCurrentWindow();
+            }
+        };
 
         // 将关闭窗口函数暴露到全局作用域
         window.closeWindow = async function () {
             try {
                 console.log('调用后端命令关闭设置窗口...');
-                await invoke('close_settings_window');
+                await window.safeInvoke('close_settings_window');
                 console.log('设置窗口关闭成功');
             } catch (error) {
                 console.error('调用后端关闭命令失败:', error);
 
                 // 备用方案：直接调用窗口的 close 方法
                 try {
-                    await currentWindow.close();
+                    const win = window.getCurrentWindowSafe();
+                    await win.close();
                     console.log('使用窗口 API 关闭成功');
                 } catch (fallbackError) {
                     console.error('备用关闭方法也失败:', fallbackError);
@@ -38,9 +66,22 @@
         // 确保窗口对象可用
         document.addEventListener('DOMContentLoaded', () => {
             console.log('设置页面加载完成');
-            if (!window.__TAURI_WINDOW__) {
-                window.__TAURI_WINDOW__ = getCurrentWindow();
-            }
+            // 延迟初始化，确保在生产环境中 Tauri API 已完全加载
+            setTimeout(() => {
+                try {
+                    if (!tauriInvoke) {
+                        tauriInvoke = invoke;
+                    }
+                    if (!currentWindow) {
+                        currentWindow = getCurrentWindow();
+                    }
+                    window.__TAURI_INVOKE__ = tauriInvoke;
+                    window.__TAURI_WINDOW__ = currentWindow;
+                    console.log('Tauri API 延迟初始化完成');
+                } catch (error) {
+                    console.warn('延迟初始化失败:', error);
+                }
+            }, 100);
         });
     </script>
     <style>
@@ -507,7 +548,7 @@
             // 实时预览透明度（仅用于预览，不保存设置）
             async function applyOpacityPreview(opacity) {
                 try {
-                    await window.__TAURI_INVOKE__('apply_opacity', { opacity: parseFloat(opacity) });
+                    await window.safeInvoke('apply_opacity', { opacity: parseFloat(opacity) });
                 } catch (error) {
                     console.error('应用透明度预览失败:', error);
                 }
@@ -516,7 +557,7 @@
             // 恢复原始透明度
             async function restoreOriginalOpacity() {
                 try {
-                    await window.__TAURI_INVOKE__('apply_opacity', { opacity: originalOpacity });
+                    await window.safeInvoke('apply_opacity', { opacity: originalOpacity });
                     console.log('已恢复原始透明度:', originalOpacity);
                 } catch (error) {
                     console.error('恢复原始透明度失败:', error);
@@ -533,7 +574,7 @@
             async function loadSettings() {
                 try {
                     console.log('开始加载设置...');
-                    const settings = await window.__TAURI_INVOKE__('load_app_settings');
+                    const settings = await window.safeInvoke('load_app_settings');
                     console.log('加载的设置:', settings);
 
                     // 保存原始透明度值
@@ -600,7 +641,7 @@
                     console.log('保存设置:', settings);
 
                     // 调用 Tauri 命令保存设置
-                    await window.__TAURI_INVOKE__('save_app_settings', { settings });
+                    await window.safeInvoke('save_app_settings', { settings });
                     console.log('设置保存成功');
 
                     // 关闭设置窗口

@@ -8,22 +8,36 @@ import { resolve } from 'path'
 export default defineConfig({
   plugins: [
     vue(),
-    // 自定义插件：复制设置页面到构建目录
+    // 复制设置页面
     {
       name: 'copy-settings-html',
       writeBundle() {
         try {
+          // 复制构建后的正确文件
           copyFileSync(
-            resolve(__dirname, 'settings.html'),
+            resolve(__dirname, 'dist/settings-simple.html'),
             resolve(__dirname, 'dist/settings.html')
           )
-          console.log('✓ 设置页面已复制到构建目录')
+          console.log('✓ 设置页面已正确复制')
         } catch (error) {
           console.warn('⚠ 复制设置页面失败:', error)
         }
       }
     }
   ],
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        settings: resolve(__dirname, 'settings-simple.html')
+      },
+      output: {
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
+      }
+    }
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
