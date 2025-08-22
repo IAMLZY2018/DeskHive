@@ -42,7 +42,6 @@ struct TodoData {
 #[derive(Serialize, Deserialize, Clone)]
 struct AppSettings {
     opacity: f64,
-    always_on_top: bool,
     disable_drag: bool,
     #[serde(default = "default_auto_show")]
     auto_show: bool,
@@ -278,7 +277,6 @@ async fn load_app_settings(app: tauri::AppHandle) -> Result<AppSettings, String>
         // 如果文件不存在，返回默认设置
         return Ok(AppSettings {
             opacity: 0.95,
-            always_on_top: false,
             disable_drag: false,
             auto_show: true,
             minimize_to_tray: true,
@@ -659,7 +657,7 @@ async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
     let _settings_window = tauri::WebviewWindowBuilder::new(
         &app,
         "settings",
-        tauri::WebviewUrl::App("settings.html".into()),
+        tauri::WebviewUrl::App("settings".into()),
     )
     .title("设置")
     .inner_size(800.0, 600.0)
@@ -754,23 +752,21 @@ pub fn run() {
 
             // 获取主窗口
             if let Some(window) = app.get_webview_window("main") {
-                // 加载并应用保存的设置和位置
+                // 同步加载并应用保存的设置和位置（在显示窗口之前）
                 let app_handle = app.handle().clone();
                 let window_clone = window.clone();
-                tauri::async_runtime::spawn(async move {
+                
+                // 使用阻塞调用确保在显示窗口前完成所有设置
+                tauri::async_runtime::block_on(async {
                     // 加载应用设置
                     if let Ok(settings) = load_app_settings(app_handle.clone()).await {
                         if let Some(main_window) = app_handle.get_webview_window("main") {
                             // 应用透明度设置
                             let _ = set_window_opacity(&main_window, settings.opacity);
-                            // 不再应用置顶设置，always_on_top 现在表示"记住窗口位置"
                         }
                     }
                     
-                    // 等待一小段时间确保窗口完全初始化
-                    std::thread::sleep(std::time::Duration::from_millis(100));
-                    
-                    // 加载窗口位置
+                    // 默认总是加载和应用保存的位置
                     match load_window_position(app_handle.clone()).await {
                         Ok(Some(position)) => {
                             println!("加载保存的位置: ({}, {})", position.x, position.y);
@@ -820,7 +816,7 @@ pub fn run() {
                     }
                 });
                 
-                // 简化启动逻辑，直接显示窗口
+                // 确保位置设置完成后再显示窗口
                 let _ = window.show();
                 let _ = window.set_focus();
 

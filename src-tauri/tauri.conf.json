@@ -38,7 +38,7 @@
         "skipTaskbar": false,
         "transparent": false,
         "center": true,
-        "url": "settings.html"
+        "url": "settings"
       }
     ],
 

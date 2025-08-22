@@ -49,19 +49,6 @@
             </div>
             <div class="setting-item">
               <div>
-                <div class="setting-label">记住窗口位置</div>
-                <div class="setting-description">关闭后重新打开时恢复上次的窗口位置</div>
-              </div>
-              <div class="setting-control">
-                <div 
-                  class="toggle-switch" 
-                  :class="{ active: settings.always_on_top }" 
-                  @click="settings.always_on_top = !settings.always_on_top"
-                ></div>
-              </div>
-            </div>
-            <div class="setting-item">
-              <div>
                 <div class="setting-label">禁止拖动窗口</div>
                 <div class="setting-description">禁用标题栏拖动功能，防止意外移动窗口</div>
               </div>
@@ -170,7 +157,6 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 
 interface AppSettings {
   opacity: number
-  always_on_top: boolean
   disable_drag: boolean
   auto_start: boolean
   silent_start: boolean
@@ -198,7 +184,6 @@ const sections: Record<SectionKey, Section> = {
 
 const settings = reactive<AppSettings>({
   opacity: 0.95,
-  always_on_top: false,
   disable_drag: false,
   auto_start: false,
   silent_start: false,
@@ -246,7 +231,6 @@ async function saveSettings() {
     // 确保数据类型正确，避免字符串传递给需要数字的字段
     const settingsToSave = {
       opacity: typeof settings.opacity === 'string' ? parseFloat(settings.opacity) : settings.opacity,
-      always_on_top: Boolean(settings.always_on_top),
       disable_drag: Boolean(settings.disable_drag),
       auto_start: Boolean(settings.auto_start),
       silent_start: Boolean(settings.silent_start),
@@ -322,19 +306,30 @@ onMounted(loadSettings)
 }
 
 .container {
-  width: 100%;
-  height: 100vh;
+  width: 100% !important;
+  height: 100vh !important;
   background: #ffffff;
-  display: flex;
-  overflow: hidden;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  overflow: hidden !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
 }
 
 .sidebar {
-  width: 240px;
+  width: 240px !important;
+  min-width: 240px !important;
+  max-width: 240px !important;
+  height: 100vh !important;
   background: #f8f8f8;
   border-right: 1px solid #e5e5e5;
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: column !important;
+  flex-shrink: 0 !important;
+  flex-basis: 240px !important;
+  overflow: hidden !important;
 }
 
 .sidebar-header {
@@ -342,6 +337,7 @@ onMounted(loadSettings)
   border-bottom: 1px solid #e5e5e5;
   -webkit-app-region: drag;
   user-select: none;
+  flex-shrink: 0;
 }
 
 .sidebar-header h1 {
@@ -354,6 +350,8 @@ onMounted(loadSettings)
 .sidebar-menu {
   flex: 1;
   padding: 8px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .menu-item {
@@ -387,9 +385,12 @@ onMounted(loadSettings)
 }
 
 .content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+  height: 100vh !important;
+  overflow: hidden !important;
 }
 
 .content-header {
@@ -397,6 +398,7 @@ onMounted(loadSettings)
   border-bottom: 1px solid #e5e5e5;
   -webkit-app-region: drag;
   user-select: none;
+  flex-shrink: 0;
 }
 
 .content-header h2 {
@@ -527,6 +529,7 @@ onMounted(loadSettings)
   display: flex;
   gap: 12px;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .btn {

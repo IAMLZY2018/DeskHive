@@ -157,7 +157,6 @@ async function loadAppSettings() {
   try {
     const settings = await invoke('load_app_settings') as {
       opacity: number,
-      always_on_top: boolean,
       disable_drag: boolean,
       auto_show: boolean,
       minimize_to_tray: boolean,
