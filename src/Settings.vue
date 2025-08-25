@@ -80,19 +80,7 @@
                 ></div>
               </div>
             </div>
-            <div class="setting-item">
-              <div>
-                <div class="setting-label">静默启动</div>
-                <div class="setting-description">启动时不显示主窗口，直接最小化到系统托盘</div>
-              </div>
-              <div class="setting-control">
-                <div 
-                  class="toggle-switch" 
-                  :class="{ active: settings.silent_start }" 
-                  @click="settings.silent_start = !settings.silent_start"
-                ></div>
-              </div>
-            </div>
+
           </div>
         </div>
 
@@ -159,7 +147,6 @@ interface AppSettings {
   opacity: number
   disable_drag: boolean
   auto_start: boolean
-  silent_start: boolean
   hotkey: string
 }
 
@@ -186,7 +173,6 @@ const settings = reactive<AppSettings>({
   opacity: 0.95,
   disable_drag: false,
   auto_start: false,
-  silent_start: false,
   hotkey: 'ctrl+shift+t'
 })
 
@@ -235,7 +221,6 @@ async function saveSettings() {
       opacity: typeof settings.opacity === 'string' ? parseFloat(settings.opacity) : settings.opacity,
       disable_drag: Boolean(settings.disable_drag),
       auto_start: Boolean(settings.auto_start),
-      silent_start: Boolean(settings.silent_start),
       hotkey: String(settings.hotkey)
     }
     
