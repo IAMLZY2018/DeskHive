@@ -32,8 +32,8 @@
           <div class="setting-group">
             <div class="setting-item">
               <div>
-                <div class="setting-label">窗口透明度</div>
-                <div class="setting-description">调整窗口的透明程度</div>
+                <div class="setting-label">主窗口透明度</div>
+                <div class="setting-description">调整主窗口（Todo窗口）的透明程度，不影响设置窗口</div>
               </div>
               <div class="setting-control">
                 <input 
@@ -198,20 +198,22 @@ const opacityValue = computed({
   }
 })
 
-// 实时预览透明度
+// 实时预览透明度（只应用于主窗口）
 async function applyOpacityPreview() {
   try {
+    // 只对主窗口应用透明度，设置窗口保持不透明
     await invoke('apply_opacity', { opacity: parseFloat(settings.opacity.toString()) })
   } catch (error) {
     console.error('应用透明度预览失败:', error)
   }
 }
 
-// 恢复原始透明度
+// 恢复原始透明度（只应用于主窗口）
 async function restoreOriginalOpacity() {
   try {
+    // 只对主窗口恢复透明度，设置窗口保持不透明
     await invoke('apply_opacity', { opacity: originalOpacity.value })
-    console.log('已恢复原始透明度:', originalOpacity.value)
+    console.log('已恢复主窗口原始透明度:', originalOpacity.value)
   } catch (error) {
     console.error('恢复原始透明度失败:', error)
   }
@@ -286,7 +288,10 @@ async function loadSettings() {
     // 应用设置到界面
     Object.assign(settings, loadedSettings)
     
-    console.log('设置加载完成')
+    // 注意：不对设置窗口应用透明度，设置窗口保持不透明
+    // 透明度设置只应用于主窗口（Todo窗口）
+    
+    console.log('设置加载完成，设置窗口保持不透明')
   } catch (error) {
     console.error('加载设置失败:', error)
     // 使用默认值，已经在 reactive 中设置

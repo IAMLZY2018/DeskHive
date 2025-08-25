@@ -252,9 +252,9 @@ async fn save_app_settings(app: tauri::AppHandle, settings: AppSettings) -> Resu
     fs::write(&file_path, json_data)
         .map_err(|e| format!("写入设置文件失败: {}", e))?;
     
-    // 应用设置到主窗口
+    // 应用设置到主窗口（设置窗口保持不透明）
     if let Some(main_window) = app.get_webview_window("main") {
-        // 设置透明度
+        // 设置透明度（只应用于主窗口）
         let _ = set_window_opacity(&main_window, settings.opacity);
         
         // 不再设置置顶状态，always_on_top 现在表示"记住窗口位置"
@@ -295,9 +295,10 @@ async fn load_app_settings(app: tauri::AppHandle) -> Result<AppSettings, String>
     Ok(settings)
 }
 
-// Tauri 命令：应用透明度设置
+// Tauri 命令：应用透明度设置（只应用于主窗口）
 #[tauri::command]
 async fn apply_opacity(app: tauri::AppHandle, opacity: f64) -> Result<(), String> {
+    // 只对主窗口应用透明度，设置窗口保持不透明
     if let Some(main_window) = app.get_webview_window("main") {
         set_window_opacity(&main_window, opacity)?;
     }
@@ -650,6 +651,7 @@ async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
         // 如果窗口已存在，直接显示并聚焦
         let _ = window.show();
         let _ = window.set_focus();
+        // 注意：设置窗口保持不透明，不应用透明度设置
         return Ok(());
     }
 
@@ -669,6 +671,9 @@ async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
     .skip_taskbar(false)
     .build()
     .map_err(|e| format!("创建设置窗口失败: {}", e))?;
+
+    // 注意：设置窗口保持不透明，不应用透明度设置
+    // 透明度设置只应用于主窗口
 
     Ok(())
 }
