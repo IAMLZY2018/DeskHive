@@ -755,22 +755,19 @@ pub fn run() {
                 })
                 .build(app)?;
 
-            // 获取主窗口
+                // 获取主窗口
             if let Some(window) = app.get_webview_window("main") {
                 // 同步加载并应用保存的设置和位置（在显示窗口之前）
                 let app_handle = app.handle().clone();
                 let window_clone = window.clone();
                 
-                // 使用阻塞调用确保在显示窗口前完成所有设置
+                // 先加载应用设置，用于后续应用透明度
+                let loaded_settings = tauri::async_runtime::block_on(async {
+                    load_app_settings(app_handle.clone()).await.ok()
+                });
+                
+                // 使用阻塞调用确保在显示窗口前完成位置设置
                 tauri::async_runtime::block_on(async {
-                    // 加载应用设置
-                    if let Ok(settings) = load_app_settings(app_handle.clone()).await {
-                        if let Some(main_window) = app_handle.get_webview_window("main") {
-                            // 应用透明度设置
-                            let _ = set_window_opacity(&main_window, settings.opacity);
-                        }
-                    }
-                    
                     // 默认总是加载和应用保存的位置
                     match load_window_position(app_handle.clone()).await {
                         Ok(Some(position)) => {
@@ -824,6 +821,20 @@ pub fn run() {
                 // 确保位置设置完成后再显示窗口
                 let _ = window.show();
                 let _ = window.set_focus();
+                
+                // 延迟应用透明度设置，确保窗口完全初始化
+                if let Some(settings) = loaded_settings {
+                    let window_for_opacity = window.clone();
+                    let opacity_value = settings.opacity;
+                    std::thread::spawn(move || {
+                        std::thread::sleep(std::time::Duration::from_millis(100));
+                        if let Err(e) = set_window_opacity(&window_for_opacity, opacity_value) {
+                            println!("应用启动透明度失败: {}", e);
+                        } else {
+                            println!("成功应用启动透明度: {}", opacity_value);
+                        }
+                    });
+                }
 
                 // 在Tauri 2.x中处理窗口事件
                 #[cfg(target_os = "windows")]
