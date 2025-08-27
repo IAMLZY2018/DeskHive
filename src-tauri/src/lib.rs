@@ -51,7 +51,6 @@ struct AppSettings {
     auto_start: bool,
     #[serde(default = "default_silent_start")]
     silent_start: bool,
-    hotkey: String,
 }
 
 // 默认值函数
@@ -267,6 +266,7 @@ async fn save_app_settings(app: tauri::AppHandle, settings: AppSettings) -> Resu
     Ok(())
 }
 
+
 // Tauri 命令：加载应用设置
 #[tauri::command]
 async fn load_app_settings(app: tauri::AppHandle) -> Result<AppSettings, String> {
@@ -282,7 +282,6 @@ async fn load_app_settings(app: tauri::AppHandle) -> Result<AppSettings, String>
             minimize_to_tray: true,
             auto_start: false,
             silent_start: false,
-            hotkey: "ctrl+shift+t".to_string(),
         });
     }
     
@@ -634,6 +633,15 @@ async fn restore_from_tray(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+// Tauri 命令：获取应用版本
+#[tauri::command]
+async fn get_app_version(app: tauri::AppHandle) -> Result<String, String> {
+    Ok(app.package_info().version.to_string())
+}
+
+
+
+
 // Tauri 命令：退出应用
 #[tauri::command]
 async fn quit_app(app: tauri::AppHandle) -> Result<(), String> {
@@ -694,9 +702,11 @@ pub fn run() {
             toggle_main_window,
             quit_app,
             minimize_to_tray,
-            restore_from_tray
+            restore_from_tray,
+            get_app_version
         ])
         .setup(|app| {
+            // 初始化日志系统
             if cfg!(debug_assertions) {
                 app.handle().plugin(
                     tauri_plugin_log::Builder::default()

@@ -84,26 +84,6 @@
           </div>
         </div>
 
-        <!-- 快捷键设置 -->
-        <div v-if="activeSection === 'shortcuts'" class="setting-section">
-          <div class="section-title">全局快捷键</div>
-          <div class="setting-group">
-            <div class="setting-item">
-              <div>
-                <div class="setting-label">显示/隐藏快捷键</div>
-                <div class="setting-description">用于快速显示或隐藏应用窗口</div>
-              </div>
-              <div class="setting-control">
-                <select v-model="settings.hotkey">
-                  <option value="ctrl+shift+t">Ctrl+Shift+T</option>
-                  <option value="alt+space">Alt+Space</option>
-                  <option value="ctrl+`">Ctrl+`</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- 关于页面 -->
         <div v-if="activeSection === 'about'" class="setting-section">
           <div class="section-title">应用信息</div>
@@ -114,7 +94,7 @@
                 <div class="setting-description">当前应用版本号</div>
               </div>
               <div class="setting-control">
-                <span style="color: #6d6d70;">1.0.0</span>
+                <span style="color: #6d6d70;">{{ appVersion }}</span>
               </div>
             </div>
             <div class="setting-item">
@@ -139,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 
@@ -147,10 +127,9 @@ interface AppSettings {
   opacity: number
   disable_drag: boolean
   auto_start: boolean
-  hotkey: string
 }
 
-type SectionKey = 'appearance' | 'behavior' | 'shortcuts' | 'about'
+type SectionKey = 'appearance' | 'behavior' | 'about'
 
 interface Section {
   name: string
@@ -161,19 +140,18 @@ const currentWindow = getCurrentWindow()
 
 const activeSection = ref<SectionKey>('appearance')
 const originalOpacity = ref(0.95)
+const appVersion = ref('...')
 
 const sections: Record<SectionKey, Section> = {
   appearance: { name: '外观', icon: '🎨' },
   behavior: { name: '行为', icon: '⚡' },
-  shortcuts: { name: '快捷键', icon: '⌨️' },
   about: { name: '关于', icon: 'ℹ️' }
 }
 
 const settings = reactive<AppSettings>({
   opacity: 0.95,
   disable_drag: false,
-  auto_start: false,
-  hotkey: 'ctrl+shift+t'
+  auto_start: false
 })
 
 // 透明度的计算属性，确保始终为数字类型
@@ -220,8 +198,7 @@ async function saveSettings() {
     const settingsToSave = {
       opacity: typeof settings.opacity === 'string' ? parseFloat(settings.opacity) : settings.opacity,
       disable_drag: Boolean(settings.disable_drag),
-      auto_start: Boolean(settings.auto_start),
-      hotkey: String(settings.hotkey)
+      auto_start: Boolean(settings.auto_start)
     }
     
     console.log('转换后的设置数据:', settingsToSave)
@@ -283,8 +260,27 @@ async function loadSettings() {
   }
 }
 
-// 组件挂载时加载设置
-onMounted(loadSettings)
+// 加载应用版本
+async function loadAppVersion() {
+  try {
+    console.log('开始加载应用版本...')
+    const version = await invoke('get_app_version') as string
+    appVersion.value = version
+    console.log('应用版本加载完成:', version)
+  } catch (error) {
+    console.error('加载应用版本失败:', error)
+    appVersion.value = '未知版本'
+  }
+}
+
+// 组件挂载时加载设置和版本信息
+onMounted(async () => {
+  await Promise.all([
+    loadSettings(),
+    loadAppVersion()
+  ])
+})
+
 </script>
 
 <style scoped>
@@ -550,4 +546,5 @@ onMounted(loadSettings)
 .btn-secondary:hover {
   background: #f0f8ff;
 }
+
 </style>
