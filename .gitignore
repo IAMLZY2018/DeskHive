@@ -34,3 +34,4 @@ coverage
 .git_disabled/index
 .git_disabled/hooks/applypatch-msg.sample
 .git_disabled/hooks/commit-msg.sample
+.kiro/hooks/tauri-service-restart.kiro.hook

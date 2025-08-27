@@ -31,6 +31,8 @@ struct Todo {
     text: String,
     completed: bool,
     created_at: i64, // Unix时间戳（秒）
+    #[serde(default)] // 为了兼容旧数据，设为默认值
+    deadline: Option<i64>, // 截止时间，Unix时间戳（秒），可选
 }
 
 #[derive(Serialize, Deserialize)]
@@ -211,18 +213,27 @@ async fn load_todo_data(app: tauri::AppHandle) -> Result<TodoData, String> {
                     text: "欢迎使用DeskHive桌面助手".to_string(),
                     completed: false,
                     created_at: now - 3600, // 1小时前创建
+                    deadline: None, // 无截止时间
                 },
                 Todo { 
-                    text: "下方输入框输入添加todo任务，右键可以查看todo信息哦".to_string(),
+                    text: "测试天数指示器功能 - 3天前创建".to_string(),
                     completed: false,
-                    created_at: now - 1800, // 30分钟前创建
+                    created_at: now - (3 * 24 * 3600), // 3天前创建
+                    deadline: Some(now + (2 * 24 * 3600)), // 设置2天后截止，用于测试倒计时
+                },
+                Todo { 
+                    text: "测试天数指示器功能 - 7天前创建".to_string(),
+                    completed: false,
+                    created_at: now - (7 * 24 * 3600), // 7天前创建
+                    deadline: None, // 无截止时间
                 },
             ],
             completed_todos: vec![
                 Todo { 
                     text: "已完成的会收纳到这里，可以双击删除哦~".to_string(),
                     completed: true,
-                    created_at: now - 7200, // 2小时前创建
+                    created_at: now - (5 * 24 * 3600), // 5天前创建
+                    deadline: Some(now - (1 * 24 * 3600)), // 设置1天前截止（已过期），用于测试过期显示
                 },
             ],
         });
@@ -235,6 +246,38 @@ async fn load_todo_data(app: tauri::AppHandle) -> Result<TodoData, String> {
         .map_err(|e| format!("解析JSON失败: {}", e))?;
     
     Ok(todo_data)
+}
+
+// Tauri 命令：设置todo截止时间
+#[tauri::command]
+async fn set_todo_deadline(
+    app: tauri::AppHandle, 
+    todo_text: String, 
+    is_completed: bool,
+    deadline: Option<i64>
+) -> Result<(), String> {
+    // 先加载当前数据
+    let mut todo_data = load_todo_data(app.clone()).await?;
+    
+    // 查找并更新对应的todo项
+    let found = if is_completed {
+        // 在已完成列表中查找
+        todo_data.completed_todos.iter_mut()
+            .find(|todo| todo.text == todo_text)
+    } else {
+        // 在待完成列表中查找
+        todo_data.pending_todos.iter_mut()
+            .find(|todo| todo.text == todo_text)
+    };
+    
+    if let Some(todo) = found {
+        todo.deadline = deadline;
+        // 保存更新后的数据
+        save_todo_data(app, todo_data.pending_todos, todo_data.completed_todos).await?;
+        Ok(())
+    } else {
+        Err("未找到指定的todo项".to_string())
+    }
 }
 
 // Tauri 命令：关闭设置窗口
@@ -722,6 +765,7 @@ pub fn run() {
             close_settings_window, 
             save_todo_data, 
             load_todo_data,
+            set_todo_deadline,
             save_app_settings,
             load_app_settings,
             apply_opacity,
