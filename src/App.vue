@@ -1,7 +1,10 @@
 <template>
   <div class="container">
     <header :data-tauri-drag-region="!isDragDisabled ? '' : null">
-      <div class="header-title" :data-tauri-drag-region="!isDragDisabled ? '' : null">🐝 DeskHive</div>
+      <div class="header-title" :data-tauri-drag-region="!isDragDisabled ? '' : null">
+        <img src="/src-tauri/icons/32x32.png" alt="DeskHive" class="app-icon">
+        DeskHive
+      </div>
       <div class="header-right">
         <div class="progress-indicator">{{ completedTasks }}/{{ totalTasks }}</div>
         <button class="settings-btn" @click="openSettings">⚙️</button>
@@ -236,6 +239,15 @@ header {
   text-align: center;
   cursor: default;
   user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.app-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 .header-right {
   display: flex;
