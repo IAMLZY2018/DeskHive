@@ -49,6 +49,13 @@
     <div v-if="showContextMenu" class="context-menu" 
          :style="{ left: contextMenuPosition.x + 'px', top: contextMenuPosition.y + 'px' }">
       <div class="context-menu-item">
+        <div class="context-menu-label">状态：</div>
+        <div class="context-menu-value status-value">
+          <span :class="['status-dot', contextMenuTodo?.completed ? 'completed' : 'pending']"></span>
+          {{ contextMenuTodo?.completed ? '已完成' : '待完成' }}
+        </div>
+      </div>
+      <div class="context-menu-item">
         <div class="context-menu-label">创建时间：</div>
         <div class="context-menu-value">
           {{ contextMenuTodo ? formatDateTime(contextMenuTodo.createdAt) : '' }}
@@ -599,5 +606,30 @@ header {
   border-radius: 4px;
   border: 1px solid rgba(104, 58, 183, 0.2);
   font-size: 0.8rem;
+}
+
+.status-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.status-dot.completed {
+  background-color: #4CAF50; /* 绿色 */
+  box-shadow: 0 0 4px rgba(76, 175, 80, 0.5);
+}
+
+.status-dot.pending {
+  background-color: #F44336; /* 红色 */
+  box-shadow: 0 0 4px rgba(244, 67, 54, 0.5);
 }
 </style>
