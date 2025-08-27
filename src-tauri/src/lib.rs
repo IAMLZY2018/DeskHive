@@ -2,7 +2,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::path::PathBuf;
 use std::fs;
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use serde::{Deserialize, Serialize};
 use tauri::{Manager, Emitter, tray::{TrayIconBuilder, TrayIconEvent}, menu::{MenuBuilder, MenuItemBuilder}};
 
@@ -30,6 +30,7 @@ struct DragDebouncer {
 struct Todo {
     text: String,
     completed: bool,
+    created_at: i64, // Unix时间戳（秒）
 }
 
 #[derive(Serialize, Deserialize)]
@@ -199,13 +200,30 @@ async fn load_todo_data(app: tauri::AppHandle) -> Result<TodoData, String> {
     
     if !file_path.exists() {
         // 如果文件不存在，返回默认数据
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
+            
         return Ok(TodoData {
             pending_todos: vec![
-                Todo { text: "学习SpringBoot3.5".to_string(), completed: false },
-                Todo { text: "测试部署到服务器".to_string(), completed: false },
+                Todo { 
+                    text: "欢迎使用DeskHive桌面助手".to_string(),
+                    completed: false,
+                    created_at: now - 3600, // 1小时前创建
+                },
+                Todo { 
+                    text: "下方输入框输入添加todo任务，右键可以查看todo信息哦".to_string(),
+                    completed: false,
+                    created_at: now - 1800, // 30分钟前创建
+                },
             ],
             completed_todos: vec![
-                Todo { text: "完成UI设计".to_string(), completed: true },
+                Todo { 
+                    text: "已完成的会收纳到这里，可以双击删除哦~".to_string(),
+                    completed: true,
+                    created_at: now - 7200, // 2小时前创建
+                },
             ],
         });
     }

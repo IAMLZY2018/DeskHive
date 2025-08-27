@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "deskhive",
+  "productName": "DeskHive",
   "version": "0.1.0",
   "identifier": "com.example.deskhive",
   "build": {
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Todo 桌面助手",
+        "title": "DeskHive桌面助手",
         "width": 300,
         "height": 420,
         "resizable": false,
