@@ -40,9 +40,6 @@
                  @dblclick="deleteCompletedTodo(index)" 
                  @contextmenu="showContextMenuFor($event, todo)">
               <div class="todo-checkbox completed" @click="toggleCompletedTodo(index)"></div>
-              <div v-if="todo.deadline" class="countdown-indicator completed">
-                {{ getCountdownText(todo.deadline) }}
-              </div>
               <div v-if="calculateDaysCreated(todo.createdAt) >= 1" class="days-indicator">
                 {{ calculateDaysCreated(todo.createdAt) }}
               </div>
