@@ -12,7 +12,31 @@
     </header>
 
     <div class="todo-container">
-      <div class="todo-section">
+      <!-- 空状态显示日期信息 -->
+      <div v-if="showEmptyState && dateInfo" class="empty-state">
+        <div class="date-info">
+          <div class="solar-date">
+            <div class="date-main">{{ dateInfo.solar_date }}</div>
+            <div class="weekday">{{ dateInfo.weekday }}</div>
+          </div>
+          <div class="lunar-date">
+            <div class="lunar-main">{{ dateInfo.lunar_date }}</div>
+          </div>
+        </div>
+        <div class="welcome-text">
+          🌸 今天也要加油哦！
+        </div>
+      </div>
+
+      <!-- 全部任务完成状态 -->
+      <div v-if="showAllCompletedState" class="all-completed-state">
+        <div class="celebration-message">
+          🎉 太棒啦~所有任务都完成啦~ 🎉
+        </div>
+      </div>
+
+      <!-- 待完成任务列表 -->
+      <div v-if="!showEmptyState && !showAllCompletedState" class="todo-section">
         <h3 class="section-title">待完成</h3>
         <div class="todo-list">
           <TransitionGroup name="todo-list" tag="div">
@@ -32,6 +56,7 @@
         </div>
       </div>
       
+      <!-- 已完成任务列表 -->
       <div v-if="completedTodos.length > 0" class="todo-section completed-section">
         <h3 class="section-title">已完成</h3>
         <div class="todo-list">
@@ -131,12 +156,27 @@ interface Todo {
   deadline?: number; // 截止时间，Unix时间戳（秒），可选
 }
 
+interface DateInfo {
+  solar_date: string;    // 公历日期
+  lunar_date: string;    // 农历日期
+  weekday: string;       // 星期
+  lunar_year: string;    // 农历年份
+  lunar_month: string;   // 农历月份
+  lunar_day: string;     // 农历日期
+}
+
 const pendingTodos = ref<Todo[]>([]);
 const completedTodos = ref<Todo[]>([]);
+const dateInfo = ref<DateInfo | null>(null);
 
 const newTaskText = ref('');
 const totalTasks = computed(() => pendingTodos.value.length + completedTodos.value.length);
 const completedTasks = computed(() => completedTodos.value.length);
+
+// 计算是否显示空状态（没有任何任务）
+const showEmptyState = computed(() => pendingTodos.value.length === 0 && completedTodos.value.length === 0);
+// 计算是否显示全部完成状态（只有已完成任务，没有待完成任务）
+const showAllCompletedState = computed(() => pendingTodos.value.length === 0 && completedTodos.value.length > 0);
 
 // 拖动设置状态
 const isDragDisabled = ref(false);
@@ -167,6 +207,26 @@ function formatDateTime(timestamp: number): string {
     second: '2-digit',
     hour12: false
   });
+}
+
+// 获取当前日期信息
+async function loadDateInfo() {
+  try {
+    const data = await invoke('get_current_date') as DateInfo;
+    dateInfo.value = data;
+    console.log('日期信息加载成功:', data);
+  } catch (error) {
+    console.error('加载日期信息失败:', error);
+    // 如果加载失败，使用默认日期信息
+    dateInfo.value = {
+      solar_date: '2024年8月28日',
+      lunar_date: '甲辰年七月廿五',
+      weekday: '星期三',
+      lunar_year: '甲辰年',
+      lunar_month: '七月',
+      lunar_day: '廿五'
+    };
+  }
 }
 
 // 计算创建天数
@@ -495,9 +555,10 @@ onMounted(async () => {
   console.log('Vue 组件已挂载');
   console.log('待办事项数量:', pendingTodos.value.length);
   
-  // 加载todo数据和应用设置
+  // 加载todo数据、应用设置和日期信息
   await loadTodoData();
   await loadAppSettings();
+  await loadDateInfo();
   
   // 启动倒计时更新定时器
   startCountdownTimer();
@@ -1057,5 +1118,127 @@ header {
 .dialog-btn.confirm:hover {
   background: #5e35a1;
   box-shadow: 0 4px 12px rgba(104, 58, 183, 0.3);
+}
+
+/* 空状态日期信息样式 */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(20px, 4vh, 40px);
+  text-align: center;
+}
+
+.date-info {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: clamp(12px, 2.5vw, 16px);
+  padding: clamp(16px, 3vh, 24px);
+  box-shadow: 0 6px 20px rgba(104, 58, 183, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(104, 58, 183, 0.1);
+  margin-bottom: clamp(16px, 3vh, 24px);
+  min-width: clamp(200px, 40vw, 260px);
+}
+
+.solar-date {
+  margin-bottom: clamp(12px, 2vh, 16px);
+}
+
+.date-main {
+  font-size: clamp(1.2rem, 4vw, 1.5rem);
+  font-weight: 700;
+  color: #333;
+  margin-bottom: clamp(4px, 0.8vh, 6px);
+  letter-spacing: 1px;
+}
+
+.weekday {
+  font-size: clamp(0.85rem, 2.2vw, 1rem);
+  color: #683ab7;
+  font-weight: 600;
+}
+
+.lunar-date {
+  border-top: 1px dashed rgba(104, 58, 183, 0.2);
+  padding-top: clamp(10px, 2vh, 12px);
+}
+
+.lunar-main {
+  font-size: clamp(1rem, 3vw, 1.2rem);
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0;
+  font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+}
+
+.welcome-text {
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  color: #683ab7;
+  font-weight: 600;
+  background: rgba(104, 58, 183, 0.1);
+  padding: clamp(8px, 1.5vh, 12px) clamp(16px, 3vw, 20px);
+  border-radius: clamp(8px, 1.5vw, 12px);
+  border: 1px solid rgba(104, 58, 183, 0.2);
+  backdrop-filter: blur(5px);
+  box-shadow: 0 2px 8px rgba(104, 58, 183, 0.1);
+  animation: gentle-pulse 3s ease-in-out infinite;
+}
+
+/* 温和的脉动动画 */
+@keyframes gentle-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+}
+
+/* 全部完成状态样式 */
+.all-completed-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(30px, 5vh, 50px);
+}
+
+.celebration-message {
+  font-size: clamp(1.1rem, 3vw, 1.3rem);
+  font-weight: 700;
+  color: #4CAF50;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.2));
+  padding: clamp(16px, 3vh, 24px) clamp(20px, 4vw, 32px);
+  border-radius: clamp(12px, 2.5vw, 16px);
+  border: 2px solid rgba(76, 175, 80, 0.3);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.2);
+  text-align: center;
+  animation: celebration-bounce 0.8s ease-out;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.celebration-message:hover {
+  animation: celebration-bounce 0.8s ease-out;
+  box-shadow: 0 10px 28px rgba(76, 175, 80, 0.3);
+  transform: translateY(-2px);
+}
+
+/* 庆祝弹跳动画 */
+@keyframes celebration-bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    transform: translateY(-8px) scale(1.05);
+  }
+  60% {
+    transform: translateY(-4px) scale(1.02);
+  }
 }
 </style>

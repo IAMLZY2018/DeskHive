@@ -25,4 +25,5 @@ tauri = { version = "2.7.0", features = ["tray-icon"] }
 tauri-plugin-log = "2"
 windows = { version = "0.48", features = ["Win32_UI_WindowsAndMessaging", "Win32_Foundation", "Win32_Graphics_Gdi", "Win32_System_Registry"] }
 raw-window-handle = "0.6"
+chrono = { version = "0.4", features = ["serde"] }
 
