@@ -632,6 +632,16 @@ async fn toggle_main_window(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+// Tauri 命令：只显示主窗口（不隐藏）
+#[tauri::command]
+async fn show_main_window(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+    Ok(())
+}
+
 // Tauri 命令：最小化到托盘
 #[tauri::command]
 async fn minimize_to_tray(app: tauri::AppHandle) -> Result<(), String> {
@@ -718,6 +728,7 @@ pub fn run() {
             save_window_position,
             load_window_position,
             toggle_main_window,
+            show_main_window,
             quit_app,
             minimize_to_tray,
             restore_from_tray,
@@ -750,9 +761,10 @@ pub fn run() {
                 .on_tray_icon_event(|tray, event| {
                     match event {
                         TrayIconEvent::Click { button: tauri::tray::MouseButton::Left, .. } => {
+                            // 左键单击只显示窗口
                             let app = tray.app_handle().clone();
                             tauri::async_runtime::spawn(async move {
-                                let _ = toggle_main_window(app).await;
+                                let _ = show_main_window(app).await;
                             });
                         }
                         _ => {}
