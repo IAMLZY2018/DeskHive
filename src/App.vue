@@ -140,11 +140,23 @@
         </div>
       </div>
     </div>
+    
+    <!-- Toast 内部提示 -->
+    <div v-if="showToast" :class="['toast-notification', `toast-${toastType}`]">
+      <div class="toast-content">
+        <span class="toast-icon">
+          <span v-if="toastType === 'success'">✓</span>
+          <span v-else-if="toastType === 'warning'">⚠️</span>
+          <span v-else>⚠️</span>
+        </span>
+        <span class="toast-message">{{ toastMessage }}</span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -192,6 +204,11 @@ const deadlineDate = ref('');
 const deadlineTime = ref('');
 const dialogTodo = ref<Todo | null>(null);
 
+// 内部提示弹窗状态
+const showToast = ref(false);
+const toastMessage = ref('');
+const toastType = ref('error'); // 'error' | 'success' | 'warning'
+
 // 倒计时更新定时器
 const countdownTimer = ref<number | null>(null);
 
@@ -227,6 +244,18 @@ async function loadDateInfo() {
       lunar_day: '廿五'
     };
   }
+}
+
+// 显示 Toast 提示
+function showToastMessage(message: string, type: 'error' | 'success' | 'warning' = 'error') {
+  toastMessage.value = message;
+  toastType.value = type;
+  showToast.value = true;
+  
+  // 3秒后自动隐藏
+  setTimeout(() => {
+    showToast.value = false;
+  }, 3000);
 }
 
 // 计算创建天数
@@ -461,7 +490,7 @@ function closeDeadlineDialog() {
 // 设置截止时间
 async function setDeadline() {
   if (!dialogTodo.value || !deadlineDate.value || !deadlineTime.value) {
-    alert('请选择日期和时间');
+    showToastMessage('请选择日期和时间', 'warning');
     return;
   }
   
@@ -472,7 +501,7 @@ async function setDeadline() {
   // 检查时间是否在未来
   const now = Math.floor(Date.now() / 1000);
   if (deadlineTimestamp <= now) {
-    alert('截止时间必须在未来');
+    showToastMessage('截止时间必须在未来', 'error');
     return;
   }
   
@@ -492,10 +521,11 @@ async function setDeadline() {
     }
     
     console.log('截止时间设置成功');
+    showToastMessage('截止时间设置成功', 'success');
     closeDeadlineDialog();
   } catch (error) {
     console.error('设置截止时间失败:', error);
-    alert('设置失败，请重试');
+    showToastMessage('设置失败，请重试', 'error');
   }
 }
 
@@ -503,26 +533,84 @@ async function setDeadline() {
 async function removeDeadline() {
   if (!contextMenuTodo.value) return;
   
+  console.log('准备移除截止时间:', {
+    text: contextMenuTodo.value.text,
+    completed: contextMenuTodo.value.completed,
+    hasDeadline: !!contextMenuTodo.value.deadline
+  });
+  
   try {
-    // 调用后端命令移除截止时间
+    // 调用后端命令移除截止时间（后端会直接保存数据到文件）
     await invoke('set_todo_deadline', {
       todoText: contextMenuTodo.value.text,
       isCompleted: contextMenuTodo.value.completed,
       deadline: null
     });
     
-    // 更新本地数据
-    const targetList = contextMenuTodo.value.completed ? completedTodos.value : pendingTodos.value;
-    const todoIndex = targetList.findIndex(t => t.text === contextMenuTodo.value!.text);
-    if (todoIndex !== -1) {
-      delete targetList[todoIndex].deadline;
+    // 更新本地数据以保持UI同步
+    let found = false;
+    const lists = [
+      { list: pendingTodos.value, isCompleted: false },
+      { list: completedTodos.value, isCompleted: true }
+    ];
+    
+    // 遍历所有列表查找匹配的todo项
+    for (const { list, isCompleted } of lists) {
+      // 首先尝试通过文本和完成状态匹配
+      const todoIndex = list.findIndex(t => 
+        t.text === contextMenuTodo.value!.text && 
+        t.completed === contextMenuTodo.value!.completed
+      );
+      
+      if (todoIndex !== -1) {
+        console.log('通过文本和完成状态找到todo项，更新前的deadline:', list[todoIndex].deadline);
+        list[todoIndex].deadline = undefined;
+        console.log('更新后的deadline:', list[todoIndex].deadline);
+        found = true;
+        break;
+      }
+      
+      // 如果没有找到，尝试通过文本和创建时间匹配（更精确的匹配方式）
+      const todoIndexByTime = list.findIndex(t => 
+        t.text === contextMenuTodo.value!.text && 
+        t.createdAt === contextMenuTodo.value!.createdAt
+      );
+      
+      if (todoIndexByTime !== -1) {
+        console.log('通过文本和创建时间找到todo项，更新前的deadline:', list[todoIndexByTime].deadline);
+        list[todoIndexByTime].deadline = undefined;
+        console.log('更新后的deadline:', list[todoIndexByTime].deadline);
+        found = true;
+        break;
+      }
+    }
+    
+    if (!found) {
+      console.warn('在本地数据中未找到对应的todo项，重新加载数据');
+      // 如果本地数据不一致，重新加载数据以确保同步
+      await loadTodoData();
     }
     
     console.log('截止时间移除成功');
+    showToastMessage('截止时间移除成功', 'success');
     hideContextMenu();
   } catch (error) {
     console.error('移除截止时间失败:', error);
-    alert('移除失败，请重试');
+    console.error('错误详情:', {
+      message: (error as any)?.message || String(error),
+      todoText: contextMenuTodo.value?.text,
+      isCompleted: contextMenuTodo.value?.completed
+    });
+    
+    // 即使前端报错，也重新加载数据确保同步
+    try {
+      await loadTodoData();
+      hideContextMenu();
+      showToastMessage('截止时间移除成功', 'success');
+    } catch (reloadError) {
+      console.error('重新加载数据失败:', reloadError);
+      showToastMessage('移除失败，请重试', 'error');
+    }
   }
 }
 
@@ -1239,6 +1327,69 @@ header {
   }
   60% {
     transform: translateY(-4px) scale(1.02);
+  }
+}
+
+/* Toast 内部提示样式 */
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3000;
+  padding: 12px 20px;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  font-size: 0.9rem;
+  font-weight: 600;
+  animation: toast-slide-in 0.3s ease-out;
+  max-width: 300px;
+  min-width: 200px;
+}
+
+.toast-success {
+  background: rgba(76, 175, 80, 0.95);
+  color: white;
+  border: 1px solid rgba(76, 175, 80, 0.8);
+}
+
+.toast-error {
+  background: rgba(244, 67, 54, 0.95);
+  color: white;
+  border: 1px solid rgba(244, 67, 54, 0.8);
+}
+
+.toast-warning {
+  background: rgba(255, 193, 7, 0.95);
+  color: #333;
+  border: 1px solid rgba(255, 193, 7, 0.8);
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toast-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  flex: 1;
+}
+
+/* Toast 动画 */
+@keyframes toast-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
   }
 }
 </style>

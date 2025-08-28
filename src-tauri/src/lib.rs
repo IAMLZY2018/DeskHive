@@ -343,27 +343,63 @@ async fn set_todo_deadline(
     is_completed: bool,
     deadline: Option<i64>
 ) -> Result<(), String> {
+    println!("准备设置截止时间: text='{}', completed={}, deadline={:?}", 
+        todo_text, is_completed, deadline);
+    
     // 先加载当前数据
     let mut todo_data = load_todo_data(app.clone()).await?;
+    
+    println!("加载的数据: pending_count={}, completed_count={}", 
+        todo_data.pending_todos.len(), todo_data.completed_todos.len());
     
     // 查找并更新对应的todo项
     let found = if is_completed {
         // 在已完成列表中查找
+        println!("在已完成列表中查找");
+        for (i, todo) in todo_data.completed_todos.iter().enumerate() {
+            println!("  [{}]: '{}'", i, todo.text);
+        }
         todo_data.completed_todos.iter_mut()
             .find(|todo| todo.text == todo_text)
     } else {
         // 在待完成列表中查找
+        println!("在待完成列表中查找");
+        for (i, todo) in todo_data.pending_todos.iter().enumerate() {
+            println!("  [{}]: '{}'", i, todo.text);
+        }
         todo_data.pending_todos.iter_mut()
             .find(|todo| todo.text == todo_text)
     };
     
     if let Some(todo) = found {
+        println!("找到对应的todo项，更新deadline");
+        println!("更新前的deadline: {:?}", todo.deadline);
         todo.deadline = deadline;
+        println!("更新后的deadline: {:?}", todo.deadline);
         // 保存更新后的数据
-        save_todo_data(app, todo_data.pending_todos, todo_data.completed_todos).await?;
+        println!("准备保存数据到文件");
+        let save_result = save_todo_data(app, todo_data.pending_todos.clone(), todo_data.completed_todos.clone()).await;
+        
+        match &save_result {
+            Ok(_) => println!("数据保存成功"),
+            Err(e) => println!("数据保存失败: {}", e),
+        }
+        
+        if save_result.is_err() {
+            return save_result;
+        }
+        
+        // 根据deadline值提供不同的成功消息
+        if deadline.is_some() {
+            println!("截止时间设置成功");
+        } else {
+            println!("截止时间移除成功");
+        }
         Ok(())
     } else {
-        Err("未找到指定的todo项".to_string())
+        let error_msg = format!("未找到指定的todo项: '{}', completed={}", todo_text, is_completed);
+        println!("{}", error_msg);
+        Err(error_msg)
     }
 }
 
