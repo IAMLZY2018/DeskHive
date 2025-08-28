@@ -144,6 +144,15 @@ const toastType = ref<'error' | 'success' | 'warning'>('error');
 // 倒计时更新定时器
 const countdownTimer = ref<number | null>(null);
 
+// 阻止浏览器默认右键菜单
+function preventDefaultContextMenu(event: MouseEvent) {
+  // 检查事件目标是否是todo项（通过类名判断）
+  const target = event.target as HTMLElement;
+  if (!target.closest('.todo-item')) {
+    event.preventDefault();
+  }
+}
+
 // 格式化时间
 function formatDateTime(timestamp: number): string {
   const date = new Date(timestamp * 1000);
@@ -612,6 +621,9 @@ onMounted(async () => {
   console.log('Vue 组件已挂载');
   console.log('待办事项数量:', pendingTodos.value.length);
   
+  // 添加全局右键菜单阻止事件监听器
+  document.addEventListener('contextmenu', preventDefaultContextMenu);
+  
   // 加载todo数据、应用设置和日期信息
   await loadTodoData();
   
@@ -632,12 +644,15 @@ onMounted(async () => {
   });
 });
 
-// 组件卸载时清理定时器
+// 组件卸载时清理定时器和事件监听器
 onUnmounted(() => {
   if (countdownTimer.value) {
     clearInterval(countdownTimer.value);
     countdownTimer.value = null;
   }
+  
+  // 移除全局右键菜单阻止事件监听器
+  document.removeEventListener('contextmenu', preventDefaultContextMenu);
 });
 </script>
 

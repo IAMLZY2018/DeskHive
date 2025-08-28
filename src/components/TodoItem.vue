@@ -2,6 +2,7 @@
   <div 
     :class="['todo-item', { completed: todo.completed }]"
     @dblclick="onDelete"
+    @contextmenu="onContextMenu"
   >
     <div 
       v-if="!todo.completed" 
