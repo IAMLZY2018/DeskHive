@@ -13,175 +13,84 @@
 
     <div class="todo-container">
       <!-- 空状态显示日期信息 -->
-      <div v-if="showEmptyState && dateInfo" class="empty-state">
-        <div class="date-info">
-          <div class="solar-date">
-            <div class="date-main">{{ dateInfo.solar_date }}</div>
-            <div class="weekday">{{ dateInfo.weekday }}</div>
-          </div>
-          <div class="lunar-date">
-            <div class="lunar-main">{{ dateInfo.lunar_date }}</div>
-          </div>
-        </div>
-        <div class="welcome-text">
-          🌸 今天也要加油哦！
-        </div>
-      </div>
+      <EmptyState 
+        v-if="showEmptyState && dateInfo" 
+        :date-info="dateInfo"
+      />
 
       <!-- 全部任务完成状态 -->
-      <div v-if="showAllCompletedState" class="all-completed-state">
-        <div class="celebration-message">
-          🎉 太棒啦~所有任务都完成啦~ 🎉
-        </div>
-      </div>
+      <AllCompletedState v-if="showAllCompletedState" />
 
       <!-- 待完成任务列表 -->
       <div v-if="!showEmptyState && !showAllCompletedState" class="todo-section">
         <h3 class="section-title">待完成</h3>
-        <div class="todo-list">
-          <TransitionGroup name="todo-list" tag="div">
-            <div v-for="(todo, index) in sortedPendingTodos" :key="index" :class="['todo-item']" 
-                 @dblclick="deleteTodo(index)" 
-                 @contextmenu="showContextMenuFor($event, todo)">
-              <div class="todo-checkbox" @click="toggleTodo(index)"></div>
-              <div v-if="todo.deadline" class="countdown-indicator" :class="{ 'overdue': isOverdue(todo.deadline) && !todo.completed }">
-                {{ getCountdownText(todo.deadline) }}
-              </div>
-              <div v-else-if="calculateDaysCreated(todo.createdAt) >= 1" class="days-indicator">
-                {{ calculateDaysCreated(todo.createdAt) }}
-              </div>
-              <span>{{ todo.text }}</span>
-            </div>
-          </TransitionGroup>
-        </div>
+        <TodoList
+          :todos="sortedPendingTodos"
+          @toggle="toggleTodo"
+          @delete="deleteTodo"
+          @contextmenu="showContextMenuFor"
+        />
       </div>
       
       <!-- 已完成任务列表 -->
       <div v-if="completedTodos.length > 0" class="todo-section completed-section">
         <h3 class="section-title">已完成</h3>
-        <div class="todo-list">
-          <TransitionGroup name="todo-list" tag="div">
-            <div v-for="(todo, index) in completedTodos" :key="index" class="todo-item completed" 
-                 @dblclick="deleteCompletedTodo(index)" 
-                 @contextmenu="showContextMenuFor($event, todo)">
-              <div class="todo-checkbox completed" @click="toggleCompletedTodo(index)"></div>
-              <div v-if="calculateDaysCreated(todo.createdAt) >= 1" class="days-indicator">
-                {{ calculateDaysCreated(todo.createdAt) }}
-              </div>
-              <span>{{ todo.text }}</span>
-            </div>
-          </TransitionGroup>
-        </div>
+        <TodoList
+          :todos="completedTodos"
+          :is-completed-list="true"
+          @toggle="toggleCompletedTodo"
+          @delete="deleteCompletedTodo"
+          @contextmenu="showContextMenuFor"
+        />
       </div>
     </div>
-    <div class="add-task">
-      <input type="text" placeholder="添加新任务..." v-model="newTaskText" @keypress.enter="addTask">
-      <button @click="addTask">➕</button>
-    </div>
+    
+    <AddTask @add-task="addTask" />
     
     <!-- 右键菜单 -->
-    <div v-if="showContextMenu" class="context-menu" 
-         :style="{ left: contextMenuPosition.x + 'px', top: contextMenuPosition.y + 'px' }">
-      <div class="context-menu-item">
-        <div class="context-menu-label">状态：</div>
-        <div class="context-menu-value status-value">
-          <span :class="['status-dot', contextMenuTodo?.completed ? 'completed' : 'pending']"></span>
-          {{ contextMenuTodo?.completed ? '已完成' : '待完成' }}
-        </div>
-      </div>
-      <div class="context-menu-item">
-        <div class="context-menu-label">创建时间：</div>
-        <div class="context-menu-value">
-          {{ contextMenuTodo ? formatDateTime(contextMenuTodo.createdAt) : '' }}
-        </div>
-      </div>
-      <div v-if="contextMenuTodo?.deadline" class="context-menu-item">
-        <div class="context-menu-label">截止时间：</div>
-        <div class="context-menu-value">
-          {{ formatDateTime(contextMenuTodo.deadline) }}
-        </div>
-      </div>
-      <div class="context-menu-divider"></div>
-      <div class="context-menu-button" @click="openDeadlineDialog">
-        📅 设置截止时间
-      </div>
-      <div v-if="contextMenuTodo?.deadline" class="context-menu-button" @click="removeDeadline">
-        🗑️ 移除截止时间
-      </div>
-    </div>
+    <ContextMenu
+      :show="showContextMenu"
+      :position="contextMenuPosition"
+      :todo="contextMenuTodo"
+      @set-deadline="openDeadlineDialog"
+      @remove-deadline="removeDeadline"
+    />
     
     <!-- 截止时间设置对话框 -->
-    <div v-if="showDeadlineDialog" class="dialog-overlay" @click="closeDeadlineDialog">
-      <div class="dialog-box" @click.stop>
-        <h3 class="dialog-title">📅 设置截止时间</h3>
-        <div class="dialog-content">
-          <div class="input-group">
-            <label for="deadline-date">日期：</label>
-            <input 
-              type="date" 
-              id="deadline-date" 
-              v-model="deadlineDate" 
-              class="dialog-input"
-            >
-          </div>
-          <div class="input-group">
-            <label for="deadline-time">时间：</label>
-            <input 
-              type="time" 
-              id="deadline-time" 
-              v-model="deadlineTime" 
-              class="dialog-input"
-            >
-          </div>
-        </div>
-        <div class="dialog-buttons">
-          <button class="dialog-btn cancel" @click="closeDeadlineDialog">取消</button>
-          <button class="dialog-btn confirm" @click="setDeadline">确定</button>
-        </div>
-      </div>
-    </div>
+    <DeadlineDialog
+      :show="showDeadlineDialog"
+      :initial-date="deadlineDate"
+      :initial-time="deadlineTime"
+      @close="closeDeadlineDialog"
+      @confirm="setDeadline"
+    />
     
     <!-- Toast 内部提示 -->
-    <div v-if="showToast" :class="['toast-notification', `toast-${toastType}`]">
-      <div class="toast-content">
-        <span class="toast-icon">
-          <span v-if="toastType === 'success'">✓</span>
-          <span v-else-if="toastType === 'warning'">⚠️</span>
-          <span v-else>⚠️</span>
-        </span>
-        <span class="toast-message">{{ toastMessage }}</span>
-      </div>
-    </div>
+    <Toast
+      :show="showToast"
+      :message="toastMessage"
+      :type="toastType"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-
-interface Todo {
-  text: string;
-  completed: boolean;
-  createdAt: number; // Unix时间戳（秒）
-  deadline?: number; // 截止时间，Unix时间戳（秒），可选
-}
-
-interface DateInfo {
-  solar_date: string;    // 公历日期
-  lunar_date: string;    // 农历日期
-  weekday: string;       // 星期
-  lunar_year: string;    // 农历年份
-  lunar_month: string;   // 农历月份
-  lunar_day: string;     // 农历日期
-}
+import type { Todo, DateInfo } from './types';
+import EmptyState from './components/EmptyState.vue';
+import AllCompletedState from './components/AllCompletedState.vue';
+import TodoList from './components/TodoList.vue';
+import AddTask from './components/AddTask.vue';
+import ContextMenu from './components/ContextMenu.vue';
+import DeadlineDialog from './components/DeadlineDialog.vue';
+import Toast from './components/Toast.vue';
 
 const pendingTodos = ref<Todo[]>([]);
 const completedTodos = ref<Todo[]>([]);
 const dateInfo = ref<DateInfo | null>(null);
 
-const newTaskText = ref('');
 const totalTasks = computed(() => pendingTodos.value.length + completedTodos.value.length);
 const completedTasks = computed(() => completedTodos.value.length);
 
@@ -230,7 +139,7 @@ const dialogTodo = ref<Todo | null>(null);
 // 内部提示弹窗状态
 const showToast = ref(false);
 const toastMessage = ref('');
-const toastType = ref('error'); // 'error' | 'success' | 'warning'
+const toastType = ref<'error' | 'success' | 'warning'>('error');
 
 // 倒计时更新定时器
 const countdownTimer = ref<number | null>(null);
@@ -456,19 +365,15 @@ async function openSettings() {
   }
 }
 
-function addTask() {
-  const taskText = newTaskText.value.trim();
-  if (taskText) {
-    const now = Math.floor(Date.now() / 1000); // 当前时间戳（秒）
-    pendingTodos.value.push({
-      text: taskText,
-      completed: false,
-      createdAt: now
-    });
-    newTaskText.value = '';
-    // 保存数据
-    saveTodoData();
-  }
+function addTask(text: string) {
+  const now = Math.floor(Date.now() / 1000); // 当前时间戳（秒）
+  pendingTodos.value.push({
+    text: text,
+    completed: false,
+    createdAt: now
+  });
+  // 保存数据
+  saveTodoData();
 }
 
 function toggleTodo(index: number) {
