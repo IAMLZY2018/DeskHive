@@ -40,14 +40,14 @@
         <h3 class="section-title">待完成</h3>
         <div class="todo-list">
           <TransitionGroup name="todo-list" tag="div">
-            <div v-for="(todo, index) in pendingTodos" :key="index" :class="['todo-item']" 
+            <div v-for="(todo, index) in sortedPendingTodos" :key="index" :class="['todo-item']" 
                  @dblclick="deleteTodo(index)" 
                  @contextmenu="showContextMenuFor($event, todo)">
               <div class="todo-checkbox" @click="toggleTodo(index)"></div>
-              <div v-if="todo.deadline" class="countdown-indicator">
+              <div v-if="todo.deadline" class="countdown-indicator" :class="{ 'overdue': isOverdue(todo.deadline) && !todo.completed }">
                 {{ getCountdownText(todo.deadline) }}
               </div>
-              <div v-if="calculateDaysCreated(todo.createdAt) >= 1" class="days-indicator">
+              <div v-else-if="calculateDaysCreated(todo.createdAt) >= 1" class="days-indicator">
                 {{ calculateDaysCreated(todo.createdAt) }}
               </div>
               <span>{{ todo.text }}</span>
@@ -156,7 +156,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -184,6 +184,29 @@ const dateInfo = ref<DateInfo | null>(null);
 const newTaskText = ref('');
 const totalTasks = computed(() => pendingTodos.value.length + completedTodos.value.length);
 const completedTasks = computed(() => completedTodos.value.length);
+
+// 计算排序后的待办任务
+const sortedPendingTodos = computed(() => {
+  return [...pendingTodos.value].sort((a, b) => {
+    // 如果两个任务都没有截止时间，保持原有顺序
+    if (!a.deadline && !b.deadline) {
+      return 0;
+    }
+    
+    // 如果只有任务a没有截止时间，将a排在前面
+    if (!a.deadline) {
+      return -1;
+    }
+    
+    // 如果只有任务b没有截止时间，将b排在前面
+    if (!b.deadline) {
+      return 1;
+    }
+    
+    // 如果两个任务都有截止时间，按照截止时间排序（快到期的在前面）
+    return a.deadline - b.deadline;
+  });
+});
 
 // 计算是否显示空状态（没有任何任务）
 const showEmptyState = computed(() => pendingTodos.value.length === 0 && completedTodos.value.length === 0);
@@ -267,6 +290,47 @@ function calculateDaysCreated(timestamp: number): number {
   return diffDays;
 }
 
+// 判断是否已过期
+function isOverdue(deadline: number): boolean {
+  const now = Math.floor(Date.now() / 1000); // 当前时间戳（秒）
+  return deadline < now;
+}
+
+// 判断任务是否创建于前一天
+function isCreatedYesterday(createdAt: number): boolean {
+  // 获取当前日期的开始时间戳（今天00:00:00）
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayTimestamp = Math.floor(today.getTime() / 1000);
+  
+  // 获取任务创建日期的开始时间戳
+  const createdDate = new Date(createdAt * 1000);
+  createdDate.setHours(0, 0, 0, 0);
+  const createdTimestamp = Math.floor(createdDate.getTime() / 1000);
+  
+  // 计算两个日期相差的天数
+  const diffDays = Math.floor((todayTimestamp - createdTimestamp) / (24 * 60 * 60));
+  
+  // 如果相差1天，则说明是昨天创建的任务
+  return diffDays === 1;
+}
+
+// 清除前一天完成的任务
+function clearYesterdayCompletedTodos() {
+  // 过滤掉昨天完成的任务
+  const filteredTodos = completedTodos.value.filter(todo => {
+    // 保留今天及以前完成的任务
+    return !isCreatedYesterday(todo.createdAt);
+  });
+  
+  // 如果有任务被清除，则更新列表并保存数据
+  if (filteredTodos.length !== completedTodos.value.length) {
+    completedTodos.value = filteredTodos;
+    saveTodoData();
+    console.log('已清除前一天完成的任务');
+  }
+}
+
 // 计算倒计时文本（精确到分钟）
 function getCountdownText(deadline: number): string {
   const now = Math.floor(Date.now() / 1000); // 当前时间戳（秒）
@@ -276,22 +340,22 @@ function getCountdownText(deadline: number): string {
     // 已过期
     const overdueDiff = Math.abs(diff);
     if (overdueDiff < 60) {
-      return '已过期';
+      return '已超时';
     } else if (overdueDiff < 3600) {
       const minutes = Math.floor(overdueDiff / 60);
-      return `过期${minutes}分`;
+      return `${minutes}分钟`;
     } else if (overdueDiff < 86400) {
       const hours = Math.floor(overdueDiff / 3600);
       const minutes = Math.floor((overdueDiff % 3600) / 60);
-      return minutes > 0 ? `过期${hours}时${minutes}分` : `过期${hours}时`;
+      return minutes > 0 ? `${hours}时${minutes}分` : `${hours}时`;
     } else {
       const days = Math.floor(overdueDiff / 86400);
       const hours = Math.floor((overdueDiff % 86400) / 3600);
-      return hours > 0 ? `过期${days}天${hours}时` : `过期${days}天`;
+      return hours > 0 ? `${days}天${hours}时` : `${days}天`;
     }
   }
   
-  // 未过期，显示剩余时间
+  // 未过期，显示剩余时间（精确到分钟）
   if (diff < 60) {
     return '即将到期';
   } else if (diff < 3600) {
@@ -550,12 +614,12 @@ async function removeDeadline() {
     // 更新本地数据以保持UI同步
     let found = false;
     const lists = [
-      { list: pendingTodos.value, isCompleted: false },
-      { list: completedTodos.value, isCompleted: true }
+      { list: pendingTodos.value },
+      { list: completedTodos.value }
     ];
     
     // 遍历所有列表查找匹配的todo项
-    for (const { list, isCompleted } of lists) {
+    for (const { list } of lists) {
       // 首先尝试通过文本和完成状态匹配
       const todoIndex = list.findIndex(t => 
         t.text === contextMenuTodo.value!.text && 
@@ -645,6 +709,10 @@ onMounted(async () => {
   
   // 加载todo数据、应用设置和日期信息
   await loadTodoData();
+  
+  // 清除前一天完成的任务
+  clearYesterdayCompletedTodos();
+  
   await loadAppSettings();
   await loadDateInfo();
   
@@ -1062,8 +1130,23 @@ header {
   user-select: none;
 }
 
+/* 过期倒计时指示器样式 */
+.countdown-indicator.overdue {
+  background: #F44336; /* 红色 */
+  border-color: rgba(244, 67, 54, 0.6);
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+
 /* 已完成的倒计时指示器 */
 .countdown-indicator.completed {
+  background: #9E9E9E; /* 灰色 */
+  border-color: rgba(158, 158, 158, 0.6);
+  box-shadow: 0 2px 8px rgba(158, 158, 158, 0.3);
+  opacity: 0.8;
+}
+
+/* 已完成且过期的倒计时指示器 */
+.countdown-indicator.completed.overdue {
   background: #9E9E9E; /* 灰色 */
   border-color: rgba(158, 158, 158, 0.6);
   box-shadow: 0 2px 8px rgba(158, 158, 158, 0.3);
