@@ -34,8 +34,15 @@
       
       <!-- 已完成任务列表 -->
       <div v-if="completedTodos.length > 0" class="todo-section completed-section">
-        <h3 class="section-title">已完成</h3>
+        <h3 class="section-title collapsible" @click="toggleCompletedSection">
+          <span class="collapse-indicator" :class="{ collapsed: isCompletedSectionCollapsed }">
+            ▼
+          </span>
+          已完成
+          <span class="completed-count">{{ completedTasks }}</span>
+        </h3>
         <TodoList
+          v-show="!isCompletedSectionCollapsed"
           :todos="completedTodos"
           :is-completed-list="true"
           @toggle="toggleCompletedTodo"
@@ -91,8 +98,16 @@ const pendingTodos = ref<Todo[]>([]);
 const completedTodos = ref<Todo[]>([]);
 const dateInfo = ref<DateInfo | null>(null);
 
+// 添加已完成部分的折叠状态
+const isCompletedSectionCollapsed = ref(true);
+
 const totalTasks = computed(() => pendingTodos.value.length + completedTodos.value.length);
 const completedTasks = computed(() => completedTodos.value.length);
+
+// 添加切换已完成部分折叠状态的函数
+function toggleCompletedSection() {
+  isCompletedSectionCollapsed.value = !isCompletedSectionCollapsed.value;
+}
 
 // 计算排序后的待办任务
 const sortedPendingTodos = computed(() => {
@@ -791,6 +806,38 @@ header {
   margin-bottom: 8px;
   font-weight: 600;
   padding-left: 5px;
+}
+
+/* 可折叠标题样式 */
+.section-title.collapsible {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+}
+
+.collapse-indicator {
+  font-size: 0.7rem;
+  transition: transform 0.3s ease;
+}
+
+.collapse-indicator.collapsed {
+  transform: rotate(-90deg);
+}
+
+/* 已完成数量显示样式 */
+.completed-count {
+  background: #4CAF50; /* 绿色背景 */
+  color: white;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  min-width: 20px;
+  text-align: center;
+  margin-left: auto;
 }
 
 .completed-section {

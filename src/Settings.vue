@@ -33,7 +33,7 @@
             <div class="setting-item">
               <div>
                 <div class="setting-label">主窗口透明度</div>
-                <div class="setting-description">调整主窗口（Todo窗口）的透明程度，不影响设置窗口</div>
+                <div class="setting-description">调整主窗口的透明程度，不影响设置窗口</div>
               </div>
               <div class="setting-control">
                 <input 
