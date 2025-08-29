@@ -47,9 +47,11 @@ interface Emits {
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
+// 使用ref来创建响应式变量，初始值来自props
 const deadlineDate = ref(props.initialDate || '');
 const deadlineTime = ref(props.initialTime || '');
 
+// 监听props的变化，更新本地响应式变量
 watch(() => props.initialDate, (newVal) => {
   deadlineDate.value = newVal || '';
 });
@@ -58,13 +60,25 @@ watch(() => props.initialTime, (newVal) => {
   deadlineTime.value = newVal || '';
 });
 
+// 监听本地变量的变化，用于调试
+watch(deadlineDate, (newVal) => {
+  console.log('DeadlineDialog - deadlineDate changed:', newVal);
+});
+
+watch(deadlineTime, (newVal) => {
+  console.log('DeadlineDialog - deadlineTime changed:', newVal);
+});
+
 function onClose() {
   emit('close');
 }
 
 function onConfirm() {
+  console.log('DeadlineDialog - Confirm clicked:', { date: deadlineDate.value, time: deadlineTime.value });
   if (deadlineDate.value && deadlineTime.value) {
     emit('confirm', deadlineDate.value, deadlineTime.value);
+  } else {
+    console.warn('DeadlineDialog - Date or time not selected');
   }
 }
 </script>

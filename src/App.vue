@@ -40,6 +40,13 @@
           </span>
           已完成
           <span class="completed-count">{{ completedTasks }}</span>
+          <button 
+            class="clear-completed-btn" 
+            @click.stop="clearAllCompletedTodos"
+            title="清除所有已完成任务"
+          >
+            🗑️
+          </button>
         </h3>
         <TodoList
           v-show="!isCompletedSectionCollapsed"
@@ -69,7 +76,7 @@
       :initial-date="deadlineDate"
       :initial-time="deadlineTime"
       @close="closeDeadlineDialog"
-      @confirm="setDeadline"
+      @confirm="handleDeadlineConfirm"
     />
     
     <!-- Toast 内部提示 -->
@@ -402,28 +409,38 @@ function addTask(text: string) {
 
 function toggleTodo(index: number) {
   const todo = pendingTodos.value[index];
-  pendingTodos.value.splice(index, 1);
+  // 为了更好的动画效果，我们先在已完成列表中添加任务，然后再从待完成列表中移除
   completedTodos.value.push({
     text: todo.text,
     completed: true,
     createdAt: todo.createdAt, // 保持原有的创建时间
     deadline: todo.deadline // 保持原有的截止时间
   });
-  // 保存数据
-  saveTodoData();
+  
+  // 使用nextTick确保DOM更新后再移除待完成任务
+  setTimeout(() => {
+    pendingTodos.value.splice(index, 1);
+    // 保存数据
+    saveTodoData();
+  }, 10);
 }
 
 function toggleCompletedTodo(index: number) {
   const todo = completedTodos.value[index];
-  completedTodos.value.splice(index, 1);
+  // 为了更好的动画效果，我们先在待完成列表中添加任务，然后再从已完成列表中移除
   pendingTodos.value.push({
     text: todo.text,
     completed: false,
     createdAt: todo.createdAt, // 保持原有的创建时间
     deadline: todo.deadline // 保持原有的截止时间
   });
-  // 保存数据
-  saveTodoData();
+  
+  // 使用setTimeout确保DOM更新后再移除已完成任务
+  setTimeout(() => {
+    completedTodos.value.splice(index, 1);
+    // 保存数据
+    saveTodoData();
+  }, 10);
 }
 
 function deleteTodo(index: number) {
@@ -462,10 +479,11 @@ function openDeadlineDialog() {
     deadlineDate.value = deadlineDateTime.toISOString().split('T')[0];
     deadlineTime.value = deadlineDateTime.toTimeString().slice(0, 5);
   } else {
-    // 默认设置为今天晚上6点
+    // 默认设置为1小时后的时间
     const now = new Date();
-    deadlineDate.value = now.toISOString().split('T')[0];
-    deadlineTime.value = '18:00';
+    const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000); // 1小时后
+    deadlineDate.value = oneHourLater.toISOString().split('T')[0];
+    deadlineTime.value = `${oneHourLater.getHours().toString().padStart(2, '0')}:${oneHourLater.getMinutes().toString().padStart(2, '0')}`;
   }
   
   hideContextMenu();
@@ -480,6 +498,14 @@ function closeDeadlineDialog() {
   deadlineTime.value = '';
 }
 
+// 处理DeadlineDialog确认事件
+function handleDeadlineConfirm(date: string, time: string) {
+  console.log('处理DeadlineDialog确认事件:', { date, time });
+  deadlineDate.value = date;
+  deadlineTime.value = time;
+  setDeadline(); // 调用原有的设置截止时间函数
+}
+
 // 设置截止时间
 async function setDeadline() {
   if (!dialogTodo.value || !deadlineDate.value || !deadlineTime.value) {
@@ -491,9 +517,9 @@ async function setDeadline() {
   const deadlineDateTime = new Date(`${deadlineDate.value}T${deadlineTime.value}`);
   const deadlineTimestamp = Math.floor(deadlineDateTime.getTime() / 1000);
   
-  // 检查时间是否在未来
+  // 检查时间是否在未来（增加1分钟的容差，避免时间精度问题）
   const now = Math.floor(Date.now() / 1000);
-  if (deadlineTimestamp <= now) {
+  if (deadlineTimestamp <= now - 60) { // 允许1分钟内的误差
     showToastMessage('截止时间必须在未来', 'error');
     return;
   }
@@ -611,6 +637,17 @@ function deleteCompletedTodo(index: number) {
   completedTodos.value.splice(index, 1);
   // 保存数据
   saveTodoData();
+}
+
+// 清除所有已完成任务
+function clearAllCompletedTodos() {
+  if (completedTodos.value.length === 0) return;
+  
+  completedTodos.value = [];
+  // 保存数据
+  saveTodoData();
+  
+  showToastMessage('已清除所有已完成任务', 'success');
 }
 
 // 加载应用设置
@@ -838,6 +875,24 @@ header {
   min-width: 20px;
   text-align: center;
   margin-left: auto;
+}
+
+/* 清除已完成任务按钮 */
+.clear-completed-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #888;
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.clear-completed-btn:hover {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
 }
 
 .completed-section {

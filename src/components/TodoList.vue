@@ -1,9 +1,9 @@
 <template>
   <div class="todo-list">
-    <TransitionGroup name="todo-list" tag="div">
+    <TransitionGroup :name="isCompletedList ? 'completed-list' : 'pending-list'" tag="div">
       <TodoItem
         v-for="(todo, index) in todos"
-        :key="index"
+        :key="`${isCompletedList ? 'completed' : 'pending'}-${index}`"
         :todo="todo"
         @toggle="() => onToggle(index)"
         @delete="() => onDelete(index)"
@@ -51,22 +51,35 @@ function onContextMenu(event: MouseEvent, todo: Todo) {
 }
 
 /* Todo列表过渡动画 */
-.todo-list-enter-active,
-.todo-list-leave-active {
-  transition: all 0.5s ease;
+.pending-list-enter-active,
+.pending-list-leave-active,
+.completed-list-enter-active,
+.completed-list-leave-active {
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.todo-list-enter-from {
+.pending-list-enter-from {
   opacity: 0;
-  transform: translateY(30px);
+  transform: translateY(20px);
 }
 
-.todo-list-leave-to {
+.pending-list-leave-to {
   opacity: 0;
-  transform: translateX(100px);
+  transform: translateY(-20px);
 }
 
-.todo-list-move {
-  transition: transform 0.5s ease;
+.completed-list-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.completed-list-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.pending-list-move,
+.completed-list-move {
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 </style>
