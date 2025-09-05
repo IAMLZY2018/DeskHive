@@ -25,7 +25,7 @@
       v-else-if="calculateDaysCreated(todo.createdAt) >= 1" 
       class="days-indicator"
     >
-      {{ calculateDaysCreated(todo.createdAt) }}
+      {{ calculateDaysCreated(todo.createdAt) }}天
     </div>
     <span>{{ todo.text }}</span>
   </div>
@@ -199,13 +199,9 @@ function onContextMenu(event: MouseEvent) {
 
 /* 天数指示器样式 */
 .days-indicator {
-  width: clamp(18px, 3vw, 22px);
-  height: clamp(18px, 3vw, 22px);
   background: #FFE082; /* 更淡的黄色 */
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 12px; /* 椭圆形状 */
+  padding: clamp(2px, 0.5vh, 4px) clamp(6px, 1.2vw, 8px);
   font-size: clamp(0.6rem, 1.5vw, 0.7rem);
   font-weight: bold;
   color: #333;
@@ -214,6 +210,9 @@ function onContextMenu(event: MouseEvent) {
   box-shadow: 0 2px 6px rgba(255, 224, 130, 0.4);
   border: 1px solid rgba(255, 224, 130, 0.6);
   user-select: none;
+  white-space: nowrap;
+  min-width: fit-content;
+  transition: all 0.3s ease;
 }
 
 /* 倒计时指示器样式 */
