@@ -2,6 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 use serde_json;
 use tauri::Manager;
+use uuid::Uuid;
 
 use crate::models::{Todo, TodoData};
 
@@ -57,18 +58,21 @@ pub async fn load_todo_data(app: tauri::AppHandle) -> Result<TodoData, String> {
         return Ok(TodoData {
             pending_todos: vec![
                 Todo { 
+                    id: Uuid::new_v4().to_string(),
                     text: "欢迎使用DeskHive桌面助手".to_string(),
                     completed: false,
                     created_at: now - 3600, // 1小时前创建
                     deadline: None, // 无截止时间
                 },
                 Todo { 
+                    id: Uuid::new_v4().to_string(),
                     text: "测试天数指示器功能 - 3天前创建".to_string(),
                     completed: false,
                     created_at: now - (3 * 24 * 3600), // 3天前创建
                     deadline: Some(now + (2 * 24 * 3600)), // 设置2天后截止，用于测试倒计时
                 },
                 Todo { 
+                    id: Uuid::new_v4().to_string(),
                     text: "测试天数指示器功能 - 7天前创建".to_string(),
                     completed: false,
                     created_at: now - (7 * 24 * 3600), // 7天前创建
@@ -77,6 +81,7 @@ pub async fn load_todo_data(app: tauri::AppHandle) -> Result<TodoData, String> {
             ],
             completed_todos: vec![
                 Todo { 
+                    id: Uuid::new_v4().to_string(),
                     text: "已完成的会收纳到这里，可以双击删除哦~".to_string(),
                     completed: true,
                     created_at: now - (5 * 24 * 3600), // 5天前创建
@@ -99,12 +104,12 @@ pub async fn load_todo_data(app: tauri::AppHandle) -> Result<TodoData, String> {
 #[tauri::command]
 pub async fn set_todo_deadline(
     app: tauri::AppHandle, 
-    todo_text: String, 
+    todo_id: String,  // 使用ID而不是文本
     is_completed: bool,
     deadline: Option<i64>
 ) -> Result<(), String> {
-    println!("准备设置截止时间: text='{}', completed={}, deadline={:?}", 
-        todo_text, is_completed, deadline);
+    println!("准备设置截止时间: id='{}', completed={}, deadline={:?}", 
+        todo_id, is_completed, deadline);
     
     // 先加载当前数据
     let mut todo_data = load_todo_data(app.clone()).await?;
@@ -117,18 +122,18 @@ pub async fn set_todo_deadline(
         // 在已完成列表中查找
         println!("在已完成列表中查找");
         for (i, todo) in todo_data.completed_todos.iter().enumerate() {
-            println!("  [{}]: '{}'", i, todo.text);
+            println!("  [{}]: '{}' (id: {})", i, todo.text, todo.id);
         }
         todo_data.completed_todos.iter_mut()
-            .find(|todo| todo.text == todo_text)
+            .find(|todo| todo.id == todo_id)
     } else {
         // 在待完成列表中查找
         println!("在待完成列表中查找");
         for (i, todo) in todo_data.pending_todos.iter().enumerate() {
-            println!("  [{}]: '{}'", i, todo.text);
+            println!("  [{}]: '{}' (id: {})", i, todo.text, todo.id);
         }
         todo_data.pending_todos.iter_mut()
-            .find(|todo| todo.text == todo_text)
+            .find(|todo| todo.id == todo_id)
     };
     
     if let Some(todo) = found {
@@ -157,7 +162,7 @@ pub async fn set_todo_deadline(
         }
         Ok(())
     } else {
-        let error_msg = format!("未找到指定的todo项: '{}', completed={}", todo_text, is_completed);
+        let error_msg = format!("未找到指定的todo项: id='{}', completed={}", todo_id, is_completed);
         println!("{}", error_msg);
         Err(error_msg)
     }

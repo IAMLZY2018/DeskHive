@@ -1,9 +1,13 @@
 <template>
   <div class="todo-list">
-    <TransitionGroup :name="props.isCompletedList ? 'completed-list' : 'pending-list'" tag="div">
+    <TransitionGroup 
+      :name="props.isCompletedList ? 'completed-list' : 'pending-list'" 
+      tag="div"
+      move-class="todo-item-move"
+    >
       <TodoItem
         v-for="(todo, index) in props.todos"
-        :key="`${props.isCompletedList ? 'completed' : 'pending'}-${index}`"
+        :key="todo.id"
         :todo="todo"
         :index="index"
         :is-completed-list="props.isCompletedList"

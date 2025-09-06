@@ -14,6 +14,7 @@
       class="todo-checkbox completed" 
       @click="toggleTodo"
     ></div>
+    <span>{{ props.todo.text }}</span>
     <div 
       v-if="props.todo.deadline && !props.todo.completed" 
       class="countdown-indicator" 
@@ -27,7 +28,6 @@
     >
       {{ calculateDaysCreated(props.todo.createdAt) }}天
     </div>
-    <span>{{ props.todo.text }}</span>
   </div>
 </template>
 
@@ -143,14 +143,7 @@ function showContextMenu(event: MouseEvent) {
   border-color: rgba(104, 58, 183, 0.2);
 }
 
-.todo-item:hover::after {
-  content: '双击删除';
-  position: absolute;
-  right: 10px;
-  font-size: 0.7rem;
-  color: #888;
-  opacity: 0.7;
-}
+
 
 .todo-checkbox {
   width: clamp(14px, 2.5vw, 18px);

@@ -1,8 +1,9 @@
 <template>
   <div 
     v-if="props.show" 
+    ref="contextMenuRef"
     class="context-menu" 
-    :style="{ left: props.position.x + 'px', top: props.position.y + 'px' }"
+    :style="{ left: initialPosition.x + 'px', top: initialPosition.y + 'px' }"
   >
     <div class="context-menu-item">
       <div class="context-menu-label">状态：</div>
@@ -30,10 +31,14 @@
     <div v-if="props.todo?.deadline" class="context-menu-button" @click="onRemoveDeadline">
       🗑️ 移除截止时间
     </div>
+    <div class="context-menu-button" @click="onDeleteTodo">
+      🗑️ 删除任务
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, watch, nextTick } from 'vue';
 import type { Todo } from '../../src/types';
 
 interface Props {
@@ -43,10 +48,13 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const contextMenuRef = ref<HTMLElement | null>(null);
+const initialPosition = ref({ x: 0, y: 0 });
 
 const emit = defineEmits<{
   setDeadline: [];
   removeDeadline: [];
+  deleteTodo: []; // 添加删除事件
 }>();
 
 // 格式化时间
@@ -72,6 +80,68 @@ function onSetDeadline() {
 function onRemoveDeadline() {
   emit('removeDeadline');
 }
+
+// 删除任务
+function onDeleteTodo() {
+  emit('deleteTodo');
+}
+
+// 调整菜单位置以确保完整显示
+function adjustMenuPosition() {
+  if (!contextMenuRef.value) return;
+
+  const menu = contextMenuRef.value;
+  const rect = menu.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  // 获取初始位置
+  let newX = props.position.x;
+  let newY = props.position.y;
+
+  // 检查右侧是否超出视口
+  if (newX + rect.width > viewportWidth) {
+    newX = viewportWidth - rect.width - 10; // 保持10px边距
+  }
+
+  // 检查底部是否超出视口
+  if (newY + rect.height > viewportHeight) {
+    newY = viewportHeight - rect.height - 10; // 保持10px边距
+  }
+
+  // 确保不会小于0
+  newX = Math.max(0, newX);
+  newY = Math.max(0, newY);
+
+  // 应用调整后的位置
+  menu.style.left = newX + 'px';
+  menu.style.top = newY + 'px';
+}
+
+// 监听show属性变化，当菜单显示时调整位置
+watch(() => props.show, (newVal) => {
+  if (newVal) {
+    // 设置初始位置
+    initialPosition.value = { ...props.position };
+    
+    // 在DOM更新后调整位置
+    nextTick(() => {
+      adjustMenuPosition();
+    });
+  }
+});
+
+// 监听位置变化
+watch(() => props.position, (newPos) => {
+  if (props.show) {
+    initialPosition.value = { ...newPos };
+    
+    // 在DOM更新后调整位置
+    nextTick(() => {
+      adjustMenuPosition();
+    });
+  }
+});
 </script>
 
 <style scoped>
@@ -79,41 +149,53 @@ function onRemoveDeadline() {
 .context-menu {
   position: fixed;
   background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(104, 58, 183, 0.2);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(20px);
   z-index: 1000;
   min-width: 200px;
-  padding: 8px;
+  padding: 6px;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  box-sizing: border-box;
 }
 
 .context-menu-item {
-  padding: 8px 12px;
-  font-size: 0.85rem;
+  padding: 6px 10px;
+  font-size: 0.8rem;
   color: #333;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+  margin: 1px 0;
+}
+
+.context-menu-item:hover {
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .context-menu-label {
-  font-weight: 600;
-  color: #555;
-  margin-bottom: 4px;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 2px;
+  font-size: 0.75rem;
 }
 
 .context-menu-value {
-  font-family: 'Courier New', monospace;
-  background: rgba(104, 58, 183, 0.1);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  background: rgba(0, 0, 0, 0.05);
   padding: 4px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(104, 58, 183, 0.2);
-  font-size: 0.8rem;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  color: #444;
+  font-weight: 500;
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .status-value {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
 .status-dot {
@@ -125,35 +207,47 @@ function onRemoveDeadline() {
 }
 
 .status-dot.completed {
-  background-color: #4CAF50; /* 绿色 */
-  box-shadow: 0 0 4px rgba(76, 175, 80, 0.5);
+  background-color: #10b981; /* emerald-500 */
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
 }
 
 .status-dot.pending {
-  background-color: #F44336; /* 红色 */
-  box-shadow: 0 0 4px rgba(244, 67, 54, 0.5);
+  background-color: #ef4444; /* red-500 */
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
 }
 
 /* 右键菜单分割线 */
 .context-menu-divider {
   height: 1px;
-  background: rgba(104, 58, 183, 0.2);
-  margin: 8px 0;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 4px 0;
 }
 
 /* 右键菜单按钮 */
 .context-menu-button {
-  padding: 8px 12px;
-  font-size: 0.85rem;
+  padding: 6px 10px;
+  font-size: 0.8rem;
   color: #333;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 6px;
   transition: all 0.2s ease;
   user-select: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 1px 0;
+  border: 1px solid transparent;
 }
 
 .context-menu-button:hover {
-  background: rgba(104, 58, 183, 0.1);
-  color: #683ab7;
+  background: rgba(0, 0, 0, 0.05);
+  color: #111;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.context-menu-button:active {
+  background: rgba(0, 0, 0, 0.08);
+  transform: translateY(1px);
 }
 </style>

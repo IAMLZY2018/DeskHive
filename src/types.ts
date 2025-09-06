@@ -1,4 +1,5 @@
 export interface Todo {
+  id: string; // 添加唯一ID
   text: string;
   completed: boolean;
   createdAt: number; // Unix时间戳（秒）
