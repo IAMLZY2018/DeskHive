@@ -1,33 +1,33 @@
 <template>
   <div 
-    v-if="show" 
+    v-if="props.show" 
     class="context-menu" 
-    :style="{ left: position.x + 'px', top: position.y + 'px' }"
+    :style="{ left: props.position.x + 'px', top: props.position.y + 'px' }"
   >
     <div class="context-menu-item">
       <div class="context-menu-label">状态：</div>
       <div class="context-menu-value status-value">
-        <span :class="['status-dot', todo?.completed ? 'completed' : 'pending']"></span>
-        {{ todo?.completed ? '已完成' : '待完成' }}
+        <span :class="['status-dot', props.todo?.completed ? 'completed' : 'pending']"></span>
+        {{ props.todo?.completed ? '已完成' : '待完成' }}
       </div>
     </div>
     <div class="context-menu-item">
       <div class="context-menu-label">创建时间：</div>
       <div class="context-menu-value">
-        {{ todo ? formatDateTime(todo.createdAt) : '' }}
+        {{ props.todo ? formatDateTime(props.todo.createdAt) : '' }}
       </div>
     </div>
-    <div v-if="todo?.deadline" class="context-menu-item">
+    <div v-if="props.todo?.deadline" class="context-menu-item">
       <div class="context-menu-label">截止时间：</div>
       <div class="context-menu-value">
-        {{ formatDateTime(todo.deadline) }}
+        {{ formatDateTime(props.todo.deadline) }}
       </div>
     </div>
     <div class="context-menu-divider"></div>
     <div class="context-menu-button" @click="onSetDeadline">
       📅 设置截止时间
     </div>
-    <div v-if="todo?.deadline" class="context-menu-button" @click="onRemoveDeadline">
+    <div v-if="props.todo?.deadline" class="context-menu-button" @click="onRemoveDeadline">
       🗑️ 移除截止时间
     </div>
   </div>
@@ -42,13 +42,12 @@ interface Props {
   todo: Todo | null;
 }
 
-interface Emits {
-  (e: 'set-deadline'): void;
-  (e: 'remove-deadline'): void;
-}
-
 const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
+
+const emit = defineEmits<{
+  setDeadline: [];
+  removeDeadline: [];
+}>();
 
 // 格式化时间
 function formatDateTime(timestamp: number): string {
@@ -64,12 +63,14 @@ function formatDateTime(timestamp: number): string {
   });
 }
 
+// 设置截止时间
 function onSetDeadline() {
-  emit('set-deadline');
+  emit('setDeadline');
 }
 
+// 移除截止时间
 function onRemoveDeadline() {
-  emit('remove-deadline');
+  emit('removeDeadline');
 }
 </script>
 

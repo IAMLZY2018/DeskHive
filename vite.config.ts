@@ -25,5 +25,9 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
+  },
+  // 禁用HMR以更好地支持离线环境
+  server: {
+    hmr: false
   }
 })

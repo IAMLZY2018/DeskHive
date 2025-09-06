@@ -1,46 +1,49 @@
 <template>
   <div class="todo-list">
-    <TransitionGroup :name="isCompletedList ? 'completed-list' : 'pending-list'" tag="div">
+    <TransitionGroup :name="props.isCompletedList ? 'completed-list' : 'pending-list'" tag="div">
       <TodoItem
-        v-for="(todo, index) in todos"
-        :key="`${isCompletedList ? 'completed' : 'pending'}-${index}`"
+        v-for="(todo, index) in props.todos"
+        :key="`${props.isCompletedList ? 'completed' : 'pending'}-${index}`"
         :todo="todo"
-        @toggle="() => onToggle(index)"
-        @delete="() => onDelete(index)"
-        @contextmenu="(event) => onContextMenu(event, todo)"
+        :index="index"
+        :is-completed-list="props.isCompletedList"
+        @toggle="toggleTodo"
+        @delete="deleteTodo"
+        @contextmenu="showContextMenu"
       />
     </TransitionGroup>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import type { Todo } from '../../src/types';
 import TodoItem from './TodoItem.vue';
+import type { Todo } from '../../src/types';
 
 interface Props {
   todos: Todo[];
   isCompletedList?: boolean;
 }
 
-interface Emits {
-  (e: 'toggle', index: number): void;
-  (e: 'delete', index: number): void;
-  (e: 'contextmenu', event: MouseEvent, todo: Todo): void;
-}
-
 const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
 
-function onToggle(index: number) {
+const emit = defineEmits<{
+  toggle: [index: number];
+  delete: [index: number];
+  contextmenu: [event: MouseEvent, todo: Todo];
+}>();
+
+// 切换任务完成状态
+function toggleTodo(index: number) {
   emit('toggle', index);
 }
 
-function onDelete(index: number) {
+// 删除任务
+function deleteTodo(index: number) {
   emit('delete', index);
 }
 
-function onContextMenu(event: MouseEvent, todo: Todo) {
+// 显示右键菜单
+function showContextMenu(event: MouseEvent, todo: Todo) {
   emit('contextmenu', event, todo);
 }
 </script>

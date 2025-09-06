@@ -2,7 +2,7 @@
   <div class="container">
     <header :data-tauri-drag-region="!isDragDisabled ? '' : null">
       <div class="header-title" :data-tauri-drag-region="!isDragDisabled ? '' : null">
-        <img src="/src-tauri/icons/32x32.png" alt="DeskHive" class="app-icon">
+        <img src="/icons/app-icon.png" alt="DeskHive" class="app-icon">
         DeskHive
       </div>
       <div class="header-right">
@@ -175,20 +175,6 @@ function preventDefaultContextMenu(event: MouseEvent) {
   }
 }
 
-// 格式化时间
-function formatDateTime(timestamp: number): string {
-  const date = new Date(timestamp * 1000);
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  });
-}
-
 // 获取当前日期信息
 async function loadDateInfo() {
   try {
@@ -221,19 +207,20 @@ function showToastMessage(message: string, type: 'error' | 'success' | 'warning'
   }, 3000);
 }
 
-// 计算创建天数
-function calculateDaysCreated(timestamp: number): number {
-  const now = Date.now();
-  const createdTime = timestamp * 1000; // 转换为毫秒
-  const diffMs = now - createdTime;
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  return diffDays;
-}
-
-// 判断是否已过期
-function isOverdue(deadline: number): boolean {
-  const now = Math.floor(Date.now() / 1000); // 当前时间戳（秒）
-  return deadline < now;
+// 清除前一天完成的任务
+function clearYesterdayCompletedTodos() {
+  // 过滤掉昨天完成的任务
+  const filteredTodos = completedTodos.value.filter(todo => {
+    // 保留今天及以前完成的任务
+    return !isCreatedYesterday(todo.createdAt);
+  });
+  
+  // 如果有任务被清除，则更新列表并保存数据
+  if (filteredTodos.length !== completedTodos.value.length) {
+    completedTodos.value = filteredTodos;
+    saveTodoData();
+    console.log('已清除前一天完成的任务');
+  }
 }
 
 // 判断任务是否创建于前一天
@@ -253,77 +240,6 @@ function isCreatedYesterday(createdAt: number): boolean {
   
   // 如果相差1天，则说明是昨天创建的任务
   return diffDays === 1;
-}
-
-// 清除前一天完成的任务
-function clearYesterdayCompletedTodos() {
-  // 过滤掉昨天完成的任务
-  const filteredTodos = completedTodos.value.filter(todo => {
-    // 保留今天及以前完成的任务
-    return !isCreatedYesterday(todo.createdAt);
-  });
-  
-  // 如果有任务被清除，则更新列表并保存数据
-  if (filteredTodos.length !== completedTodos.value.length) {
-    completedTodos.value = filteredTodos;
-    saveTodoData();
-    console.log('已清除前一天完成的任务');
-  }
-}
-
-// 计算倒计时文本（精确到分钟）
-function getCountdownText(deadline: number): string {
-  const now = Math.floor(Date.now() / 1000); // 当前时间戳（秒）
-  const diff = deadline - now; // 剩余秒数
-  
-  if (diff <= 0) {
-    // 已过期
-    const overdueDiff = Math.abs(diff);
-    if (overdueDiff < 60) {
-      return '已超时';
-    } else if (overdueDiff < 3600) {
-      const minutes = Math.floor(overdueDiff / 60);
-      return `${minutes}分钟`;
-    } else if (overdueDiff < 86400) {
-      const hours = Math.floor(overdueDiff / 3600);
-      const minutes = Math.floor((overdueDiff % 3600) / 60);
-      return minutes > 0 ? `${hours}时${minutes}分` : `${hours}时`;
-    } else {
-      const days = Math.floor(overdueDiff / 86400);
-      const hours = Math.floor((overdueDiff % 86400) / 3600);
-      return hours > 0 ? `${days}天${hours}时` : `${days}天`;
-    }
-  }
-  
-  // 未过期，显示剩余时间（精确到分钟）
-  if (diff < 60) {
-    return '即将到期';
-  } else if (diff < 3600) {
-    const minutes = Math.floor(diff / 60);
-    return `${minutes}分钟`;
-  } else if (diff < 86400) {
-    const hours = Math.floor(diff / 3600);
-    const minutes = Math.floor((diff % 3600) / 60);
-    return minutes > 0 ? `${hours}时${minutes}分` : `${hours}时`;
-  } else {
-    const days = Math.floor(diff / 86400);
-    const hours = Math.floor((diff % 86400) / 3600);
-    return hours > 0 ? `${days}天${hours}时` : `${days}天`;
-  }
-}
-
-// 启动倒计时更新定时器
-function startCountdownTimer() {
-  if (countdownTimer.value) {
-    clearInterval(countdownTimer.value);
-  }
-  
-  // 每分钟更新一次
-  countdownTimer.value = window.setInterval(() => {
-    // 触发组件重新渲染，让倒计时更新
-    // 通过修改一个小的响应式变量来触发重新渲染
-    // 这里不需要额外变量，直接让Vue检测到时间变化即可
-  }, 60000); // 60秒 = 1分钟
 }
 
 // 保存数据到本地文件
@@ -665,6 +581,20 @@ async function loadAppSettings() {
   } catch (error) {
     console.error('加载应用设置失败:', error);
   }
+}
+
+// 启动倒计时更新定时器
+function startCountdownTimer() {
+  if (countdownTimer.value) {
+    clearInterval(countdownTimer.value);
+  }
+  
+  // 每分钟更新一次
+  countdownTimer.value = window.setInterval(() => {
+    // 触发组件重新渲染，让倒计时更新
+    // 通过修改一个小的响应式变量来触发重新渲染
+    // 这里不需要额外变量，直接让Vue检测到时间变化即可
+  }, 60000); // 60秒 = 1分钟
 }
 
 // 组件挂载时加载数据

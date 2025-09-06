@@ -1,52 +1,52 @@
 <template>
   <div 
-    :class="['todo-item', { completed: todo.completed }]"
-    @dblclick="onDelete"
-    @contextmenu="onContextMenu"
+    :class="['todo-item', { completed: props.todo.completed }]"
+    @dblclick="deleteTodo"
+    @contextmenu.prevent="showContextMenu"
   >
     <div 
-      v-if="!todo.completed" 
+      v-if="!props.todo.completed" 
       class="todo-checkbox" 
-      @click="onToggle"
+      @click="toggleTodo"
     ></div>
     <div 
       v-else 
       class="todo-checkbox completed" 
-      @click="onToggle"
+      @click="toggleTodo"
     ></div>
     <div 
-      v-if="todo.deadline && !todo.completed" 
+      v-if="props.todo.deadline && !props.todo.completed" 
       class="countdown-indicator" 
-      :class="{ 'overdue': isOverdue(todo.deadline) }"
+      :class="{ 'overdue': isOverdue(props.todo.deadline) }"
     >
-      {{ getCountdownText(todo.deadline) }}
+      {{ getCountdownText(props.todo.deadline) }}
     </div>
     <div 
-      v-else-if="calculateDaysCreated(todo.createdAt) >= 1" 
+      v-else-if="calculateDaysCreated(props.todo.createdAt) >= 1" 
       class="days-indicator"
     >
-      {{ calculateDaysCreated(todo.createdAt) }}天
+      {{ calculateDaysCreated(props.todo.createdAt) }}天
     </div>
-    <span>{{ todo.text }}</span>
+    <span>{{ props.todo.text }}</span>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
 import type { Todo } from '../../src/types';
 
 interface Props {
   todo: Todo;
-}
-
-interface Emits {
-  (e: 'toggle'): void;
-  (e: 'delete'): void;
-  (e: 'contextmenu', event: MouseEvent): void;
+  index: number;
+  isCompletedList?: boolean;
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
+
+const emit = defineEmits<{
+  toggle: [index: number];
+  delete: [index: number];
+  contextmenu: [event: MouseEvent, todo: Todo];
+}>();
 
 // 计算创建天数
 function calculateDaysCreated(timestamp: number): number {
@@ -104,16 +104,19 @@ function getCountdownText(deadline: number): string {
   }
 }
 
-function onToggle() {
-  emit('toggle');
+// 切换任务完成状态
+function toggleTodo() {
+  emit('toggle', props.index);
 }
 
-function onDelete() {
-  emit('delete');
+// 删除任务
+function deleteTodo() {
+  emit('delete', props.index);
 }
 
-function onContextMenu(event: MouseEvent) {
-  emit('contextmenu', event);
+// 显示右键菜单
+function showContextMenu(event: MouseEvent) {
+  emit('contextmenu', event, props.todo);
 }
 </script>
 
