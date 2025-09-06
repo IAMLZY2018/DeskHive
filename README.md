@@ -1,8 +1,14 @@
 # DeskHive
 
+一个占用极低的桌面TODO插件，随时随地不忘事！
+
 <img src="https://typeropic.oss-cn-beijing.aliyuncs.com/cp/Snipaste_2025-09-06_22-46-08.png" alt="Snipaste_2025-09-06_22-46-08" style="zoom: 25%;" />
 
 <img src="https://typeropic.oss-cn-beijing.aliyuncs.com/cp/Snipaste_2025-09-06_22-46-25.png" style="zoom:50%;" />
+
+交流与建议：
+
+<img src="https://typeropic.oss-cn-beijing.aliyuncs.com/cp/image-20250907030349657.png" alt="image-20250907030349657" style="zoom:25%;" />
 
 [中文](#中文) | [English](#english)
 
@@ -143,3 +149,4 @@ DeskHive is a lightweight, cross-platform desktop to-do management tool built wi
    - Windows: `src-tauri/target/release/bundle/nsis/` (`.exe`)
    - macOS: `src-tauri/target/release/bundle/macos/` (`.app`)
    - Linux: `src-tauri/target/release/bundle/appimage/` (`.AppImage`)
+
