@@ -616,13 +616,28 @@ async function loadAppSettings() {
       disable_drag: boolean,
       auto_show: boolean,
       minimize_to_tray: boolean,
-      hotkey: string
+      hotkey: string,
+      theme: string
     };
     isDragDisabled.value = settings.disable_drag;
+    
+    // 应用主题设置
+    document.body.className = settings.theme === 'dark' ? 'dark-theme' : '';
+    
     console.log('应用设置加载成功，拖动禁用状态:', isDragDisabled.value);
   } catch (error) {
     console.error('加载应用设置失败:', error);
   }
+}
+
+// 监听主题变化事件
+async function listenThemeChange() {
+  const currentWindow = getCurrentWindow();
+  await currentWindow.listen('theme-changed', (event) => {
+    const theme = event.payload as string;
+    document.body.className = theme === 'dark' ? 'dark-theme' : '';
+    console.log('主题已更新:', theme);
+  });
 }
 
 // 启动倒计时更新定时器
@@ -656,6 +671,9 @@ onMounted(async () => {
   
   await loadAppSettings();
   await loadDateInfo();
+  
+  // 监听主题变化
+  await listenThemeChange();
   
   // 启动倒计时更新定时器
   startCountdownTimer();
@@ -717,7 +735,7 @@ header {
   padding: clamp(6px, 1.2vh, 8px) clamp(10px, 2.5vw, 14px);
   font-size: clamp(0.85rem, 2.2vw, 0.95rem);
   background: rgba(255, 255, 255, 0.6);
-  border-bottom: 1px solid rgba(104, 58, 183, 0.1);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.2);
   color: #333;
   font-weight: 600;
   backdrop-filter: blur(10px);
@@ -750,7 +768,7 @@ header {
   background: rgba(255, 255, 255, 0.8);
   padding: clamp(2px, 0.5vh, 4px) clamp(6px, 1.5vw, 8px);
   border-radius: clamp(8px, 1.5vw, 12px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(229, 231, 235, 0.2);
   min-width: clamp(28px, 6vw, 35px);
   text-align: center;
   backdrop-filter: blur(5px);
@@ -772,7 +790,7 @@ header {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
   backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(229, 231, 235, 0.2);
 }
 .settings-btn:hover {
   transform: rotate(90deg) scale(1.08);
@@ -793,14 +811,14 @@ header {
 }
 
 .todo-container::-webkit-scrollbar-track {
-  background: rgba(104, 58, 183, 0.1);
+  background: rgba(229, 231, 235, 0.1);
   border-radius: 3px;
 }
 
 .todo-container::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.8);
   border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(229, 231, 235, 0.2);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -869,7 +887,7 @@ header {
 
 .completed-section {
   margin-top: auto;
-  border-top: 1px dashed rgba(104, 58, 183, 0.2);
+  border-top: 1px dashed rgba(229, 231, 235, 0.2);
   padding-top: 10px;
 }
 
@@ -883,9 +901,9 @@ header {
   border-radius: clamp(8px, 1.5vw, 12px);
   display: flex;
   align-items: center;
-  box-shadow: 0 4px 16px rgba(104, 58, 183, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  border: 1px solid rgba(104, 58, 183, 0.08);
+  border: 1px solid rgba(229, 231, 235, 0.2);
   backdrop-filter: blur(10px);
   min-height: clamp(30px, 5vh, 36px);
   cursor: pointer;
@@ -893,8 +911,8 @@ header {
 }
 .todo-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(104, 58, 183, 0.15);
-  border-color: rgba(104, 58, 183, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-color: rgba(229, 231, 235, 0.3);
 }
 
 
@@ -944,7 +962,7 @@ header {
 .add-task {
   display: flex;
   padding: clamp(6px, 1.5vh, 10px);
-  border-top: 1px solid rgba(104, 58, 183, 0.1);
+  border-top: 1px solid rgba(229, 231, 235, 0.2);
   background: rgba(255, 255, 255, 0.6);
   gap: clamp(6px, 1.2vw, 10px);
   backdrop-filter: blur(10px);
@@ -954,7 +972,7 @@ header {
 .add-task input {
   flex: 1;
   padding: clamp(6px, 1.5vh, 8px) clamp(8px, 2vw, 10px);
-  border: 1px solid rgba(104, 58, 183, 0.2);
+  border: 1px solid rgba(229, 231, 235, 0.3);
   border-radius: clamp(8px, 1.5vw, 12px);
   outline: none;
   background: rgba(255, 255, 255, 0.8);
@@ -964,8 +982,8 @@ header {
   height: clamp(28px, 4.5vh, 32px);
 }
 .add-task input:focus {
-  border-color: #8e7cc3;
-  box-shadow: 0 0 8px rgba(104, 58, 183, 0.2);
+  border-color: #007aff;
+  box-shadow: 0 0 8px rgba(0, 122, 255, 0.3);
   background: rgba(255, 255, 255, 0.95);
 }
 .add-task input::placeholder {
@@ -991,16 +1009,13 @@ header {
   border: 1px solid rgba(255, 255, 255, 0.4);
 }
 .add-task button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(104, 58, 183, 0.4);
-}
-.add-task button:active {
-  transform: translateY(0);
-}
-.add-task button:hover {
   background: rgba(255, 255, 255, 0.95);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
+}
+
+.add-task button:active {
+  transform: translateY(0);
 }
 
 /* Todo列表过渡动画 */
@@ -1024,11 +1039,126 @@ header {
 .context-menu {
   position: fixed;
   background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(104, 58, 183, 0.2);
+  border: 1px solid rgba(229, 231, 235, 0.3);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
   z-index: 1000;
   min-width: 200px;
+}
+
+/* 夜间主题样式 */
+body.dark-theme header {
+  background: rgba(42, 49, 53, 0.8);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.2);
+  color: #e5e7eb;
+}
+
+body.dark-theme .progress-indicator {
+  background: rgba(42, 49, 53, 0.9);
+  color: #e5e7eb;
+  border: 1px solid rgba(229, 231, 235, 0.2);
+}
+
+body.dark-theme .settings-btn {
+  background: rgba(42, 49, 53, 0.9);
+  color: #e5e7eb;
+  border: 1px solid rgba(229, 231, 235, 0.2);
+}
+
+body.dark-theme .todo-item {
+  background: #3d4549;
+  border: 1px solid rgba(229, 231, 235, 0.2);
+  color: #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-theme .todo-item:hover {
+  border-color: rgba(229, 231, 235, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-theme .todo-checkbox {
+  background: rgba(42, 49, 53, 0.8);
+  border: 1px solid rgba(229, 231, 235, 0.2);
+}
+
+body.dark-theme .todo-checkbox.completed {
+  background: rgba(42, 49, 53, 0.9);
+  border-color: rgba(76, 175, 80, 0.8);
+}
+
+body.dark-theme .todo-checkbox.completed::after {
+  color: #e5e7eb;
+}
+
+body.dark-theme .todo-item span {
+  color: #e5e7eb;
+}
+
+body.dark-theme .todo-item.completed span {
+  color: #a0a6aa;
+}
+
+body.dark-theme .add-task {
+  background: rgba(42, 49, 53, 0.8);
+  border-top: 1px solid rgba(229, 231, 235, 0.2);
+}
+
+body.dark-theme .add-task input {
+  background: #3d4549;
+  border: 1px solid rgba(229, 231, 235, 0.3);
+  color: #e5e7eb;
+  border-radius: 10px;
+}
+
+body.dark-theme .add-task input::placeholder {
+  color: rgba(229, 231, 235, 0.5);
+}
+
+body.dark-theme .add-task button {
+  background: #3d4549;
+  color: #e5e7eb;
+  border: 1px solid rgba(229, 231, 235, 0.2);
+  border-radius: 50%;
+}
+
+body.dark-theme .section-title {
+  color: #a0a6aa;
+}
+
+body.dark-theme .completed-section {
+  border-top: 1px dashed rgba(229, 231, 235, 0.3);
+}
+
+body.dark-theme .completed-count {
+  background: #4CAF50;
+  color: white;
+}
+
+body.dark-theme .clear-completed-btn {
+  color: #a0a6aa;
+}
+
+body.dark-theme .clear-completed-btn:hover {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+body.dark-theme .context-menu {
+  background: rgba(42, 49, 53, 0.95);
+  border: 1px solid rgba(229, 231, 235, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-theme .todo-container::-webkit-scrollbar-track {
+  background: rgba(229, 231, 235, 0.1);
+}
+
+body.dark-theme .todo-container::-webkit-scrollbar-thumb {
+  background: #3d4549;
+  border: 1px solid rgba(229, 231, 235, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 </style>

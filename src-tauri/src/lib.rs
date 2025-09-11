@@ -3,7 +3,7 @@
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
-use tauri::{Manager};
+use tauri::{Manager, Emitter};
 
 // 模块声明
 mod models;
@@ -40,6 +40,13 @@ async fn quit_app(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+// Tauri 命令：发送主题更改事件
+#[tauri::command]
+async fn emit_theme_changed(app: tauri::AppHandle, theme: String) -> Result<(), String> {
+    app.emit("theme-changed", theme).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -65,7 +72,8 @@ pub fn run() {
             // 系统相关命令
             system::date_info::get_current_date,
             get_app_version,
-            quit_app
+            quit_app,
+            emit_theme_changed
         ])
         .setup(|app| {
             // 初始化日志系统

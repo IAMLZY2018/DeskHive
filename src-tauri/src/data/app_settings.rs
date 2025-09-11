@@ -75,6 +75,7 @@ pub async fn load_app_settings(app: tauri::AppHandle) -> Result<AppSettings, Str
             minimize_to_tray: true,
             auto_start: false,
             silent_start: false,
+            theme: "light".to_string(),
         });
     }
     

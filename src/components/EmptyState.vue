@@ -28,22 +28,23 @@ defineProps<Props>();
 <style scoped>
 /* 空状态日期信息样式 */
 .empty-state {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(20px, 4vh, 40px);
-  text-align: center;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: clamp(12px, 2.5vw, 16px);
+  padding: clamp(16px, 3vh, 24px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(229, 231, 235, 0.1);
+  margin-bottom: clamp(16px, 3vh, 24px);
+  min-width: clamp(200px, 40vw, 260px);
 }
 
 .date-info {
   background: rgba(255, 255, 255, 0.9);
   border-radius: clamp(12px, 2.5vw, 16px);
   padding: clamp(16px, 3vh, 24px);
-  box-shadow: 0 6px 20px rgba(104, 58, 183, 0.15);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(104, 58, 183, 0.1);
+  border: 1px solid rgba(229, 231, 235, 0.1);
   margin-bottom: clamp(16px, 3vh, 24px);
   min-width: clamp(200px, 40vw, 260px);
 }
@@ -62,12 +63,12 @@ defineProps<Props>();
 
 .weekday {
   font-size: clamp(0.85rem, 2.2vw, 1rem);
-  color: #683ab7;
+  color: #007aff;
   font-weight: 600;
 }
 
 .lunar-date {
-  border-top: 1px dashed rgba(104, 58, 183, 0.2);
+  border-top: 1px dashed rgba(229, 231, 235, 0.2);
   padding-top: clamp(10px, 2vh, 12px);
 }
 
@@ -81,14 +82,14 @@ defineProps<Props>();
 
 .welcome-text {
   font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-  color: #683ab7;
+  color: #007aff;
   font-weight: 600;
-  background: rgba(104, 58, 183, 0.1);
+  background: rgba(0, 122, 255, 0.1);
   padding: clamp(8px, 1.5vh, 12px) clamp(16px, 3vw, 20px);
   border-radius: clamp(8px, 1.5vw, 12px);
-  border: 1px solid rgba(104, 58, 183, 0.2);
+  border: 1px solid rgba(0, 122, 255, 0.2);
   backdrop-filter: blur(5px);
-  box-shadow: 0 2px 8px rgba(104, 58, 183, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.1);
   animation: gentle-pulse 3s ease-in-out infinite;
 }
 

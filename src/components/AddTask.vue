@@ -34,7 +34,7 @@ function onAddTask() {
 .add-task {
   display: flex;
   padding: clamp(6px, 1.5vh, 10px);
-  border-top: 1px solid rgba(104, 58, 183, 0.1);
+  border-top: 1px solid rgba(229, 231, 235, 0.1);
   background: rgba(255, 255, 255, 0.6);
   gap: clamp(6px, 1.2vw, 10px);
   backdrop-filter: blur(10px);
@@ -45,7 +45,7 @@ function onAddTask() {
 .add-task input {
   flex: 1;
   padding: clamp(6px, 1.5vh, 8px) clamp(8px, 2vw, 10px);
-  border: 1px solid rgba(104, 58, 183, 0.2);
+  border: 1px solid rgba(229, 231, 235, 0.2);
   border-radius: clamp(8px, 1.5vw, 12px);
   outline: none;
   background: rgba(255, 255, 255, 0.8);
@@ -56,8 +56,8 @@ function onAddTask() {
 }
 
 .add-task input:focus {
-  border-color: #8e7cc3;
-  box-shadow: 0 0 8px rgba(104, 58, 183, 0.2);
+  border-color: #007aff;
+  box-shadow: 0 0 8px rgba(0, 122, 255, 0.2);
   background: rgba(255, 255, 255, 0.95);
 }
 
@@ -87,7 +87,7 @@ function onAddTask() {
 
 .add-task button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(104, 58, 183, 0.4);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .add-task button:active {

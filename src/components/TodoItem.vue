@@ -128,9 +128,9 @@ function showContextMenu(event: MouseEvent) {
   border-radius: clamp(8px, 1.5vw, 12px);
   display: flex;
   align-items: center;
-  box-shadow: 0 4px 16px rgba(104, 58, 183, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  border: 1px solid rgba(104, 58, 183, 0.08);
+  border: 1px solid rgba(229, 231, 235, 0.08);
   backdrop-filter: blur(10px);
   min-height: clamp(30px, 5vh, 36px);
   cursor: pointer;
@@ -139,8 +139,8 @@ function showContextMenu(event: MouseEvent) {
 
 .todo-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(104, 58, 183, 0.15);
-  border-color: rgba(104, 58, 183, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-color: rgba(229, 231, 235, 0.2);
 }
 
 

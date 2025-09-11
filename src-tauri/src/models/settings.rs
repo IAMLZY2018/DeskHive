@@ -13,6 +13,8 @@ pub struct AppSettings {
     pub auto_start: bool,
     #[serde(default = "default_silent_start")]
     pub silent_start: bool,
+    #[serde(default = "default_theme")]
+    pub theme: String,
 }
 
 impl Default for AppSettings {
@@ -24,6 +26,7 @@ impl Default for AppSettings {
             minimize_to_tray: true,
             auto_start: false,
             silent_start: false,
+            theme: "light".to_string(),
         }
     }
 }
@@ -43,4 +46,8 @@ pub fn default_auto_start() -> bool {
 
 pub fn default_silent_start() -> bool {
     false
+}
+
+pub fn default_theme() -> String {
+    "light".to_string()
 }

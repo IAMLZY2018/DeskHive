@@ -60,6 +60,24 @@
                 ></div>
               </div>
             </div>
+            <!-- 添加主题切换按钮 -->
+            <div class="setting-item">
+              <div>
+                <div class="setting-label">主题模式</div>
+                <div class="setting-description">切换日间或夜间主题</div>
+              </div>
+              <div class="setting-control">
+                <div 
+                  class="theme-toggle-switch" 
+                  :class="{ 'theme-dark': settings.theme === 'dark' }"
+                  @click="toggleTheme"
+                >
+                  <div class="theme-toggle-slider"></div>
+                  <span class="theme-label light-label">☀️</span>
+                  <span class="theme-label dark-label">🌙</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -127,6 +145,7 @@ interface AppSettings {
   opacity: number
   disable_drag: boolean
   auto_start: boolean
+  theme: string
 }
 
 type SectionKey = 'appearance' | 'behavior' | 'about'
@@ -151,7 +170,8 @@ const sections: Record<SectionKey, Section> = {
 const settings = reactive<AppSettings>({
   opacity: 0.95,
   disable_drag: false,
-  auto_start: false
+  auto_start: false,
+  theme: 'light'
 })
 
 // 透明度的计算属性，确保始终为数字类型
@@ -161,6 +181,16 @@ const opacityValue = computed({
     settings.opacity = typeof value === 'string' ? parseFloat(value) : value
   }
 })
+
+// 主题切换函数
+function toggleTheme() {
+  settings.theme = settings.theme === 'light' ? 'dark' : 'light'
+  // 应用主题到当前页面
+  document.body.className = settings.theme === 'dark' ? 'dark-theme' : ''
+  
+  // 实时通知主窗口切换主题以实现预览效果
+  invoke('emit_theme_changed', { theme: settings.theme })
+}
 
 // 实时预览透明度（只应用于主窗口）
 async function applyOpacityPreview() {
@@ -198,7 +228,8 @@ async function saveSettings() {
     const settingsToSave = {
       opacity: typeof settings.opacity === 'string' ? parseFloat(settings.opacity) : settings.opacity,
       disable_drag: Boolean(settings.disable_drag),
-      auto_start: Boolean(settings.auto_start)
+      auto_start: Boolean(settings.auto_start),
+      theme: settings.theme
     }
     
     console.log('转换后的设置数据:', settingsToSave)
@@ -206,6 +237,11 @@ async function saveSettings() {
     // 调用 Tauri 命令保存设置
     await invoke('save_app_settings', { settings: settingsToSave })
     console.log('设置保存成功')
+    
+    // 通知主窗口主题已更改
+    if (settingsToSave.theme) {
+      await invoke('emit_theme_changed', { theme: settingsToSave.theme })
+    }
     
     // 关闭设置窗口
     await closeWindow()
@@ -249,6 +285,9 @@ async function loadSettings() {
     
     // 应用设置到界面
     Object.assign(settings, loadedSettings)
+    
+    // 应用主题到当前页面
+    document.body.className = settings.theme === 'dark' ? 'dark-theme' : ''
     
     // 注意：不对设置窗口应用透明度，设置窗口保持不透明
     // 透明度设置只应用于主窗口（Todo窗口）
@@ -500,6 +539,64 @@ onMounted(async () => {
   min-width: 120px;
 }
 
+/* 添加主题切换按钮样式 */
+.theme-toggle-switch {
+  position: relative;
+  width: 60px;
+  height: 30px;
+  background: #e5e5e5;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  overflow: hidden;
+}
+
+.theme-toggle-switch.theme-dark {
+  background: #34c759;
+}
+
+.theme-toggle-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 26px;
+  height: 26px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle-switch.theme-dark .theme-toggle-slider {
+  transform: translateX(30px);
+}
+
+.theme-label {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.light-label {
+  left: 8px;
+  color: #f5c442;
+}
+
+.dark-label {
+  right: 8px;
+  color: #4a90e2;
+}
+
+.theme-toggle-switch.theme-dark .light-label {
+  color: rgba(245, 196, 66, 0.5);
+}
+
+.theme-toggle-switch.theme-dark .dark-label {
+  color: #4a90e2;
+}
+
 .range-value {
   font-size: 17px;
   color: #007aff;
@@ -547,4 +644,297 @@ onMounted(async () => {
   background: #f0f8ff;
 }
 
+/* 夜间主题下的设置页面样式 */
+body.dark-theme {
+  background: #2a3135;
+  color: #e5e7eb;
+}
+
+body.dark-theme .container {
+  background: #2a3135;
+}
+
+body.dark-theme .sidebar {
+  background: #333a3e;
+  border-right: 1px solid #444b4f;
+}
+
+body.dark-theme .sidebar-header {
+  border-bottom: 1px solid #444b4f;
+}
+
+body.dark-theme .sidebar-header h1 {
+  color: #e5e7eb;
+}
+
+body.dark-theme .sidebar-menu {
+  padding: 8px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+body.dark-theme .menu-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-size: 15px;
+  color: #e5e7eb;
+}
+
+body.dark-theme .menu-item:hover {
+  background: #3d4549;
+}
+
+body.dark-theme .menu-item.active {
+  background: #007aff;
+  color: #ffffff;
+}
+
+body.dark-theme .menu-item-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  font-size: 16px;
+}
+
+body.dark-theme .content {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+}
+
+body.dark-theme .content-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #444b4f;
+  -webkit-app-region: drag;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+body.dark-theme .content-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin: 0;
+}
+
+body.dark-theme .content-body {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  background: #2a3135;
+}
+
+body.dark-theme .setting-section {
+  margin-bottom: 32px;
+}
+
+body.dark-theme .setting-section:last-child {
+  margin-bottom: 0;
+}
+
+body.dark-theme .section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e5e7eb;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+body.dark-theme .setting-group {
+  background: #333a3e;
+  border-radius: 10px;
+  border: 1px solid #444b4f;
+  overflow: hidden;
+}
+
+body.dark-theme .setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #444b4f;
+  min-height: 44px;
+}
+
+body.dark-theme .setting-item:last-child {
+  border-bottom: none;
+}
+
+body.dark-theme .setting-label {
+  font-size: 17px;
+  color: #e5e7eb;
+  font-weight: 400;
+}
+
+body.dark-theme .setting-description {
+  font-size: 13px;
+  color: #a0a6aa;
+  margin-top: 2px;
+}
+
+body.dark-theme .setting-control {
+  display: flex;
+  align-items: center;
+}
+
+body.dark-theme .toggle-switch {
+  position: relative;
+  width: 51px;
+  height: 31px;
+  background: #3d4549;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+body.dark-theme .toggle-switch.active {
+  background: #34c759;
+}
+
+body.dark-theme .toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  background: #e5e7eb;
+  border-radius: 50%;
+  transition: transform 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-theme .toggle-switch.active::after {
+  transform: translateX(20px);
+}
+
+body.dark-theme .setting-control input[type="range"] {
+  width: 120px;
+  margin-right: 8px;
+}
+
+body.dark-theme .setting-control select {
+  padding: 8px 12px;
+  border: 1px solid #444b4f;
+  border-radius: 8px;
+  background: #333a3e;
+  color: #e5e7eb;
+  font-size: 17px;
+  min-width: 120px;
+}
+
+body.dark-theme .theme-toggle-switch {
+  position: relative;
+  width: 60px;
+  height: 30px;
+  background: #3d4549;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  overflow: hidden;
+}
+
+body.dark-theme .theme-toggle-switch.theme-dark {
+  background: #34c759;
+}
+
+body.dark-theme .theme-toggle-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 26px;
+  height: 26px;
+  background: #e5e7eb;
+  border-radius: 50%;
+  transition: transform 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-theme .theme-toggle-switch.theme-dark .theme-toggle-slider {
+  transform: translateX(30px);
+}
+
+body.dark-theme .theme-label {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+body.dark-theme .light-label {
+  left: 8px;
+  color: #f5c442;
+}
+
+body.dark-theme .dark-label {
+  right: 8px;
+  color: #4a90e2;
+}
+
+body.dark-theme .theme-toggle-switch.theme-dark .light-label {
+  color: rgba(245, 196, 66, 0.5);
+}
+
+body.dark-theme .theme-toggle-switch.theme-dark .dark-label {
+  color: #4a90e2;
+}
+
+body.dark-theme .range-value {
+  font-size: 17px;
+  color: #007aff;
+  font-weight: 500;
+  min-width: 40px;
+  text-align: right;
+}
+
+body.dark-theme .content-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #444b4f;
+  background: #333a3e;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+body.dark-theme .btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 17px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+body.dark-theme .btn-primary {
+  background: #007aff;
+  color: white;
+}
+
+body.dark-theme .btn-primary:hover {
+  background: #0056cc;
+}
+
+body.dark-theme .btn-secondary {
+  background: #333a3e;
+  color: #007aff;
+  border: 1px solid #007aff;
+}
+
+body.dark-theme .btn-secondary:hover {
+  background: #3d4549;
+}
 </style>

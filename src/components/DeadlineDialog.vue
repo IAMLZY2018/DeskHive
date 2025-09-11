@@ -106,7 +106,7 @@ function onConfirm() {
   padding: 24px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(104, 58, 183, 0.2);
+  border: 1px solid rgba(229, 231, 235, 0.2);
   min-width: 300px;
   max-width: 400px;
 }
@@ -142,7 +142,7 @@ function onConfirm() {
 .dialog-input {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid rgba(104, 58, 183, 0.3);
+  border: 1px solid rgba(229, 231, 235, 0.3);
   border-radius: 8px;
   outline: none;
   background: rgba(255, 255, 255, 0.9);
@@ -153,8 +153,8 @@ function onConfirm() {
 }
 
 .dialog-input:focus {
-  border-color: #683ab7;
-  box-shadow: 0 0 8px rgba(104, 58, 183, 0.2);
+  border-color: #007aff;
+  box-shadow: 0 0 8px rgba(0, 122, 255, 0.2);
   background: rgba(255, 255, 255, 1);
 }
 
@@ -189,13 +189,13 @@ function onConfirm() {
 }
 
 .dialog-btn.confirm {
-  background: #683ab7;
+  background: #007aff;
   color: white;
-  border: 1px solid #683ab7;
+  border: 1px solid #007aff;
 }
 
 .dialog-btn.confirm:hover {
-  background: #5e35a1;
-  box-shadow: 0 4px 12px rgba(104, 58, 183, 0.3);
+  background: #0056cc;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
 }
 </style>
