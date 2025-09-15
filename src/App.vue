@@ -1043,52 +1043,52 @@ header {
 
 /* 夜间主题样式 */
 body.dark-theme header {
-  background: rgba(42, 49, 53, 0.8);
-  border-bottom: 1px solid rgba(229, 231, 235, 0.2);
-  color: #e5e7eb;
+  background: rgba(24, 26, 27, 0.8);
+  border-bottom: 1px solid rgba(231, 233, 237, 0.2);
+  color: #e7e9ed;
 }
 
 body.dark-theme .progress-indicator {
-  background: rgba(42, 49, 53, 0.9);
-  color: #e5e7eb;
-  border: 1px solid rgba(229, 231, 235, 0.2);
+  background: rgba(24, 26, 27, 0.9);
+  color: #e7e9ed;
+  border: 1px solid rgba(231, 233, 237, 0.2);
 }
 
 body.dark-theme .settings-btn {
-  background: rgba(42, 49, 53, 0.9);
-  color: #e5e7eb;
-  border: 1px solid rgba(229, 231, 235, 0.2);
+  background: rgba(24, 26, 27, 0.9);
+  color: #e7e9ed;
+  border: 1px solid rgba(231, 233, 237, 0.2);
 }
 
 body.dark-theme .todo-item {
-  background: #3d4549;
-  border: 1px solid rgba(229, 231, 235, 0.2);
-  color: #e5e7eb;
+  background: #252627;
+  border: 1px solid rgba(231, 233, 237, 0.2);
+  color: #e7e9ed;
   border-radius: 10px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 body.dark-theme .todo-item:hover {
-  border-color: rgba(229, 231, 235, 0.3);
+  border-color: rgba(231, 233, 237, 0.3);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 body.dark-theme .todo-checkbox {
-  background: rgba(42, 49, 53, 0.8);
-  border: 1px solid rgba(229, 231, 235, 0.2);
+  background: rgba(24, 26, 27, 0.8);
+  border: 1px solid rgba(231, 233, 237, 0.2);
 }
 
 body.dark-theme .todo-checkbox.completed {
-  background: rgba(42, 49, 53, 0.9);
+  background: rgba(24, 26, 27, 0.9);
   border-color: rgba(76, 175, 80, 0.8);
 }
 
 body.dark-theme .todo-checkbox.completed::after {
-  color: #e5e7eb;
+  color: #e7e9ed;
 }
 
 body.dark-theme .todo-item span {
-  color: #e5e7eb;
+  color: #e7e9ed;
 }
 
 body.dark-theme .todo-item.completed span {
@@ -1096,25 +1096,25 @@ body.dark-theme .todo-item.completed span {
 }
 
 body.dark-theme .add-task {
-  background: rgba(42, 49, 53, 0.8);
-  border-top: 1px solid rgba(229, 231, 235, 0.2);
+  background: rgba(24, 26, 27, 0.8);
+  border-top: 1px solid rgba(231, 233, 237, 0.2);
 }
 
 body.dark-theme .add-task input {
-  background: #3d4549;
-  border: 1px solid rgba(229, 231, 235, 0.3);
-  color: #e5e7eb;
+  background: #252627;
+  border: 1px solid rgba(231, 233, 237, 0.3);
+  color: #e7e9ed;
   border-radius: 10px;
 }
 
 body.dark-theme .add-task input::placeholder {
-  color: rgba(229, 231, 235, 0.5);
+  color: rgba(231, 233, 237, 0.5);
 }
 
 body.dark-theme .add-task button {
-  background: #3d4549;
-  color: #e5e7eb;
-  border: 1px solid rgba(229, 231, 235, 0.2);
+  background: #252627;
+  color: #e7e9ed;
+  border: 1px solid rgba(231, 233, 237, 0.2);
   border-radius: 50%;
 }
 
@@ -1123,7 +1123,7 @@ body.dark-theme .section-title {
 }
 
 body.dark-theme .completed-section {
-  border-top: 1px dashed rgba(229, 231, 235, 0.3);
+  border-top: 1px dashed rgba(231, 233, 237, 0.3);
 }
 
 body.dark-theme .completed-count {
@@ -1141,18 +1141,18 @@ body.dark-theme .clear-completed-btn:hover {
 }
 
 body.dark-theme .context-menu {
-  background: rgba(42, 49, 53, 0.95);
-  border: 1px solid rgba(229, 231, 235, 0.3);
+  background: rgba(24, 26, 27, 0.95);
+  border: 1px solid rgba(231, 233, 237, 0.3);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 body.dark-theme .todo-container::-webkit-scrollbar-track {
-  background: rgba(229, 231, 235, 0.1);
+  background: rgba(231, 233, 237, 0.1);
 }
 
 body.dark-theme .todo-container::-webkit-scrollbar-thumb {
-  background: #3d4549;
-  border: 1px solid rgba(229, 231, 235, 0.2);
+  background: #252627;
+  border: 1px solid rgba(231, 233, 237, 0.2);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 </style>

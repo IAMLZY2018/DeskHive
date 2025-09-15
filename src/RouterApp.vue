@@ -17,24 +17,24 @@ html, body, #app {
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #e8e4f3;
-  color: #333;
+  background: #181a1b;
+  color: #e7e9ed;
 }
 
 /* 夜间主题样式 */
 body.dark-theme {
-  background: #2a3135;
-  color: #e5e7eb;
+  background: #181a1b;
+  color: #e7e9ed;
 }
 
 body.dark-theme .container {
-  background: #2a3135;
-  color: #e5e7eb;
+  background: #181a1b;
+  color: #e7e9ed;
 }
 
 /* 设置页面的夜间主题样式 */
 body.dark-theme .sidebar {
-  background: #333a3e;
+  background: #252627;
   border-right: 1px solid #444b4f;
 }
 
@@ -43,11 +43,11 @@ body.dark-theme .sidebar-header {
 }
 
 body.dark-theme .sidebar-header h1 {
-  color: #e5e7eb;
+  color: #e7e9ed;
 }
 
 body.dark-theme .menu-item {
-  color: #e5e7eb;
+  color: #e7e9ed;
 }
 
 body.dark-theme .menu-item:hover {
@@ -64,11 +64,11 @@ body.dark-theme .content-header {
 }
 
 body.dark-theme .content-header h2 {
-  color: #e5e7eb;
+  color: #e7e9ed;
 }
 
 body.dark-theme .setting-group {
-  background: #333a3e;
+  background: #252627;
   border: 1px solid #444b4f;
 }
 
@@ -81,7 +81,7 @@ body.dark-theme .setting-item:last-child {
 }
 
 body.dark-theme .setting-label {
-  color: #e5e7eb;
+  color: #e7e9ed;
 }
 
 body.dark-theme .setting-description {
@@ -89,12 +89,12 @@ body.dark-theme .setting-description {
 }
 
 body.dark-theme .content-footer {
-  background: #333a3e;
+  background: #252627;
   border-top: 1px solid #444b4f;
 }
 
 body.dark-theme .btn-secondary {
-  background: #333a3e;
+  background: #252627;
   color: #007aff;
   border: 1px solid #007aff;
 }
@@ -105,50 +105,50 @@ body.dark-theme .btn-secondary:hover {
 
 /* 主应用的夜间主题样式 */
 body.dark-theme header {
-  background: rgba(42, 49, 53, 0.8);
-  border-bottom: 1px solid rgba(229, 231, 235, 0.3);
-  color: #e5e7eb;
+  background: rgba(24, 26, 27, 0.8);
+  border-bottom: 1px solid rgba(231, 233, 237, 0.3);
+  color: #e7e9ed;
 }
 
 body.dark-theme .progress-indicator {
-  background: rgba(42, 49, 53, 0.9);
-  color: #e5e7eb;
-  border: 1px solid rgba(229, 231, 235, 0.2);
+  background: rgba(24, 26, 27, 0.9);
+  color: #e7e9ed;
+  border: 1px solid rgba(231, 233, 237, 0.2);
 }
 
 body.dark-theme .settings-btn {
-  background: rgba(42, 49, 53, 0.9);
-  color: #e5e7eb;
-  border: 1px solid rgba(229, 231, 235, 0.2);
+  background: rgba(24, 26, 27, 0.9);
+  color: #e7e9ed;
+  border: 1px solid rgba(231, 233, 237, 0.2);
 }
 
 body.dark-theme .todo-item {
-  background: #3d4549;
-  border: 1px solid rgba(229, 231, 235, 0.3);
-  color: #e5e7eb;
+  background: #252627;
+  border: 1px solid rgba(231, 233, 237, 0.3);
+  color: #e7e9ed;
   border-radius: 10px;
 }
 
 body.dark-theme .todo-item:hover {
-  border-color: rgba(229, 231, 235, 0.5);
+  border-color: rgba(231, 233, 237, 0.5);
 }
 
 body.dark-theme .todo-checkbox {
-  background: rgba(42, 49, 53, 0.8);
-  border: 1px solid rgba(229, 231, 235, 0.2);
+  background: rgba(24, 26, 27, 0.8);
+  border: 1px solid rgba(231, 233, 237, 0.2);
 }
 
 body.dark-theme .todo-checkbox.completed {
-  background: rgba(42, 49, 53, 0.9);
+  background: rgba(24, 26, 27, 0.9);
   border-color: rgba(76, 175, 80, 0.8);
 }
 
 body.dark-theme .todo-checkbox.completed::after {
-  color: #e5e7eb;
+  color: #e7e9ed;
 }
 
 body.dark-theme .todo-item span {
-  color: #e5e7eb;
+  color: #e7e9ed;
 }
 
 body.dark-theme .todo-item.completed span {
@@ -156,25 +156,25 @@ body.dark-theme .todo-item.completed span {
 }
 
 body.dark-theme .add-task {
-  background: rgba(42, 49, 53, 0.8);
-  border-top: 1px solid rgba(229, 231, 235, 0.3);
+  background: rgba(24, 26, 27, 0.8);
+  border-top: 1px solid rgba(231, 233, 237, 0.3);
 }
 
 body.dark-theme .add-task input {
-  background: #3d4549;
-  border: 1px solid rgba(229, 231, 235, 0.5);
-  color: #e5e7eb;
+  background: #252627;
+  border: 1px solid rgba(231, 233, 237, 0.5);
+  color: #e7e9ed;
   border-radius: 10px;
 }
 
 body.dark-theme .add-task input::placeholder {
-  color: rgba(229, 231, 235, 0.5);
+  color: rgba(231, 233, 237, 0.5);
 }
 
 body.dark-theme .add-task button {
-  background: #3d4549;
-  color: #e5e7eb;
-  border: 1px solid rgba(229, 231, 235, 0.2);
+  background: #252627;
+  color: #e7e9ed;
+  border: 1px solid rgba(231, 233, 237, 0.2);
   border-radius: 50%;
 }
 
@@ -183,7 +183,7 @@ body.dark-theme .section-title {
 }
 
 body.dark-theme .completed-section {
-  border-top: 1px dashed rgba(229, 231, 235, 0.5);
+  border-top: 1px dashed rgba(231, 233, 237, 0.5);
 }
 
 body.dark-theme .completed-count {

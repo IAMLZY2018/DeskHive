@@ -756,16 +756,16 @@ onMounted(async () => {
 
 /* 夜间主题下的设置页面样式 */
 body.dark-theme {
-  background: #2a3135;
-  color: #e5e7eb;
+  background: #181a1b;
+  color: #e7e9ed;
 }
 
 body.dark-theme .container {
-  background: #2a3135;
+  background: #181a1b;
 }
 
 body.dark-theme .sidebar {
-  background: #333a3e;
+  background: #252627;
   border-right: 1px solid #444b4f;
 }
 
@@ -774,7 +774,7 @@ body.dark-theme .sidebar-header {
 }
 
 body.dark-theme .sidebar-header h1 {
-  color: #e5e7eb;
+  color: #e7e9ed;
 }
 
 body.dark-theme .sidebar-menu {
@@ -803,7 +803,7 @@ body.dark-theme .menu-item {
   width: 100%;
   text-align: left;
   font-size: 15px;
-  color: #e5e7eb;
+  color: #e7e9ed;
 }
 
 body.dark-theme .menu-item:hover {
@@ -842,7 +842,7 @@ body.dark-theme .content-header {
 body.dark-theme .content-header h2 {
   font-size: 20px;
   font-weight: 600;
-  color: #e5e7eb;
+  color: #e7e9ed;
   margin: 0;
 }
 
@@ -850,7 +850,7 @@ body.dark-theme .content-body {
   flex: 1;
   padding: 24px;
   overflow-y: auto;
-  background: #2a3135;
+  background: #181a1b;
   /* 隐藏滚动条 */
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -873,14 +873,14 @@ body.dark-theme .setting-section:last-child {
 body.dark-theme .section-title {
   font-size: 13px;
   font-weight: 600;
-  color: #e5e7eb;
+  color: #e7e9ed;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
 }
 
 body.dark-theme .setting-group {
-  background: #333a3e;
+  background: #252627;
   border-radius: 10px;
   border: 1px solid #444b4f;
   overflow: hidden;
@@ -901,7 +901,7 @@ body.dark-theme .setting-item:last-child {
 
 body.dark-theme .setting-label {
   font-size: 17px;
-  color: #e5e7eb;
+  color: #e7e9ed;
   font-weight: 400;
 }
 
@@ -920,7 +920,7 @@ body.dark-theme .toggle-switch {
   position: relative;
   width: 51px;
   height: 31px;
-  background: #3d4549;
+  background: #252627;
   border-radius: 16px;
   cursor: pointer;
   transition: background-color 0.3s;
@@ -937,7 +937,7 @@ body.dark-theme .toggle-switch::after {
   left: 2px;
   width: 27px;
   height: 27px;
-  background: #e5e7eb;
+  background: #e7e9ed;
   border-radius: 50%;
   transition: transform 0.3s;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -956,8 +956,8 @@ body.dark-theme .setting-control select {
   padding: 8px 12px;
   border: 1px solid #444b4f;
   border-radius: 8px;
-  background: #333a3e;
-  color: #e5e7eb;
+  background: #252627;
+  color: #e7e9ed;
   font-size: 17px;
   min-width: 120px;
 }
@@ -966,7 +966,7 @@ body.dark-theme .theme-toggle-switch {
   position: relative;
   width: 60px;
   height: 30px;
-  background: #3d4549;
+  background: #252627;
   border-radius: 15px;
   cursor: pointer;
   transition: background-color 0.3s;
@@ -983,7 +983,7 @@ body.dark-theme .theme-toggle-slider {
   left: 2px;
   width: 26px;
   height: 26px;
-  background: #e5e7eb;
+  background: #e7e9ed;
   border-radius: 50%;
   transition: transform 0.3s;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -1030,7 +1030,7 @@ body.dark-theme .range-value {
 body.dark-theme .content-footer {
   padding: 16px 24px;
   border-top: 1px solid #444b4f;
-  background: #333a3e;
+  background: #252627;
   display: flex;
   gap: 12px;
   justify-content: flex-end;
@@ -1057,7 +1057,7 @@ body.dark-theme .btn-primary:hover {
 }
 
 body.dark-theme .btn-secondary {
-  background: #333a3e;
+  background: #252627;
   color: #007aff;
   border: 1px solid #007aff;
 }
@@ -1080,7 +1080,7 @@ body.dark-theme .btn-secondary:hover {
 }
 
 body.dark-theme .help-content h3 {
-  color: #e5e7eb;
+  color: #e7e9ed;
 }
 
 .help-content p {

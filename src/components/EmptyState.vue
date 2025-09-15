@@ -107,18 +107,18 @@ defineProps<Props>();
 
 /* 夜间主题样式 */
 body.dark-theme .empty-state {
-  background: rgba(42, 49, 53, 0.9);
+  background: rgba(37, 38, 39, 0.9);
   border: 1px solid rgba(68, 75, 79, 0.3);
 }
 
 body.dark-theme .date-info {
-  background: rgba(42, 49, 53, 0.9);
+  background: rgba(37, 38, 39, 0.9);
   border: 1px solid rgba(68, 75, 79, 0.3);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 body.dark-theme .date-main {
-  color: #e5e7eb;
+  color: #e7e9ed;
 }
 
 body.dark-theme .weekday {
