@@ -2,9 +2,7 @@
 
 一个占用极低的桌面TODO插件，随时随地不忘事！
 
-<img src="https://typeropic.oss-cn-beijing.aliyuncs.com/cp/Snipaste_2025-09-06_22-46-08.png" alt="Snipaste_2025-09-06_22-46-08" style="zoom: 25%;" />
-
-<img src="https://typeropic.oss-cn-beijing.aliyuncs.com/cp/Snipaste_2025-09-06_22-46-25.png" style="zoom:50%;" />
+![image-20250915124406296](https://typeropic.oss-cn-beijing.aliyuncs.com/cp/image-20250915124406296.png)
 
 交流与建议：
 
@@ -27,7 +25,7 @@ DeskHive 是一个基于 Vue 3 和 Tauri 构建的轻量级、跨平台的桌面
 ### 功能特性
 
 - 本地数据存储，无网络依赖
-- 跨平台桌面应用（支持 Windows/macOS/Linux）
+- 跨平台桌面应用（支持 Windows）
 - 响应式 UI，支持拖拽、弹窗提示等交互
 - 待办事项管理（添加、删除、标记完成任务）
 - 任务分类与状态管理
@@ -96,7 +94,7 @@ DeskHive is a lightweight, cross-platform desktop to-do management tool built wi
 ### Features
 
 - Local data storage with no network dependencies
-- Cross-platform support (Windows/macOS/Linux)
+- Cross-platform support (Windows)
 - Responsive UI with drag-and-drop and popup notifications
 - Task management (add, delete, mark as complete)
 - Task categorization and status management
