@@ -20,7 +20,7 @@ pub struct AppSettings {
 impl Default for AppSettings {
     fn default() -> Self {
         Self {
-            opacity: 0.95,
+            opacity: 1.0,
             disable_drag: false,
             auto_show: true,
             minimize_to_tray: true,

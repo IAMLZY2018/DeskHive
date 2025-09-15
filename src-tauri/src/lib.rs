@@ -1,6 +1,15 @@
 // 防止在Windows发布版本中出现额外的控制台窗口，请勿删除！！
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+#[cfg(target_os = "windows")]
+use windows::Win32::System::Threading::CreateMutexW;
+#[cfg(target_os = "windows")]
+use windows::Win32::Foundation::CloseHandle;
+#[cfg(target_os = "windows")]
+use std::ffi::OsStr;
+#[cfg(target_os = "windows")]
+use std::os::windows::ffi::OsStrExt;
+
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use tauri::{Manager, Emitter};
@@ -33,6 +42,12 @@ async fn get_app_version(app: tauri::AppHandle) -> Result<String, String> {
     Ok(app.package_info().version.to_string())
 }
 
+// Tauri 命令：检查是否为开发模式
+#[tauri::command]
+async fn is_dev_mode() -> Result<bool, String> {
+    Ok(cfg!(debug_assertions))
+}
+
 // Tauri 命令：退出应用
 #[tauri::command]
 async fn quit_app(app: tauri::AppHandle) -> Result<(), String> {
@@ -47,8 +62,46 @@ async fn emit_theme_changed(app: tauri::AppHandle, theme: String) -> Result<(), 
     Ok(())
 }
 
+// 检查是否已经有一个实例在运行
+#[cfg(target_os = "windows")]
+fn is_single_instance() -> bool {
+    unsafe {
+        let app_name = "DeskHive_Single_Instance_Mutex";
+        let wide_name: Vec<u16> = OsStr::new(app_name).encode_wide().chain(Some(0)).collect();
+        
+        let mutex = CreateMutexW(
+            None,
+            true,
+            windows::core::PCWSTR(wide_name.as_ptr()),
+        );
+        
+        match mutex {
+            Ok(handle) => {
+                let last_error = windows::Win32::Foundation::GetLastError();
+                if last_error.0 == 183 { // ERROR_ALREADY_EXISTS
+                    let _ = CloseHandle(handle);
+                    return false; // 已经存在实例
+                }
+                true // 没有其他实例在运行
+            }
+            Err(_) => {
+                false // 创建互斥锁失败
+            }
+        }
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // 检查是否已经有一个实例在运行
+    #[cfg(target_os = "windows")]
+    {
+        if !is_single_instance() {
+            // 已经有一个实例在运行，直接退出
+            return;
+        }
+    }
+    
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             // 数据相关命令
@@ -72,6 +125,7 @@ pub fn run() {
             // 系统相关命令
             system::date_info::get_current_date,
             get_app_version,
+            is_dev_mode,
             quit_app,
             emit_theme_changed
         ])

@@ -6,10 +6,12 @@ use crate::models::WindowPosition;
 
 // 获取数据目录路径
 fn get_data_dir(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
-    let app_dir = app.path().app_data_dir()
-        .map_err(|e| format!("获取应用数据目录失败: {}", e))?;
+    // 使用文档目录而不是应用数据目录，这样重装或更新应用时数据不会丢失
+    let document_dir = app.path().document_dir()
+        .map_err(|e| format!("获取用户文档目录失败: {}", e))?;
     
-    let data_dir = app_dir.join("data");
+    // 创建DeskHive专用的数据目录
+    let data_dir = document_dir.join("DeskHive").join("data");
     
     // 确保data目录存在
     if !data_dir.exists() {

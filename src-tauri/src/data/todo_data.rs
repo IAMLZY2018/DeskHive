@@ -2,16 +2,17 @@ use std::fs;
 use std::path::PathBuf;
 use serde_json;
 use tauri::Manager;
-use uuid::Uuid;
 
 use crate::models::{Todo, TodoData};
 
 // 获取数据目录路径
 fn get_data_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    let app_dir = app.path().app_data_dir()
-        .map_err(|e| format!("获取应用数据目录失败: {}", e))?;
+    // 使用文档目录而不是应用数据目录，这样重装或更新应用时数据不会丢失
+    let document_dir = app.path().document_dir()
+        .map_err(|e| format!("获取用户文档目录失败: {}", e))?;
     
-    let data_dir = app_dir.join("data");
+    // 创建DeskHive专用的数据目录
+    let data_dir = document_dir.join("DeskHive").join("data");
     
     // 确保data目录存在
     if !data_dir.exists() {
@@ -49,45 +50,10 @@ pub async fn load_todo_data(app: tauri::AppHandle) -> Result<TodoData, String> {
     let file_path = data_dir.join("todo_list.json");
     
     if !file_path.exists() {
-        // 如果文件不存在，返回默认数据
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
-            
+        // 如果文件不存在，返回空数据
         return Ok(TodoData {
-            pending_todos: vec![
-                Todo { 
-                    id: Uuid::new_v4().to_string(),
-                    text: "欢迎使用DeskHive桌面助手".to_string(),
-                    completed: false,
-                    created_at: now - 3600, // 1小时前创建
-                    deadline: None, // 无截止时间
-                },
-                Todo { 
-                    id: Uuid::new_v4().to_string(),
-                    text: "测试天数指示器功能 - 3天前创建".to_string(),
-                    completed: false,
-                    created_at: now - (3 * 24 * 3600), // 3天前创建
-                    deadline: Some(now + (2 * 24 * 3600)), // 设置2天后截止，用于测试倒计时
-                },
-                Todo { 
-                    id: Uuid::new_v4().to_string(),
-                    text: "测试天数指示器功能 - 7天前创建".to_string(),
-                    completed: false,
-                    created_at: now - (7 * 24 * 3600), // 7天前创建
-                    deadline: None, // 无截止时间
-                },
-            ],
-            completed_todos: vec![
-                Todo { 
-                    id: Uuid::new_v4().to_string(),
-                    text: "已完成的会收纳到这里，可以双击删除哦~".to_string(),
-                    completed: true,
-                    created_at: now - (5 * 24 * 3600), // 5天前创建
-                    deadline: Some(now - (1 * 24 * 3600)), // 设置1天前截止（已过期），用于测试过期显示
-                },
-            ],
+            pending_todos: vec![],
+            completed_todos: vec![],
         });
     }
     

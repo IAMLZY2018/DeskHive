@@ -297,15 +297,9 @@ async function loadTodoData() {
     console.log('数据加载成功');
   } catch (error) {
     console.error('加载数据失败:', error);
-    // 如果加载失败，使用默认数据
-    const now = Math.floor(Date.now() / 1000); // 当前时间戳（秒）
-    pendingTodos.value = [
-      { id: generateUniqueId(), text: '学习SpringBoot3.5', completed: false, createdAt: now - 3600 },
-      { id: generateUniqueId(), text: '测试部署到服务器', completed: false, createdAt: now - 1800 }
-    ];
-    completedTodos.value = [
-      { id: generateUniqueId(), text: '完成UI设计', completed: true, createdAt: now - 7200 }
-    ];
+    // 如果加载失败，使用空数据
+    pendingTodos.value = [];
+    completedTodos.value = [];
   }
 }
 

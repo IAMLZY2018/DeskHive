@@ -102,6 +102,78 @@
           </div>
         </div>
 
+        <!-- 使用说明页面 -->
+        <div v-if="activeSection === 'help'" class="setting-section">
+          <div class="section-title">使用说明</div>
+          <div class="setting-group">
+            <div class="setting-item">
+              <div class="help-content">
+                <h3>基本操作</h3>
+                <p>• 添加任务：在输入框中输入任务内容，按回车键或点击"+"按钮添加</p>
+                <p>• 完成任务：点击任务前的复选框标记为已完成</p>
+                <p>• 删除任务：右键点击任务项，选择"删除任务"选项</p>
+                <p>• 编辑任务：右键点击任务项，选择"编辑任务"选项</p>
+                
+                <h3>任务管理</h3>
+                <p>• 设置截止时间：右键点击任务项，选择"设置截止时间"选项</p>
+                <p>• 移除截止时间：右键点击任务项，选择"移除截止时间"选项</p>
+                <p>• 查看任务详情：右键点击任务项，选择"查看任务详情"选项</p>
+                
+                <h3>窗口操作</h3>
+                <p>• 移动窗口：在非拖拽禁用模式下，可以拖拽窗口顶部移动位置</p>
+                <p>• 调整透明度：在设置页面的外观选项中可以调整主窗口透明度</p>
+                <p>• 最小化到托盘：点击窗口右上角的最小化按钮可将窗口最小化到系统托盘</p>
+                
+                <h3>设置页面说明</h3>
+                <p>• 外观设置：可以调整主窗口的透明度、拖拽功能和主题模式</p>
+                <p>• 行为设置：可以设置应用的开机自启动功能</p>
+                <p>• 使用说明：查看应用的使用帮助文档</p>
+                <p>• 关于页面：查看应用版本信息</p>
+                
+                <h3>系统托盘功能</h3>
+                <p>• 右键托盘图标可以快速添加任务、显示/隐藏主窗口、退出应用</p>
+                <p>• 左键点击托盘图标可以显示/隐藏主窗口</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 使用说明页面 -->
+        <div v-if="activeSection === 'help'" class="setting-section">
+          <div class="section-title">使用说明</div>
+          <div class="setting-group">
+            <div class="setting-item">
+              <div class="help-content">
+                <h3>基本操作</h3>
+                <p>• 添加任务：在输入框中输入任务内容，按回车键或点击"+"按钮添加</p>
+                <p>• 完成任务：点击任务前的复选框标记为已完成</p>
+                <p>• 删除任务：右键点击任务项，选择"删除任务"选项</p>
+                <p>• 编辑任务：右键点击任务项，选择"编辑任务"选项</p>
+                
+                <h3>任务管理</h3>
+                <p>• 设置截止时间：右键点击任务项，选择"设置截止时间"选项</p>
+                <p>• 移除截止时间：右键点击任务项，选择"移除截止时间"选项</p>
+                <p>• 查看任务详情：右键点击任务项，选择"查看任务详情"选项</p>
+                
+                <h3>窗口操作</h3>
+                <p>• 移动窗口：在非拖拽禁用模式下，可以拖拽窗口顶部移动位置</p>
+                <p>• 调整透明度：在设置页面的外观选项中可以调整主窗口透明度</p>
+                <p>• 最小化到托盘：点击窗口右上角的最小化按钮可将窗口最小化到系统托盘</p>
+                
+                <h3>设置页面说明</h3>
+                <p>• 外观设置：可以调整主窗口的透明度、拖拽功能和主题模式</p>
+                <p>• 行为设置：可以设置应用的开机自启动功能</p>
+                <p>• 使用说明：查看应用的使用帮助文档</p>
+                <p>• 关于页面：查看应用版本信息</p>
+                
+                <h3>系统托盘功能</h3>
+                <p>• 右键托盘图标可以快速添加任务、显示/隐藏主窗口、退出应用</p>
+                <p>• 左键点击托盘图标可以显示/隐藏主窗口</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 关于页面 -->
         <div v-if="activeSection === 'about'" class="setting-section">
           <div class="section-title">应用信息</div>
@@ -148,7 +220,7 @@ interface AppSettings {
   theme: string
 }
 
-type SectionKey = 'appearance' | 'behavior' | 'about'
+type SectionKey = 'appearance' | 'behavior' | 'help' | 'about'
 
 interface Section {
   name: string
@@ -164,11 +236,12 @@ const appVersion = ref('...')
 const sections: Record<SectionKey, Section> = {
   appearance: { name: '外观', icon: '🎨' },
   behavior: { name: '行为', icon: '⚡' },
+  help: { name: '使用说明', icon: '📖' }, // 添加使用说明菜单项
   about: { name: '关于', icon: 'ℹ️' }
 }
 
 const settings = reactive<AppSettings>({
-  opacity: 0.95,
+  opacity: 1.0,
   disable_drag: false,
   auto_start: false,
   theme: 'light'
@@ -330,6 +403,25 @@ onMounted(async () => {
   padding: 0;
 }
 
+/* 隐藏滚动条 */
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+  background: transparent;
+}
+
+* {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* 确保所有滚动条都被隐藏 */
+.sidebar-menu,
+.content-body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
 .container {
   width: 100% !important;
   height: 100vh !important;
@@ -377,6 +469,15 @@ onMounted(async () => {
   padding: 8px 0;
   overflow-y: auto;
   overflow-x: hidden;
+  /* 隐藏滚动条 */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.sidebar-menu::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .menu-item {
@@ -437,6 +538,15 @@ onMounted(async () => {
   flex: 1;
   padding: 24px;
   overflow-y: auto;
+  /* 隐藏滚动条 */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.content-body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .setting-section {
@@ -671,6 +781,15 @@ body.dark-theme .sidebar-menu {
   padding: 8px 0;
   overflow-y: auto;
   overflow-x: hidden;
+  /* 隐藏滚动条 */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.body.dark-theme .sidebar-menu::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 body.dark-theme .menu-item {
@@ -732,6 +851,15 @@ body.dark-theme .content-body {
   padding: 24px;
   overflow-y: auto;
   background: #2a3135;
+  /* 隐藏滚动条 */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.body.dark-theme .content-body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 body.dark-theme .setting-section {
@@ -936,5 +1064,32 @@ body.dark-theme .btn-secondary {
 
 body.dark-theme .btn-secondary:hover {
   background: #3d4549;
+}
+
+/* 使用说明内容样式 */
+.help-content {
+  padding: 16px;
+  line-height: 1.6;
+}
+
+.help-content h3 {
+  margin: 16px 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #000;
+}
+
+body.dark-theme .help-content h3 {
+  color: #e5e7eb;
+}
+
+.help-content p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+body.dark-theme .help-content p {
+  color: #a0a6aa;
 }
 </style>
