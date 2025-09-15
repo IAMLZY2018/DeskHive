@@ -104,4 +104,35 @@ defineProps<Props>();
     opacity: 1;
   }
 }
+
+/* 夜间主题样式 */
+body.dark-theme .empty-state {
+  background: rgba(42, 49, 53, 0.9);
+  border: 1px solid rgba(68, 75, 79, 0.3);
+}
+
+body.dark-theme .date-info {
+  background: rgba(42, 49, 53, 0.9);
+  border: 1px solid rgba(68, 75, 79, 0.3);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-theme .date-main {
+  color: #e5e7eb;
+}
+
+body.dark-theme .weekday {
+  color: #007aff;
+}
+
+body.dark-theme .lunar-main {
+  color: #a0a6aa;
+}
+
+body.dark-theme .welcome-text {
+  color: #007aff;
+  background: rgba(0, 122, 255, 0.2);
+  border: 1px solid rgba(0, 122, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+}
 </style>
