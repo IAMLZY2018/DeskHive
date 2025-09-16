@@ -7,6 +7,7 @@
       </div>
       <div class="header-right">
         <div class="progress-indicator">{{ completedTasks }}/{{ totalTasks }}</div>
+        <button class="calendar-btn" @click="openCalendar">📅</button>
         <button class="settings-btn" @click="openSettings">⚙️</button>
       </div>
     </header>
@@ -308,6 +309,15 @@ async function openSettings() {
     await invoke('open_settings_window');
   } catch (error) {
     console.error('打开设置窗口失败:', error);
+  }
+}
+
+// 打开日历窗口
+async function openCalendar() {
+  try {
+    await invoke('open_calendar_window');
+  } catch (error) {
+    console.error('打开日历窗口失败:', error);
   }
 }
 
@@ -642,9 +652,10 @@ function startCountdownTimer() {
   
   // 每分钟更新一次
   countdownTimer.value = window.setInterval(() => {
-    // 触发组件重新渲染，让倒计时更新
-    // 通过修改一个小的响应式变量来触发重新渲染
-    // 这里不需要额外变量，直接让Vue检测到时间变化即可
+    // 强制更新所有与时间相关的计算
+    // 触发响应式更新
+    pendingTodos.value = [...pendingTodos.value];
+    completedTodos.value = [...completedTodos.value];
   }, 60000); // 60秒 = 1分钟
 }
 
@@ -786,11 +797,39 @@ header {
   backdrop-filter: blur(5px);
   border: 1px solid rgba(229, 231, 235, 0.2);
 }
+
+.calendar-btn {
+  width: clamp(24px, 4.5vw, 28px);
+  height: clamp(24px, 4.5vw, 28px);
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.65rem, 1.8vw, 0.8rem);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(229, 231, 235, 0.2);
+  margin-right: 8px;
+}
+
+.calendar-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.95);
+}
+
 .settings-btn:hover {
   transform: rotate(90deg) scale(1.08);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
   background: rgba(255, 255, 255, 0.95);
 }
+
 .todo-container {
   flex: 1;
   display: flex;

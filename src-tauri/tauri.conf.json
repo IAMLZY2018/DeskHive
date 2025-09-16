@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "DeskHive",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "identifier": "com.iamlzy.deskhive",
   "build": {
     "frontendDist": "../dist",
@@ -39,6 +39,21 @@
         "transparent": false,
         "center": true,
         "url": "settings"
+      },
+      {
+        "label": "calendar",
+        "title": "日历",
+        "width": 1000,
+        "height": 700,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true,
+        "alwaysOnTop": false,
+        "visible": false,
+        "skipTaskbar": false,
+        "transparent": false,
+        "center": true,
+        "url": "calendar"
       }
     ],
 

@@ -4,6 +4,24 @@
 
 <script setup lang="ts">
 // 这是主应用的路由包装器
+import { onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { getCurrentWindow } from '@tauri-apps/api/window';
+
+// 根据路由设置窗口装饰
+onMounted(async () => {
+  const route = useRoute();
+  const currentWindow = getCurrentWindow();
+  
+  // 根据当前路由设置窗口是否需要装饰
+  if (route.name === 'Calendar') {
+    // 日历窗口需要装饰，保持边框
+    await currentWindow.setDecorations(true);
+  } else {
+    // 其他窗口不需要装饰
+    await currentWindow.setDecorations(false);
+  }
+});
 </script>
 
 <style>

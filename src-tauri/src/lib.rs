@@ -121,6 +121,7 @@ pub fn run() {
             window::management::restore_from_tray,
             window::management::open_settings_window,
             window::management::close_settings_window,
+            window::management::open_calendar_window,
             
             // 系统相关命令
             system::date_info::get_current_date,

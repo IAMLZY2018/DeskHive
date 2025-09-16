@@ -111,3 +111,34 @@ pub async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
 
     Ok(())
 }
+
+// Tauri 命令：打开日历窗口
+#[tauri::command]
+pub async fn open_calendar_window(app: tauri::AppHandle) -> Result<(), String> {
+    // 检查日历窗口是否已经存在
+    if let Some(window) = app.get_webview_window("calendar") {
+        // 如果窗口已存在，直接显示并聚焦
+        let _ = window.show();
+        let _ = window.set_focus();
+        return Ok(());
+    }
+
+    // 使用 Tauri 2.x 的 API 创建新窗口
+    let _calendar_window = tauri::WebviewWindowBuilder::new(
+        &app,
+        "calendar",
+        tauri::WebviewUrl::App("calendar".into()),
+    )
+    .title("日历")
+    .inner_size(1000.0, 700.0)
+    .min_inner_size(800.0, 600.0)
+    .center()
+    .resizable(true)
+    .decorations(true)
+    .always_on_top(false)
+    .skip_taskbar(false)
+    .build()
+    .map_err(|e| format!("创建日历窗口失败: {}", e))?;
+
+    Ok(())
+}
