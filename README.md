@@ -2,11 +2,11 @@
 
 一个占用极低的桌面TODO插件，随时随地不忘事！
 
-![image-20250915124406296](https://typeropic.oss-cn-beijing.aliyuncs.com/cp/image-20250915124406296.png)
+![image-20250915124406296](other/pic/deskhive.png)
 
 交流与建议：
 
-<img src="https://typeropic.oss-cn-beijing.aliyuncs.com/cp/image-20250907030349657.png" alt="image-20250907030349657" style="zoom:25%;" />
+<img src="other/pic/wx.png" alt="image-20250907030349657" style="zoom:25%;" />
 
 [中文](#中文) | [English](#english)
 
