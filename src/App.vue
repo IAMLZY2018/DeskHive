@@ -7,7 +7,7 @@
       </div>
       <div class="header-right">
         <div class="progress-indicator">{{ completedTasks }}/{{ totalTasks }}</div>
-        <button class="calendar-btn" @click="openCalendar">📅</button>
+
         <button class="settings-btn" @click="openSettings">⚙️</button>
       </div>
     </header>
@@ -70,6 +70,7 @@
       @set-deadline="openDeadlineDialog"
       @remove-deadline="removeDeadline"
       @delete-todo="deleteTodoFromContextMenu"
+      @edit-todo="openEditDialog"
     />
     
     <!-- 截止时间设置对话框 -->
@@ -79,6 +80,14 @@
       :initial-time="deadlineTime"
       @close="closeDeadlineDialog"
       @confirm="handleDeadlineConfirm"
+    />
+    
+    <!-- 编辑任务对话框 -->
+    <EditTaskDialog
+      :show="showEditDialog"
+      :todo="editDialogTodo"
+      @confirm="handleEditConfirm"
+      @cancel="closeEditDialog"
     />
     
     <!-- Toast 内部提示 -->
@@ -101,6 +110,7 @@ import TodoList from './components/TodoList.vue';
 import AddTask from './components/AddTask.vue';
 import ContextMenu from './components/ContextMenu.vue';
 import DeadlineDialog from './components/DeadlineDialog.vue';
+import EditTaskDialog from './components/EditTaskDialog.vue';
 import Toast from './components/Toast.vue';
 
 const pendingTodos = ref<Todo[]>([]);
@@ -159,6 +169,10 @@ const showDeadlineDialog = ref(false);
 const deadlineDate = ref('');
 const deadlineTime = ref('');
 const dialogTodo = ref<Todo | null>(null);
+
+// 编辑任务对话框状态
+const showEditDialog = ref(false);
+const editDialogTodo = ref<Todo | null>(null);
 
 // 内部提示弹窗状态
 const showToast = ref(false);
@@ -312,14 +326,7 @@ async function openSettings() {
   }
 }
 
-// 打开日历窗口
-async function openCalendar() {
-  try {
-    await invoke('open_calendar_window');
-  } catch (error) {
-    console.error('打开日历窗口失败:', error);
-  }
-}
+
 
 function addTask(text: string) {
   const now = Math.floor(Date.now() / 1000); // 当前时间戳（秒）
@@ -441,6 +448,52 @@ function hideContextMenu() {
   showContextMenu.value = false;
   contextMenuTodo.value = null;
   document.removeEventListener('click', hideContextMenu);
+}
+
+// 打开编辑任务对话框
+function openEditDialog() {
+  if (!contextMenuTodo.value) return;
+  
+  editDialogTodo.value = contextMenuTodo.value;
+  hideContextMenu();
+  showEditDialog.value = true;
+}
+
+// 关闭编辑任务对话框
+function closeEditDialog() {
+  showEditDialog.value = false;
+  editDialogTodo.value = null;
+}
+
+// 处理编辑确认
+async function handleEditConfirm(newText: string) {
+  if (!editDialogTodo.value || !newText.trim()) {
+    closeEditDialog();
+    return;
+  }
+  
+  try {
+    // 调用后端命令更新任务文本
+    await invoke('update_todo_text', {
+      todoId: editDialogTodo.value.id,
+      isCompleted: editDialogTodo.value.completed,
+      newText: newText.trim()
+    });
+    
+    // 更新本地数据
+    const targetList = editDialogTodo.value.completed ? completedTodos.value : pendingTodos.value;
+    const todoIndex = targetList.findIndex(t => t.id === editDialogTodo.value!.id);
+    if (todoIndex !== -1) {
+      targetList[todoIndex].text = newText.trim();
+    }
+    
+    console.log('任务编辑成功');
+    // showToastMessage('任务编辑成功', 'success'); // 移除成功提示
+    closeEditDialog();
+  } catch (error) {
+    console.error('编辑任务失败:', error);
+    showToastMessage('编辑失败，请重试', 'error');
+  }
 }
 
 // 打开截止时间设置对话框
@@ -798,31 +851,7 @@ header {
   border: 1px solid rgba(229, 231, 235, 0.2);
 }
 
-.calendar-btn {
-  width: clamp(24px, 4.5vw, 28px);
-  height: clamp(24px, 4.5vw, 28px);
-  border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.8);
-  color: #333;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(0.65rem, 1.8vw, 0.8rem);
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  flex-shrink: 0;
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(229, 231, 235, 0.2);
-  margin-right: 8px;
-}
 
-.calendar-btn:hover {
-  transform: scale(1.08);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-  background: rgba(255, 255, 255, 0.95);
-}
 
 .settings-btn:hover {
   transform: rotate(90deg) scale(1.08);

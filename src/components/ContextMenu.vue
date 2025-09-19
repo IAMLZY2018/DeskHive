@@ -25,6 +25,9 @@
       </div>
     </div>
     <div class="context-menu-divider"></div>
+    <div class="context-menu-button" @click="onEditTodo">
+      ✏️ 编辑任务
+    </div>
     <div class="context-menu-button" @click="onSetDeadline">
       📅 设置截止时间
     </div>
@@ -55,6 +58,7 @@ const emit = defineEmits<{
   setDeadline: [];
   removeDeadline: [];
   deleteTodo: []; // 添加删除事件
+  editTodo: []; // 添加编辑事件
 }>();
 
 // 格式化时间
@@ -69,6 +73,11 @@ function formatDateTime(timestamp: number): string {
     second: '2-digit',
     hour12: false
   });
+}
+
+// 编辑任务
+function onEditTodo() {
+  emit('editTodo');
 }
 
 // 设置截止时间

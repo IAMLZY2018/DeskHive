@@ -66,6 +66,69 @@ pub async fn load_todo_data(app: tauri::AppHandle) -> Result<TodoData, String> {
     Ok(todo_data)
 }
 
+// Tauri 命令：更新todo文本内容
+#[tauri::command]
+pub async fn update_todo_text(
+    app: tauri::AppHandle,
+    todo_id: String,
+    is_completed: bool,
+    new_text: String
+) -> Result<(), String> {
+    println!("准备更新任务文本: id='{}', completed={}, new_text='{}'?", 
+        todo_id, is_completed, new_text);
+    
+    // 先加载当前数据
+    let mut todo_data = load_todo_data(app.clone()).await?;
+    
+    println!("加载的数据: pending_count={}, completed_count={}", 
+        todo_data.pending_todos.len(), todo_data.completed_todos.len());
+    
+    // 查找并更新对应的todo项
+    let found = if is_completed {
+        // 在已完成列表中查找
+        println!("在已完成列表中查找");
+        for (i, todo) in todo_data.completed_todos.iter().enumerate() {
+            println!("  [{}]: '{}' (id: {})", i, todo.text, todo.id);
+        }
+        todo_data.completed_todos.iter_mut()
+            .find(|todo| todo.id == todo_id)
+    } else {
+        // 在待完成列表中查找
+        println!("在待完成列表中查找");
+        for (i, todo) in todo_data.pending_todos.iter().enumerate() {
+            println!("  [{}]: '{}' (id: {})", i, todo.text, todo.id);
+        }
+        todo_data.pending_todos.iter_mut()
+            .find(|todo| todo.id == todo_id)
+    };
+    
+    if let Some(todo) = found {
+        println!("找到对应的todo项，更新文本");
+        println!("更新前的文本: '{}'", todo.text);
+        todo.text = new_text;
+        println!("更新后的文本: '{}'", todo.text);
+        // 保存更新后的数据
+        println!("准备保存数据到文件");
+        let save_result = save_todo_data(app, todo_data.pending_todos.clone(), todo_data.completed_todos.clone()).await;
+        
+        match &save_result {
+            Ok(_) => println!("数据保存成功"),
+            Err(e) => println!("数据保存失败: {}", e),
+        }
+        
+        if save_result.is_err() {
+            return save_result;
+        }
+        
+        println!("任务文本更新成功");
+        Ok(())
+    } else {
+        let error_msg = format!("未找到指定的todo项: id='{}', completed={}", todo_id, is_completed);
+        println!("{}", error_msg);
+        Err(error_msg)
+    }
+}
+
 // Tauri 命令：设置todo截止时间
 #[tauri::command]
 pub async fn set_todo_deadline(
