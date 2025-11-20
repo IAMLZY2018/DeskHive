@@ -196,3 +196,90 @@ pub async fn set_todo_deadline(
         Err(error_msg)
     }
 }
+
+// Tauri 命令：保存带分组的todo数据
+#[tauri::command]
+pub async fn save_todo_data_with_groups(app: tauri::AppHandle, todos: Vec<Todo>) -> Result<(), String> {
+    let data_dir = get_data_dir(&app)?;
+    let file_path = data_dir.join("todos_with_groups.json");
+    
+    let todo_data = crate::models::TodoDataWithGroups {
+        todos,
+    };
+    
+    let json_data = serde_json::to_string_pretty(&todo_data)
+        .map_err(|e| format!("序列化数据失败: {}", e))?;
+    
+    fs::write(&file_path, json_data)
+        .map_err(|e| format!("写入文件失败: {}", e))?;
+    
+    Ok(())
+}
+
+// Tauri 命令：加载带分组的todo数据
+#[tauri::command]
+pub async fn load_todo_data_with_groups(app: tauri::AppHandle) -> Result<crate::models::TodoDataWithGroups, String> {
+    let data_dir = get_data_dir(&app)?;
+    let file_path = data_dir.join("todos_with_groups.json");
+    
+    if !file_path.exists() {
+        // 如果文件不存在，返回空数据
+        return Ok(crate::models::TodoDataWithGroups {
+            todos: Vec::new(),
+        });
+    }
+    
+    let json_data = fs::read_to_string(&file_path)
+        .map_err(|e| format!("读取文件失败: {}", e))?;
+    
+    let todo_data: crate::models::TodoDataWithGroups = serde_json::from_str(&json_data)
+        .map_err(|e| format!("解析JSON失败: {}", e))?;
+    
+    Ok(todo_data)
+}
+
+// Tauri 命令：保存分组数据
+#[tauri::command]
+pub async fn save_group_data(app: tauri::AppHandle, groups: Vec<crate::models::TodoGroup>) -> Result<(), String> {
+    let data_dir = get_data_dir(&app)?;
+    let file_path = data_dir.join("groups.json");
+    
+    let group_data = crate::models::GroupData {
+        groups,
+    };
+    
+    let json_data = serde_json::to_string_pretty(&group_data)
+        .map_err(|e| format!("序列化数据失败: {}", e))?;
+    
+    fs::write(&file_path, json_data)
+        .map_err(|e| format!("写入文件失败: {}", e))?;
+    
+    Ok(())
+}
+
+// Tauri 命令：加载分组数据
+#[tauri::command]
+pub async fn load_group_data(app: tauri::AppHandle) -> Result<crate::models::GroupData, String> {
+    let data_dir = get_data_dir(&app)?;
+    let file_path = data_dir.join("groups.json");
+    
+    if !file_path.exists() {
+        // 如果文件不存在，返回默认分组
+        return Ok(crate::models::GroupData {
+            groups: vec![crate::models::TodoGroup {
+                id: "default".to_string(),
+                name: "未分组".to_string(),
+                order: 0,
+                collapsed: false,
+            }],
+        });
+    }
+    
+    let json_data = fs::read_to_string(&file_path)
+        .map_err(|e| format!("读取文件失败: {}", e))?;
+    
+    let group_data: crate::models::GroupData = serde_json::from_str(&json_data)
+        .map_err(|e| format!("解析JSON失败: {}", e))?;
+    
+    Ok(group_data)
+}

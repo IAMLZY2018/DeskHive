@@ -4,17 +4,11 @@
     @dblclick="deleteTodo"
     @contextmenu.prevent="showContextMenu"
   >
-    <div 
-      v-if="!props.todo.completed" 
-      class="todo-checkbox" 
-      @click="toggleTodo"
-    ></div>
-    <div 
-      v-else 
-      class="todo-checkbox completed" 
-      @click="toggleTodo"
-    ></div>
-    <span>{{ props.todo.text }}</span>
+    <span 
+      class="todo-dot" 
+      :style="{ backgroundColor: props.todo.color || '#d2dbd6' }"
+    ></span>
+    <span class="todo-text">{{ props.todo.text }}</span>
     <div 
       v-if="props.todo.deadline && !props.todo.completed" 
       class="countdown-indicator" 
@@ -28,11 +22,37 @@
     >
       {{ calculateDaysCreated(props.todo.createdAt) }}天
     </div>
+    
+    <!-- 右侧操作按钮区域 -->
+    <div class="action-buttons">
+      <button 
+        v-if="!props.todo.completed"
+        class="action-btn complete-btn" 
+        @click.stop="toggleTodo"
+        title="完成"
+      >
+        ✓
+      </button>
+      <button 
+        v-else
+        class="action-btn uncomplete-btn" 
+        @click.stop="toggleTodo"
+        title="取消完成"
+      >
+        ↶
+      </button>
+      <button 
+        class="action-btn drag-btn drag-handle" 
+        title="拖动排序"
+      >
+        ☰
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { Todo } from '../../src/types';
+import type { Todo } from '../types';
 
 interface Props {
   todo: Todo;
@@ -48,28 +68,24 @@ const emit = defineEmits<{
   contextmenu: [event: MouseEvent, todo: Todo];
 }>();
 
-// 计算创建天数
 function calculateDaysCreated(timestamp: number): number {
   const now = Date.now();
-  const createdTime = timestamp * 1000; // 转换为毫秒
+  const createdTime = timestamp * 1000;
   const diffMs = now - createdTime;
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   return diffDays;
 }
 
-// 判断是否已过期
 function isOverdue(deadline: number): boolean {
-  const now = Math.floor(Date.now() / 1000); // 当前时间戳（秒）
+  const now = Math.floor(Date.now() / 1000);
   return deadline < now;
 }
 
-// 计算倒计时文本（精确到分钟）
 function getCountdownText(deadline: number): string {
-  const now = Math.floor(Date.now() / 1000); // 当前时间戳（秒）
-  const diff = deadline - now; // 剩余秒数
+  const now = Math.floor(Date.now() / 1000);
+  const diff = deadline - now;
   
   if (diff <= 0) {
-    // 已过期
     const overdueDiff = Math.abs(diff);
     if (overdueDiff < 60) {
       return '已超时';
@@ -87,7 +103,6 @@ function getCountdownText(deadline: number): string {
     }
   }
   
-  // 未过期，显示剩余时间（精确到分钟）
   if (diff < 60) {
     return '即将到期';
   } else if (diff < 3600) {
@@ -104,17 +119,14 @@ function getCountdownText(deadline: number): string {
   }
 }
 
-// 切换任务完成状态
 function toggleTodo() {
   emit('toggle', props.index);
 }
 
-// 删除任务
 function deleteTodo() {
   emit('delete', props.index);
 }
 
-// 显示右键菜单
 function showContextMenu(event: MouseEvent) {
   emit('contextmenu', event, props.todo);
 }
@@ -123,18 +135,20 @@ function showContextMenu(event: MouseEvent) {
 <style scoped>
 .todo-item {
   background: rgba(255, 255, 255, 0.7);
-  padding: clamp(6px, 1.5vh, 10px) clamp(8px, 2vw, 12px);
-  margin-bottom: clamp(4px, 1vh, 8px);
-  border-radius: clamp(8px, 1.5vw, 12px);
+  padding: clamp(4px, 1vh, 6px) clamp(8px, 2vw, 10px);
+  margin-bottom: clamp(4px, 1vh, 6px);
+  border-radius: clamp(8px, 1.5vw, 10px);
   display: flex;
   align-items: center;
+  gap: clamp(6px, 1.5vw, 8px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   border: 1px solid rgba(229, 231, 235, 0.08);
   backdrop-filter: blur(10px);
-  min-height: clamp(30px, 5vh, 36px);
-  cursor: pointer;
+  min-height: clamp(28px, 4vh, 32px);
+  cursor: default;
   position: relative;
+  width: 100%;
 }
 
 .todo-item:hover {
@@ -143,42 +157,79 @@ function showContextMenu(event: MouseEvent) {
   border-color: rgba(229, 231, 235, 0.2);
 }
 
-
-
-.todo-checkbox {
-  width: clamp(14px, 2.5vw, 18px);
-  height: clamp(14px, 2.5vw, 18px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 50%;
-  margin-right: clamp(6px, 1.5vw, 10px);
-  cursor: pointer;
-  transition: all 0.3s ease;
+/* 操作按钮区域 - 固定在右侧 */
+.action-buttons {
+  display: flex;
+  gap: clamp(4px, 1vw, 6px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
   flex-shrink: 0;
-  position: relative;
-  background: rgba(255, 255, 255, 0.6);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(5px);
+  margin-left: auto;
 }
 
-.todo-checkbox.completed {
+.todo-item:hover .action-buttons {
+  opacity: 1;
+}
+
+.action-btn {
+  width: clamp(20px, 4vw, 24px);
+  height: clamp(20px, 4vw, 24px);
+  border: none;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.65rem, 1.5vw, 0.75rem);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
   background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(76, 175, 80, 0.8);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(5px);
+  color: #666;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.todo-checkbox.completed::after {
-  content: '✓';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #333;
-  font-size: clamp(8px, 1.5vw, 10px);
-  font-weight: bold;
+.action-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.todo-item span {
+.complete-btn:hover {
+  background: #4CAF50;
+  color: white;
+}
+
+.uncomplete-btn:hover {
+  background: #FF9800;
+  color: white;
+}
+
+.drag-btn {
+  cursor: grab;
+  font-size: clamp(0.8rem, 2vw, 1rem);
+}
+
+.drag-btn:hover {
+  background: #007aff;
+  color: white;
+}
+
+.drag-btn:active {
+  cursor: grabbing;
+}
+
+.todo-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.todo-item.completed .todo-dot {
+  opacity: 0.4;
+}
+
+.todo-text {
   font-size: clamp(0.75rem, 2vw, 0.85rem);
   word-break: break-word;
   flex: 1;
@@ -188,15 +239,14 @@ function showContextMenu(event: MouseEvent) {
   user-select: none;
 }
 
-.todo-item.completed span {
+.todo-item.completed .todo-text {
   text-decoration: line-through;
   color: #888;
 }
 
-/* 天数指示器样式 */
 .days-indicator {
-  background: #FFE082; /* 更淡的黄色 */
-  border-radius: 12px; /* 椭圆形状 */
+  background: #FFE082;
+  border-radius: 12px;
   padding: clamp(2px, 0.5vh, 4px) clamp(6px, 1.2vw, 8px);
   font-size: clamp(0.6rem, 1.5vw, 0.7rem);
   font-weight: bold;
@@ -211,9 +261,8 @@ function showContextMenu(event: MouseEvent) {
   transition: all 0.3s ease;
 }
 
-/* 倒计时指示器样式 */
 .countdown-indicator {
-  background: #4CAF50; /* 绿色椭圆 */
+  background: #4CAF50;
   color: white;
   border-radius: 12px;
   padding: clamp(2px, 0.5vh, 4px) clamp(6px, 1.2vw, 8px);
@@ -230,24 +279,21 @@ function showContextMenu(event: MouseEvent) {
   user-select: none;
 }
 
-/* 过期倒计时指示器样式 */
 .countdown-indicator.overdue {
-  background: #F44336; /* 红色 */
+  background: #F44336;
   border-color: rgba(244, 67, 54, 0.6);
   box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
 }
 
-/* 已完成的倒计时指示器 */
 .countdown-indicator.completed {
-  background: #9E9E9E; /* 灰色 */
+  background: #9E9E9E;
   border-color: rgba(158, 158, 158, 0.6);
   box-shadow: 0 2px 8px rgba(158, 158, 158, 0.3);
   opacity: 0.8;
 }
 
-/* 已完成且过期的倒计时指示器 */
 .countdown-indicator.completed.overdue {
-  background: #9E9E9E; /* 灰色 */
+  background: #9E9E9E;
   border-color: rgba(158, 158, 158, 0.6);
   box-shadow: 0 2px 8px rgba(158, 158, 158, 0.3);
   opacity: 0.8;

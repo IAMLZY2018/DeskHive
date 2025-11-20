@@ -1,27 +1,39 @@
 <template>
-  <div class="todo-list">
-    <TransitionGroup 
-      :name="props.isCompletedList ? 'completed-list' : 'pending-list'" 
-      tag="div"
-      move-class="todo-item-move"
+  <div class="todo-list-wrapper">
+    <draggable 
+      v-model="localTodos"
+      item-key="id"
+      class="todo-list"
+      :animation="250"
+      handle=".drag-handle"
+      ghost-class="ghost"
+      chosen-class="chosen"
+      drag-class="drag"
+      :force-fallback="true"
+      @start="onDragStart"
+      @end="onDragEnd"
     >
-      <TodoItem
-        v-for="(todo, index) in props.todos"
-        :key="todo.id"
-        :todo="todo"
-        :index="index"
-        :is-completed-list="props.isCompletedList"
-        @toggle="toggleTodo"
-        @delete="deleteTodo"
-        @contextmenu="showContextMenu"
-      />
-    </TransitionGroup>
+      <template #item="{ element, index }">
+        <div class="todo-item-wrapper">
+          <TodoItem
+            :todo="element"
+            :index="index"
+            :is-completed-list="props.isCompletedList"
+            @toggle="toggleTodo"
+            @delete="deleteTodo"
+            @contextmenu="showContextMenu"
+          />
+        </div>
+      </template>
+    </draggable>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import draggable from 'vuedraggable';
 import TodoItem from './TodoItem.vue';
-import type { Todo } from '../../src/types';
+import type { Todo } from '../types';
 
 interface Props {
   todos: Todo[];
@@ -34,59 +46,67 @@ const emit = defineEmits<{
   toggle: [index: number];
   delete: [index: number];
   contextmenu: [event: MouseEvent, todo: Todo];
+  reorder: [newOrder: Todo[]];
 }>();
 
-// 切换任务完成状态
+const localTodos = computed({
+  get: () => props.todos,
+  set: (value) => {
+    emit('reorder', value);
+  }
+});
+
 function toggleTodo(index: number) {
   emit('toggle', index);
 }
 
-// 删除任务
 function deleteTodo(index: number) {
   emit('delete', index);
 }
 
-// 显示右键菜单
 function showContextMenu(event: MouseEvent, todo: Todo) {
   emit('contextmenu', event, todo);
+}
+
+function onDragStart(evt: any) {
+  // 拖拽开始
+}
+
+function onDragEnd(evt: any) {
+  // 拖拽结束
 }
 </script>
 
 <style scoped>
+.todo-list-wrapper {
+  width: 100%;
+}
+
 .todo-list {
-  min-height: 0;
+  min-height: 50px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
-/* Todo列表过渡动画 */
-.pending-list-enter-active,
-.pending-list-leave-active,
-.completed-list-enter-active,
-.completed-list-leave-active {
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+.todo-item-wrapper {
+  width: 100%;
 }
 
-.pending-list-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
+/* 拖动时的占位符 - 保持原样 */
+.ghost {
+  opacity: 1 !important;
 }
 
-.pending-list-leave-to {
-  opacity: 0;
-  transform: translateY(-20px);
+/* 被选中准备拖动的项 */
+.chosen {
+  opacity: 1;
 }
 
-.completed-list-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.completed-list-leave-to {
-  opacity: 0;
-  transform: translateY(-20px);
-}
-
-.pending-list-move,
-.completed-list-move {
-  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+/* 正在拖动中的项 - 完全隐藏 */
+.drag {
+  opacity: 0 !important;
+  visibility: hidden !important;
 }
 </style>

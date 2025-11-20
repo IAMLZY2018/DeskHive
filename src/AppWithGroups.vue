@@ -23,20 +23,8 @@
 
       <!-- 分组列表 -->
       <div v-if="!showEmptyState && !showAllCompletedState" class="groups-container">
-        <!-- 未分组的任务直接显示 -->
-        <div v-if="defaultGroupTodos.length > 0" class="default-group-todos">
-          <TodoList
-            :todos="defaultGroupTodos"
-            @toggle="(index) => toggleTodo('default', index)"
-            @delete="(index) => deleteTodo('default', index)"
-            @contextmenu="showTodoContextMenu"
-            @reorder="(newOrder) => handleReorder('default', newOrder)"
-          />
-        </div>
-        
-        <!-- 其他分组 -->
         <TodoGroupComponent
-          v-for="group in nonDefaultGroups"
+          v-for="group in sortedGroups"
           :key="group.id"
           :group="group"
           :todos="getGroupTodos(group.id, false)"
@@ -47,8 +35,6 @@
           @toggle-todo="(index) => toggleTodo(group.id, index)"
           @delete-todo="(index) => deleteTodo(group.id, index)"
           @todo-contextmenu="showTodoContextMenu"
-          @drop-to-group="handleDropToGroup(group.id)"
-          @reorder="(newOrder) => handleReorder(group.id, newOrder)"
         />
         
         <!-- 已完成任务分组 -->
@@ -162,9 +148,6 @@ const activeGroupId = ref<string>('default');
 const isCompletedCollapsed = ref(true);
 const isDragDisabled = ref(false);
 
-// 拖拽状态
-const draggingTodo = ref<Todo | null>(null);
-
 // 右键菜单状态
 const showContextMenu = ref(false);
 const contextMenuPosition = ref({ x: 0, y: 0 });
@@ -199,16 +182,6 @@ const countdownTimer = ref<number | null>(null);
 // 计算属性
 const sortedGroups = computed(() => {
   return [...groups.value].sort((a, b) => a.order - b.order);
-});
-
-// 非默认分组（排除 default）
-const nonDefaultGroups = computed(() => {
-  return sortedGroups.value.filter(g => g.id !== 'default');
-});
-
-// 默认分组的待办任务
-const defaultGroupTodos = computed(() => {
-  return getGroupTodos('default', false);
 });
 
 const allCompletedTodos = computed(() => {
@@ -349,24 +322,6 @@ function clearAllCompletedTodos() {
   showToastMessage('已清除所有已完成任务', 'success');
 }
 
-// 拖拽到分组标题（移动到该分组）
-function handleDropToGroup(groupId: string) {
-  showToastMessage('跨分组拖动功能开发中', 'warning');
-}
-
-// 在列表内重新排序
-function handleReorder(groupId: string, newOrder: Todo[]) {
-  // 更新所有任务的 order 值
-  newOrder.forEach((todo, index) => {
-    const todoIndex = todos.value.findIndex(t => t.id === todo.id);
-    if (todoIndex !== -1) {
-      todos.value[todoIndex].order = index;
-    }
-  });
-  
-  saveTodoData();
-}
-
 // 显示任务右键菜单
 function showTodoContextMenu(event: MouseEvent, todo: Todo) {
   event.preventDefault();
@@ -422,28 +377,11 @@ function toggleContextGroupCollapse() {
 }
 
 // 显示添加分组对话框
-function showAddGroupDialog(groupName?: string) {
-  // 如果传入了分组名称，直接创建分组
-  if (groupName) {
-    const maxOrder = Math.max(0, ...groups.value.map(g => g.order));
-    const newGroup = {
-      id: generateUniqueId(),
-      name: groupName,
-      order: maxOrder + 1,
-      collapsed: false
-    };
-    groups.value.push(newGroup);
-    // 自动选中新创建的分组
-    activeGroupId.value = newGroup.id;
-    saveGroupData();
-    showToastMessage(`分组"${groupName}"已创建`, 'success');
-  } else {
-    // 否则显示对话框
-    groupDialogName.value = '';
-    isEditingGroup.value = false;
-    editingGroupId.value = null;
-    showGroupDialog.value = true;
-  }
+function showAddGroupDialog() {
+  groupDialogName.value = '';
+  isEditingGroup.value = false;
+  editingGroupId.value = null;
+  showGroupDialog.value = true;
 }
 
 // 显示重命名分组对话框
@@ -950,10 +888,6 @@ header {
 
 .groups-container {
   padding: clamp(8px, 2vh, 12px);
-}
-
-.default-group-todos {
-  margin-bottom: 16px;
 }
 
 .completed-group {
