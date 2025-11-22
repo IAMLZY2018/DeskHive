@@ -23,53 +23,70 @@
 
       <!-- 分组列表 -->
       <div v-if="!showEmptyState && !showAllCompletedState" class="groups-container">
-        <!-- 未分组的任务直接显示 -->
-        <div v-if="defaultGroupTodos.length > 0" class="default-group-todos">
+        <!-- 未分组的任务 - 直接显示 -->
+        <div v-if="getGroupTodos('default', false).length > 0">
           <TodoList
-            :todos="defaultGroupTodos"
+            :todos="getGroupTodos('default', false)"
+            :show-border="false"
             @toggle="(index) => toggleTodo('default', index)"
             @delete="(index) => deleteTodo('default', index)"
             @contextmenu="showTodoContextMenu"
-            @reorder="(newOrder) => handleReorder('default', newOrder)"
+            @reorder="(newOrder) => handleTodoReorder('default', newOrder)"
+            @drag-start="(todo) => handleDragStart(todo)"
+            @drag-end="handleDragEnd"
+            @change="(event) => handleTodoChange('default', event)"
           />
         </div>
         
         <!-- 其他分组 -->
-        <TodoGroupComponent
-          v-for="group in nonDefaultGroups"
-          :key="group.id"
-          :group="group"
-          :todos="getGroupTodos(group.id, false)"
-          :is-active="activeGroupId === group.id"
-          @select-group="selectGroup(group.id)"
-          @toggle-collapse="toggleGroupCollapse(group.id)"
-          @show-menu="(event) => showGroupContextMenu(event, group)"
-          @toggle-todo="(index) => toggleTodo(group.id, index)"
-          @delete-todo="(index) => deleteTodo(group.id, index)"
-          @todo-contextmenu="showTodoContextMenu"
-          @drop-to-group="handleDropToGroup(group.id)"
-          @reorder="(newOrder) => handleReorder(group.id, newOrder)"
-        />
+        <TransitionGroup name="group-list" tag="div" class="active-groups">
+          <TodoGroupComponent
+            v-for="(group, index) in sortedGroupsWithoutDefault"
+            :key="group.id"
+            :group="group"
+            :todos="getGroupTodos(group.id, false)"
+            @toggleCollapse="toggleGroupCollapse(group.id)"
+            @showMenu="(event) => showGroupContextMenu(event, group)"
+            @toggleTodo="(index) => toggleTodo(group.id, index)"
+            @deleteTodo="(index) => deleteTodo(group.id, index)"
+            @todoContextmenu="showTodoContextMenu"
+            @reorder="(newOrder) => handleTodoReorder(group.id, newOrder)"
+            @drag-start="(todo) => handleDragStart(todo)"
+            @drag-end="handleDragEnd"
+            @move-up="moveGroupUp(group.id)"
+            @move-down="moveGroupDown(group.id)"
+            @change="(event) => handleTodoChange(group.id, event)"
+            @drop-on-header="handleDropOnGroupHeader(group.id)"
+          />
+        </TransitionGroup>
         
-        <!-- 已完成任务分组 -->
-        <div v-if="allCompletedTodos.length > 0" class="completed-group">
-          <div class="group-header" @click="toggleCompletedSection">
-            <span class="collapse-indicator" :class="{ collapsed: isCompletedCollapsed }">▼</span>
-            <span class="group-icon">✅</span>
-            <span class="group-name">已完成</span>
-            <span class="group-count">{{ completedTasksCount }}</span>
-            <button class="clear-completed-btn" @click.stop="clearAllCompletedTodos" title="清除所有已完成任务">
-              🗑️
-            </button>
-          </div>
-          <div v-show="!isCompletedCollapsed" class="group-content">
-            <TodoList
-              :todos="allCompletedTodos"
-              :is-completed-list="true"
-              @toggle="(index) => toggleCompletedTodo(index)"
-              @delete="(index) => deleteCompletedTodo(index)"
-              @contextmenu="showTodoContextMenu"
-            />
+        <!-- 已完成任务分组 - 固定在底部 -->
+        <div v-if="allCompletedTodos.length > 0" class="completed-group-wrapper">
+          <div class="completed-group">
+            <div class="group-header" @click="toggleCompletedSection">
+              <span class="collapse-indicator" :class="{ collapsed: isCompletedCollapsed }">▼</span>
+              <svg class="group-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" fill="#4CAF50"/>
+                <path d="M7 12L10.5 15.5L17 9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="group-name">已完成</span>
+              <span class="group-count">{{ completedTasksCount }}</span>
+              <button class="clear-completed-btn" @click.stop="clearAllCompletedTodos" title="清除所有已完成任务">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            <div v-show="!isCompletedCollapsed" class="group-content">
+              <TodoList
+                :todos="allCompletedTodos"
+                :is-completed-list="true"
+                :show-border="true"
+                @toggle="(index) => toggleCompletedTodo(index)"
+                @delete="(index) => deleteCompletedTodo(index)"
+                @contextmenu="showTodoContextMenu"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -158,12 +175,8 @@ import Toast from './components/Toast.vue';
 const todos = ref<Todo[]>([]);
 const groups = ref<TodoGroup[]>([]);
 const dateInfo = ref<DateInfo | null>(null);
-const activeGroupId = ref<string>('default');
 const isCompletedCollapsed = ref(true);
 const isDragDisabled = ref(false);
-
-// 拖拽状态
-const draggingTodo = ref<Todo | null>(null);
 
 // 右键菜单状态
 const showContextMenu = ref(false);
@@ -196,19 +209,17 @@ const toastType = ref<'error' | 'success' | 'warning'>('error');
 // 定时器
 const countdownTimer = ref<number | null>(null);
 
+// 拖动状态
+const draggedTodo = ref<Todo | null>(null);
+const dragSourceGroupId = ref<string | null>(null);
+
 // 计算属性
 const sortedGroups = computed(() => {
   return [...groups.value].sort((a, b) => a.order - b.order);
 });
 
-// 非默认分组（排除 default）
-const nonDefaultGroups = computed(() => {
+const sortedGroupsWithoutDefault = computed(() => {
   return sortedGroups.value.filter(g => g.id !== 'default');
-});
-
-// 默认分组的待办任务
-const defaultGroupTodos = computed(() => {
-  return getGroupTodos('default', false);
 });
 
 const allCompletedTodos = computed(() => {
@@ -227,16 +238,7 @@ const showAllCompletedState = computed(() => {
 function getGroupTodos(groupId: string, completed: boolean) {
   return todos.value
     .filter(t => t.groupId === groupId && t.completed === completed)
-    .sort((a, b) => {
-      // 优先按截止时间排序
-      if (a.deadline && b.deadline) {
-        return a.deadline - b.deadline;
-      }
-      if (a.deadline) return -1;
-      if (b.deadline) return 1;
-      // 其次按 order 排序
-      return a.order - b.order;
-    });
+    .sort((a, b) => a.order - b.order);
 }
 
 // 生成唯一ID
@@ -260,9 +262,9 @@ function initializeDefaultGroup() {
   }
 }
 
-// 选择分组
+// 选择分组（已移除选中状态，保留函数以避免错误）
 function selectGroup(groupId: string) {
-  activeGroupId.value = groupId;
+  // 不再需要选中状态
 }
 
 // 切换分组折叠状态
@@ -282,7 +284,8 @@ function toggleCompletedSection() {
 // 添加任务
 function addTask(text: string) {
   const now = Math.floor(Date.now() / 1000);
-  const maxOrder = Math.max(0, ...todos.value.filter(t => t.groupId === activeGroupId.value).map(t => t.order));
+  // 新任务始终添加到未分组（default）
+  const maxOrder = Math.max(0, ...todos.value.filter(t => t.groupId === 'default').map(t => t.order));
   
   todos.value.push({
     id: generateUniqueId(),
@@ -290,7 +293,7 @@ function addTask(text: string) {
     completed: false,
     createdAt: now,
     order: maxOrder + 1,
-    groupId: activeGroupId.value
+    groupId: 'default'
   });
   
   saveTodoData();
@@ -349,24 +352,6 @@ function clearAllCompletedTodos() {
   showToastMessage('已清除所有已完成任务', 'success');
 }
 
-// 拖拽到分组标题（移动到该分组）
-function handleDropToGroup(groupId: string) {
-  showToastMessage('跨分组拖动功能开发中', 'warning');
-}
-
-// 在列表内重新排序
-function handleReorder(groupId: string, newOrder: Todo[]) {
-  // 更新所有任务的 order 值
-  newOrder.forEach((todo, index) => {
-    const todoIndex = todos.value.findIndex(t => t.id === todo.id);
-    if (todoIndex !== -1) {
-      todos.value[todoIndex].order = index;
-    }
-  });
-  
-  saveTodoData();
-}
-
 // 显示任务右键菜单
 function showTodoContextMenu(event: MouseEvent, todo: Todo) {
   event.preventDefault();
@@ -422,28 +407,11 @@ function toggleContextGroupCollapse() {
 }
 
 // 显示添加分组对话框
-function showAddGroupDialog(groupName?: string) {
-  // 如果传入了分组名称，直接创建分组
-  if (groupName) {
-    const maxOrder = Math.max(0, ...groups.value.map(g => g.order));
-    const newGroup = {
-      id: generateUniqueId(),
-      name: groupName,
-      order: maxOrder + 1,
-      collapsed: false
-    };
-    groups.value.push(newGroup);
-    // 自动选中新创建的分组
-    activeGroupId.value = newGroup.id;
-    saveGroupData();
-    showToastMessage(`分组"${groupName}"已创建`, 'success');
-  } else {
-    // 否则显示对话框
-    groupDialogName.value = '';
-    isEditingGroup.value = false;
-    editingGroupId.value = null;
-    showGroupDialog.value = true;
-  }
+function showAddGroupDialog() {
+  groupDialogName.value = '';
+  isEditingGroup.value = false;
+  editingGroupId.value = null;
+  showGroupDialog.value = true;
 }
 
 // 显示重命名分组对话框
@@ -637,6 +605,202 @@ function showToastMessage(message: string, type: 'error' | 'success' | 'warning'
   setTimeout(() => {
     showToast.value = false;
   }, 3000);
+}
+
+// 上移分组
+function moveGroupUp(groupId: string) {
+  console.log('moveGroupUp called:', groupId);
+  const index = sortedGroups.value.findIndex(g => g.id === groupId);
+  console.log('Current index:', index, 'Total groups:', sortedGroups.value.length);
+  
+  if (index <= 0) {
+    console.log('Already at top');
+    return; // 已经在最上面
+  }
+  
+  // 交换 order
+  const currentGroup = sortedGroups.value[index];
+  const prevGroup = sortedGroups.value[index - 1];
+  
+  console.log('Swapping:', currentGroup.name, 'with', prevGroup.name);
+  
+  const tempOrder = currentGroup.order;
+  currentGroup.order = prevGroup.order;
+  prevGroup.order = tempOrder;
+  
+  console.log('New order:', sortedGroups.value.map(g => `${g.name}(${g.order})`));
+  
+  saveGroupData();
+}
+
+// 下移分组
+function moveGroupDown(groupId: string) {
+  console.log('moveGroupDown called:', groupId);
+  const index = sortedGroups.value.findIndex(g => g.id === groupId);
+  console.log('Current index:', index, 'Total groups:', sortedGroups.value.length);
+  
+  if (index < 0 || index >= sortedGroups.value.length - 1) {
+    console.log('Already at bottom');
+    return; // 已经在最下面
+  }
+  
+  // 交换 order
+  const currentGroup = sortedGroups.value[index];
+  const nextGroup = sortedGroups.value[index + 1];
+  
+  console.log('Swapping:', currentGroup.name, 'with', nextGroup.name);
+  
+  const tempOrder = currentGroup.order;
+  currentGroup.order = nextGroup.order;
+  nextGroup.order = tempOrder;
+  
+  console.log('New order:', sortedGroups.value.map(g => `${g.name}(${g.order})`));
+  
+  saveGroupData();
+}
+
+// 处理拖动开始
+function handleDragStart(todo: Todo) {
+  console.log('拖动开始:', todo.text, '来自分组:', todo.groupId);
+  draggedTodo.value = todo;
+  dragSourceGroupId.value = todo.groupId;
+}
+
+// 处理拖动结束
+function handleDragEnd() {
+  console.log('拖动结束');
+  draggedTodo.value = null;
+  dragSourceGroupId.value = null;
+}
+
+// 处理拖放到分组标题
+function handleDropOnGroupHeader(targetGroupId: string) {
+  console.log('拖放到分组标题:', targetGroupId);
+  
+  if (!draggedTodo.value || !dragSourceGroupId.value) {
+    console.log('没有拖动的任务');
+    return;
+  }
+  
+  // 如果拖到同一个分组，不做处理
+  if (dragSourceGroupId.value === targetGroupId) {
+    console.log('拖到同一个分组，忽略');
+    return;
+  }
+  
+  const todoIndex = todos.value.findIndex(t => t.id === draggedTodo.value!.id);
+  if (todoIndex === -1) {
+    console.log('找不到任务');
+    return;
+  }
+  
+  // 获取目标分组的最大 order
+  const targetGroupTodos = getGroupTodos(targetGroupId, false);
+  const maxOrder = targetGroupTodos.length > 0 
+    ? Math.max(...targetGroupTodos.map(t => t.order))
+    : -1;
+  
+  // 更新任务的分组和顺序（放到末尾）
+  todos.value[todoIndex].groupId = targetGroupId;
+  todos.value[todoIndex].order = maxOrder + 1;
+  
+  console.log(`任务 "${draggedTodo.value.text}" 从分组 "${dragSourceGroupId.value}" 移动到分组 "${targetGroupId}" 的末尾`);
+  
+  // 重新计算源分组的 order
+  const sourceGroupTodos = getGroupTodos(dragSourceGroupId.value, false);
+  sourceGroupTodos.forEach((t, index) => {
+    const idx = todos.value.findIndex(item => item.id === t.id);
+    if (idx !== -1) {
+      todos.value[idx].order = index;
+    }
+  });
+  
+  // 保存到后端
+  saveTodoData();
+  
+  // 清除拖动状态
+  draggedTodo.value = null;
+  dragSourceGroupId.value = null;
+}
+
+// 处理任务重新排序
+function handleTodoReorder(groupId: string, newOrder: Todo[]) {
+  console.log('任务重新排序:', groupId, newOrder.map(t => t.text));
+  
+  // 更新任务的 order 字段和 groupId
+  newOrder.forEach((todo, index) => {
+    const todoIndex = todos.value.findIndex(t => t.id === todo.id);
+    if (todoIndex !== -1) {
+      todos.value[todoIndex].order = index;
+      todos.value[todoIndex].groupId = groupId;
+    }
+  });
+  
+  // 保存到后端
+  saveTodoData();
+}
+
+// 处理任务跨分组拖拽
+function handleTodoChange(groupId: string, event: any) {
+  console.log('任务拖拽变化:', groupId, event);
+  
+  // 当任务被添加到这个分组时
+  if (event.added) {
+    const todo = event.added.element;
+    const newIndex = event.added.newIndex;
+    const todoIndex = todos.value.findIndex(t => t.id === todo.id);
+    
+    if (todoIndex !== -1) {
+      // 更新任务的分组ID
+      todos.value[todoIndex].groupId = groupId;
+      console.log(`任务 "${todo.text}" 从分组 "${dragSourceGroupId.value}" 移动到分组 "${groupId}"`);
+      
+      // 重新计算目标分组所有任务的 order
+      const targetGroupTodos = getGroupTodos(groupId, false);
+      targetGroupTodos.forEach((t, index) => {
+        const idx = todos.value.findIndex(item => item.id === t.id);
+        if (idx !== -1) {
+          todos.value[idx].order = index;
+        }
+      });
+      
+      // 如果有源分组，重新计算源分组的 order
+      if (dragSourceGroupId.value && dragSourceGroupId.value !== groupId) {
+        const sourceGroupTodos = getGroupTodos(dragSourceGroupId.value, false);
+        sourceGroupTodos.forEach((t, index) => {
+          const idx = todos.value.findIndex(item => item.id === t.id);
+          if (idx !== -1) {
+            todos.value[idx].order = index;
+          }
+        });
+      }
+      
+      // 保存到后端
+      saveTodoData();
+    }
+  }
+  
+  // 当任务在同一分组内移动时
+  if (event.moved) {
+    console.log('任务在分组内移动:', groupId, event.moved);
+    // 不需要在这里处理，reorder 事件会处理
+  }
+  
+  // 当任务从这个分组移除时
+  if (event.removed) {
+    console.log('任务从分组移除:', groupId);
+    // 重新计算该分组剩余任务的 order
+    const groupTodos = getGroupTodos(groupId, false);
+    groupTodos.forEach((todo, index) => {
+      const todoIndex = todos.value.findIndex(t => t.id === todo.id);
+      if (todoIndex !== -1) {
+        todos.value[todoIndex].order = index;
+      }
+    });
+    
+    // 保存到后端
+    saveTodoData();
+  }
 }
 
 // 保存任务数据
@@ -933,31 +1097,60 @@ header {
 }
 
 .todo-container::-webkit-scrollbar {
-  width: 5px;
+  display: none;
 }
 
-.todo-container::-webkit-scrollbar-track {
-  background: rgba(229, 231, 235, 0.1);
-  border-radius: 3px;
-}
-
-.todo-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 3px;
-  border: 1px solid rgba(229, 231, 235, 0.2);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+.todo-container {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
 .groups-container {
   padding: clamp(8px, 2vh, 12px);
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
-.default-group-todos {
-  margin-bottom: 16px;
+
+
+.active-groups {
+  flex: 0 0 auto;
+  margin-bottom: clamp(8px, 2vh, 12px);
+  position: relative;
+}
+
+/* 分组列表动画 */
+.group-list-move {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.group-list-enter-active,
+.group-list-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.group-list-enter-from {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.group-list-leave-to {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.group-list-leave-active {
+  position: absolute;
+  width: 100%;
+}
+
+.completed-group-wrapper {
+  margin-top: auto;
+  padding-top: 10px;
 }
 
 .completed-group {
-  margin-top: 10px;
   border-top: 1px dashed rgba(229, 231, 235, 0.2);
   padding-top: 10px;
 }
@@ -965,15 +1158,16 @@ header {
 .completed-group .group-header {
   display: flex;
   align-items: center;
-  padding: clamp(8px, 2vh, 10px) clamp(10px, 2.5vw, 14px);
+  padding: clamp(4px, 1vh, 6px) clamp(8px, 2vw, 10px);
   background: rgba(255, 255, 255, 0.5);
-  border-radius: clamp(8px, 1.5vw, 12px);
+  border-radius: clamp(8px, 1.5vw, 10px);
   cursor: pointer;
   transition: all 0.3s ease;
   user-select: none;
-  gap: 8px;
+  gap: clamp(6px, 1.5vw, 8px);
   border: 1px solid rgba(229, 231, 235, 0.2);
   backdrop-filter: blur(5px);
+  min-height: clamp(28px, 4vh, 32px);
 }
 
 .completed-group .group-header:hover {
@@ -982,9 +1176,10 @@ header {
 }
 
 .collapse-indicator {
-  font-size: 0.7rem;
-  transition: transform 0.3s ease;
-  color: #666;
+  font-size: clamp(0.6rem, 1.5vw, 0.7rem);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #94a3b8;
+  flex-shrink: 0;
 }
 
 .collapse-indicator.collapsed {
@@ -992,45 +1187,74 @@ header {
 }
 
 .group-icon {
-  font-size: 1rem;
+  width: clamp(16px, 3.5vw, 20px);
+  height: clamp(16px, 3.5vw, 20px);
+  flex-shrink: 0;
 }
 
 .group-name {
   flex: 1;
-  font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+  font-size: clamp(0.75rem, 2vw, 0.85rem);
   font-weight: 600;
-  color: #333;
+  color: #475569;
 }
 
 .group-count {
-  background: #4CAF50;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: white;
-  border-radius: 12px;
-  padding: 2px 8px;
-  font-size: 0.7rem;
+  border-radius: 10px;
+  padding: clamp(1px, 0.3vh, 2px) clamp(6px, 1.5vw, 8px);
+  font-size: clamp(0.6rem, 1.5vw, 0.7rem);
   font-weight: bold;
-  min-width: 20px;
+  min-width: clamp(18px, 4vw, 22px);
   text-align: center;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.2);
+  margin-left: auto;
 }
 
 .clear-completed-btn {
   background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 0.9rem;
-  color: #888;
-  padding: 2px 6px;
+  color: #94a3b8;
+  padding: clamp(2px, 0.5vh, 4px);
   border-radius: 4px;
   transition: all 0.2s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(20px, 4vw, 24px);
+  height: clamp(20px, 4vw, 24px);
+}
+
+.clear-completed-btn svg {
+  width: clamp(14px, 3vw, 16px);
+  height: clamp(14px, 3vw, 16px);
 }
 
 .clear-completed-btn:hover {
   background: rgba(244, 67, 54, 0.1);
   color: #f44336;
+  transform: scale(1.1);
 }
 
 .group-content {
-  padding: clamp(8px, 2vh, 12px) clamp(4px, 1vw, 8px);
+  padding: clamp(4px, 1vh, 6px) clamp(4px, 1vw, 6px);
+  animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: top;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: scaleY(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
 }
 
 /* 夜间主题 */
@@ -1078,13 +1302,15 @@ body.dark-theme .clear-completed-btn:hover {
   color: #f44336;
 }
 
-body.dark-theme .todo-container::-webkit-scrollbar-track {
-  background: rgba(231, 233, 237, 0.1);
+body.dark-theme .group-icon circle {
+  fill: #4CAF50;
 }
 
-body.dark-theme .todo-container::-webkit-scrollbar-thumb {
-  background: #252627;
-  border: 1px solid rgba(231, 233, 237, 0.2);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+body.dark-theme .group-icon path {
+  stroke: white;
 }
+
+
+
+
 </style>

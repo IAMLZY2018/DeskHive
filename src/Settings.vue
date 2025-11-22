@@ -108,67 +108,86 @@
           <div class="setting-group">
             <div class="setting-item">
               <div class="help-content">
-                <h3>基本操作</h3>
-                <p>• 添加任务：在输入框中输入任务内容，按回车键或点击"+"按钮添加</p>
-                <p>• 完成任务：点击任务前的复选框标记为已完成</p>
-                <p>• 删除任务：右键点击任务项，选择"删除任务"选项</p>
-                <p>• 编辑任务：右键点击任务项，选择"编辑任务"选项</p>
+                <h3>📝 任务管理</h3>
+                <p>• 创建任务：底部输入框输入内容，按回车或点击"+"</p>
+                <p>• 完成任务：悬停任务后点击右侧"✓"按钮</p>
+                <p>• 取消完成：在已完成分组中点击"↶"按钮恢复</p>
+                <p>• 删除任务：双击任务项快速删除</p>
+                <p>• 编辑任务：右键任务 → "✏️ 编辑任务"</p>
+                <p>• 拖动排序：悬停任务后点击"☰"按钮拖动调整顺序</p>
                 
-                <h3>任务管理</h3>
-                <p>• 设置截止时间：右键点击任务项，选择"设置截止时间"选项</p>
-                <p>• 移除截止时间：右键点击任务项，选择"移除截止时间"选项</p>
-                <p>• 查看任务详情：右键点击任务项，选择"查看任务详情"选项</p>
+                <h3>📁 分组管理</h3>
+                <p>• 创建分组：点击底部"📁"按钮，输入分组名称</p>
+                <p>• 重命名分组：右键分组标题 → "✏️ 重命名分组"</p>
+                <p>• 删除分组：右键分组标题 → "🗑️ 删除分组"</p>
+                <p>• 折叠/展开：点击分组标题左侧"▼"图标</p>
+                <p>• 调整顺序：悬停分组标题，点击"▲▼"按钮上下移动</p>
                 
-                <h3>窗口操作</h3>
-                <p>• 移动窗口：在非拖拽禁用模式下，可以拖拽窗口顶部移动位置</p>
-                <p>• 调整透明度：在设置页面的外观选项中可以调整主窗口透明度</p>
-                <p>• 最小化到托盘：点击窗口右上角的最小化按钮可将窗口最小化到系统托盘</p>
+                <h3>🔄 任务拖动</h3>
+                <p>• 分组内拖动：点住"☰"按钮在同一分组内上下拖动</p>
+                <p>• 跨分组拖动：拖到目标分组任务列表插入指定位置</p>
+                <p>• 拖到分组标题：任务会添加到该分组末尾</p>
+                <p>• 拖动提示：目标区域显示蓝色高亮</p>
                 
-                <h3>设置页面说明</h3>
-                <p>• 外观设置：可以调整主窗口的透明度、拖拽功能和主题模式</p>
-                <p>• 行为设置：可以设置应用的开机自启动功能</p>
-                <p>• 使用说明：查看应用的使用帮助文档</p>
-                <p>• 关于页面：查看应用版本信息</p>
+                <h3>⏰ 时间管理</h3>
+                <p>• 设置截止时间：右键任务 → "📅 设置截止时间"</p>
+                <p>• 移除截止时间：右键任务 → "🗑️ 移除截止时间"</p>
+                <p>• 🟢 绿色指示器：距离截止时间充足（悬停显示日期）</p>
+                <p>• 🔴 红色指示器：已超过截止时间（悬停显示已超时）</p>
+                <p>• 🟡 黄色指示器：任务已创建多天（悬停显示天数）</p>
                 
-                <h3>系统托盘功能</h3>
-                <p>• 右键托盘图标可以快速添加任务、显示/隐藏主窗口、退出应用</p>
-                <p>• 左键点击托盘图标可以显示/隐藏主窗口</p>
+                <h3>✅ 已完成任务</h3>
+                <p>• 查看已完成：点击底部"已完成"分组展开</p>
+                <p>• 清空已完成：点击已完成分组右侧垃圾桶图标</p>
+                <p>• 恢复任务：点击已完成任务的"↶"按钮</p>
+                
+                <h3>⚙️ 窗口设置</h3>
+                <p>• 移动窗口：拖拽窗口顶部（需启用拖动功能）</p>
+                <p>• 调整透明度：外观设置 → 主窗口透明度</p>
+                <p>• 切换主题：外观设置 → 主题模式（日间/夜间）</p>
+                <p>• 开机自启：行为设置 → 开机自启动</p>
+                
+                <h3>🖱️ 系统托盘</h3>
+                <p>• 左键点击：显示/隐藏主窗口</p>
+                <p>• 右键菜单：快速添加任务、退出应用</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 使用说明页面 -->
-        <div v-if="activeSection === 'help'" class="setting-section">
-          <div class="section-title">使用说明</div>
+        <!-- 联系作者页面 -->
+        <div v-if="activeSection === 'contact'" class="setting-section">
+          <div class="section-title">联系方式</div>
           <div class="setting-group">
-            <div class="setting-item">
-              <div class="help-content">
-                <h3>基本操作</h3>
-                <p>• 添加任务：在输入框中输入任务内容，按回车键或点击"+"按钮添加</p>
-                <p>• 完成任务：点击任务前的复选框标记为已完成</p>
-                <p>• 删除任务：右键点击任务项，选择"删除任务"选项</p>
-                <p>• 编辑任务：右键点击任务项，选择"编辑任务"选项</p>
+            <div class="setting-item contact-item">
+              <div class="contact-content">
+                <!-- 第一行：Logo 和跳转按钮 -->
+                <div class="contact-row logo-row">
+                  <img src="/mypic/feijimiao.png" alt="作者Logo" class="contact-logo" />
+                  <button class="blog-btn" @click="openBlog">
+                    🌐 点击访问
+                  </button>
+                </div>
                 
-                <h3>任务管理</h3>
-                <p>• 设置截止时间：右键点击任务项，选择"设置截止时间"选项</p>
-                <p>• 移除截止时间：右键点击任务项，选择"移除截止时间"选项</p>
-                <p>• 查看任务详情：右键点击任务项，选择"查看任务详情"选项</p>
+                <!-- 第二行：提示文字 -->
+                <div class="contact-row text-row">
+                  <p class="contact-text">💼 软件定制开发，联系作者</p>
+                </div>
                 
-                <h3>窗口操作</h3>
-                <p>• 移动窗口：在非拖拽禁用模式下，可以拖拽窗口顶部移动位置</p>
-                <p>• 调整透明度：在设置页面的外观选项中可以调整主窗口透明度</p>
-                <p>• 最小化到托盘：点击窗口右上角的最小化按钮可将窗口最小化到系统托盘</p>
-                
-                <h3>设置页面说明</h3>
-                <p>• 外观设置：可以调整主窗口的透明度、拖拽功能和主题模式</p>
-                <p>• 行为设置：可以设置应用的开机自启动功能</p>
-                <p>• 使用说明：查看应用的使用帮助文档</p>
-                <p>• 关于页面：查看应用版本信息</p>
-                
-                <h3>系统托盘功能</h3>
-                <p>• 右键托盘图标可以快速添加任务、显示/隐藏主窗口、退出应用</p>
-                <p>• 左键点击托盘图标可以显示/隐藏主窗口</p>
+                <!-- 第三行：两个二维码并排 -->
+                <div class="contact-row qrcode-row">
+                  <div class="qrcode-item">
+                    <h3>📱 微信公众号</h3>
+                    <img src="/mypic/gzh.png" alt="公众号二维码" class="contact-qrcode" />
+                    <p class="qrcode-tip">扫码关注公众号</p>
+                  </div>
+                  
+                  <div class="qrcode-item">
+                    <h3>💬 微信联系</h3>
+                    <img src="/mypic/Snipaste_2025-11-23_01-09-52.png" alt="微信二维码" class="contact-qrcode" />
+                    <p class="qrcode-tip">扫码添加微信</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -187,13 +206,38 @@
                 <span style="color: #6d6d70;">{{ appVersion }}</span>
               </div>
             </div>
+          </div>
+
+          <div class="section-title" style="margin-top: 24px;">版本更新</div>
+          <div class="setting-group">
             <div class="setting-item">
-              <div>
-                <div class="setting-label">构建时间</div>
-                <div class="setting-description">应用构建日期</div>
-              </div>
-              <div class="setting-control">
-                <span style="color: #6d6d70;">{{ new Date().toLocaleDateString() }}</span>
+              <div class="update-content">
+                <h3>v0.3.0 (2025-11-22)</h3>
+                <h4>✨ 新增功能</h4>
+                <p>• 任务拖动排序：支持分组内和跨分组拖动任务</p>
+                <p>• 分组排序：可通过上下箭头调整分组顺序</p>
+                <p>• 时间提示：悬停时间指示器显示详细信息</p>
+                <p>• 完成动画：优化任务完成时的视觉效果</p>
+                <p>• 分组动画：添加分组移动的平滑过渡效果</p>
+                
+                <h4>🎨 界面优化</h4>
+                <p>• 重新设计时间指示器样式和颜色</p>
+                <p>• 优化已完成分组的高度和间距</p>
+                <p>• 改进任务完成状态的视觉反馈</p>
+                <p>• 添加自定义 Tooltip 组件</p>
+                <p>• 优化分组标题和操作按钮布局</p>
+                
+                <h4>🐛 问题修复</h4>
+                <p>• 修复跨组拖动任务的问题</p>
+                <p>• 修复提示框被分组遮挡的问题</p>
+                <p>• 移除按截止时间自动排序的逻辑</p>
+                <p>• 修复分组内拖动回到原位的问题</p>
+                <p>• 优化拖动时的视觉反馈</p>
+                
+                <h4>📝 文档更新</h4>
+                <p>• 更新 README 使用说明</p>
+                <p>• 完善设置页面的使用指南</p>
+                <p>• 添加详细的功能说明和操作指引</p>
               </div>
             </div>
           </div>
@@ -220,7 +264,7 @@ interface AppSettings {
   theme: string
 }
 
-type SectionKey = 'appearance' | 'behavior' | 'help' | 'about'
+type SectionKey = 'appearance' | 'behavior' | 'help' | 'contact' | 'about'
 
 interface Section {
   name: string
@@ -236,7 +280,8 @@ const appVersion = ref('...')
 const sections: Record<SectionKey, Section> = {
   appearance: { name: '外观', icon: '🎨' },
   behavior: { name: '行为', icon: '⚡' },
-  help: { name: '使用说明', icon: '📖' }, // 添加使用说明菜单项
+  help: { name: '使用说明', icon: '📖' },
+  contact: { name: '联系作者', icon: '✉️' },
   about: { name: '关于', icon: 'ℹ️' }
 }
 
@@ -383,6 +428,11 @@ async function loadAppVersion() {
     console.error('加载应用版本失败:', error)
     appVersion.value = '未知版本'
   }
+}
+
+// 打开博客链接
+function openBlog() {
+  window.open('https://www.feijimiao.cn/contact', '_blank')
 }
 
 // 组件挂载时加载设置和版本信息
@@ -1091,5 +1141,185 @@ body.dark-theme .help-content h3 {
 
 body.dark-theme .help-content p {
   color: #a0a6aa;
+}
+
+/* 更新说明内容样式 */
+.update-content {
+  padding: 16px;
+  line-height: 1.6;
+}
+
+.update-content h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #007aff;
+}
+
+body.dark-theme .update-content h3 {
+  color: #007aff;
+}
+
+.update-content h4 {
+  margin: 12px 0 8px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #000;
+}
+
+body.dark-theme .update-content h4 {
+  color: #e7e9ed;
+}
+
+.update-content p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #333;
+  padding-left: 8px;
+}
+
+body.dark-theme .update-content p {
+  color: #a0a6aa;
+}
+
+/* 联系作者页面样式 */
+.contact-item {
+  display: block;
+  padding: 0;
+}
+
+.contact-content {
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+.contact-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* 第一行：Logo 和按钮 */
+.logo-row {
+  gap: 24px;
+}
+
+.contact-logo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-theme .contact-logo {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.blog-btn {
+  padding: 12px 24px;
+  background: #007aff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+.blog-btn:hover {
+  background: #0056cc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+}
+
+.blog-btn:active {
+  transform: translateY(0);
+}
+
+body.dark-theme .blog-btn {
+  background: #007aff;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.4);
+}
+
+body.dark-theme .blog-btn:hover {
+  background: #0056cc;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.5);
+}
+
+/* 第二行：二维码并排 */
+.qrcode-row {
+  gap: 48px;
+  flex-wrap: wrap;
+}
+
+.qrcode-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.qrcode-item h3 {
+  margin: 0 0 16px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #000;
+}
+
+body.dark-theme .qrcode-item h3 {
+  color: #e7e9ed;
+}
+
+.contact-qrcode {
+  width: 180px;
+  height: 180px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e5e5;
+}
+
+body.dark-theme .contact-qrcode {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #444b4f;
+}
+
+.qrcode-tip {
+  margin: 12px 0 0 0;
+  font-size: 13px;
+  color: #6d6d70;
+}
+
+body.dark-theme .qrcode-tip {
+  color: #a0a6aa;
+}
+
+/* 第二行：提示文字 */
+.text-row {
+  justify-content: center;
+}
+
+.contact-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #007aff;
+  margin: 0;
+  padding: 12px 24px;
+  background: rgba(0, 122, 255, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 122, 255, 0.2);
+}
+
+body.dark-theme .contact-text {
+  color: #4a9eff;
+  background: rgba(74, 158, 255, 0.15);
+  border: 1px solid rgba(74, 158, 255, 0.3);
 }
 </style>

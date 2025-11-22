@@ -34,14 +34,53 @@ DeskHive 是一个基于 Vue 3 和 Tauri 构建的轻量级、跨平台的桌面
 - 窗口控制（透明度、位置管理）
 - 设置管理（自动启动、窗口位置等）
 
-### 使用方式
+### 使用说明
 
-- **添加任务**：在底部输入框中输入任务内容，按回车或点击"+"按钮添加
-- **完成任务**：点击任务前面的圆形复选框将任务标记为完成
-- **删除任务**：双击任务项可直接删除任务
-- **设置截止时间**：右键点击任务项，选择"📅 设置截止时间"，在弹出的对话框中选择日期和时间
-- **移除截止时间**：对于已有截止时间的任务，右键点击任务项，选择"🗑️ 移除截止时间"
-- **查看任务详情**：右键点击任务项可查看任务状态、创建时间和截止时间等详细信息
+#### 📝 任务管理
+
+- **创建任务**：在底部输入框输入任务内容，按回车键或点击"+"按钮
+- **完成任务**：悬停任务后点击右侧的"✓"按钮，任务会移至已完成分组
+- **取消完成**：在已完成分组中点击"↶"按钮恢复任务
+- **删除任务**：双击任务项快速删除
+- **编辑任务**：右键任务 → 选择"✏️ 编辑任务"修改内容
+- **拖动排序**：悬停任务后点击"☰"按钮拖动调整顺序
+
+#### 📁 分组管理
+
+- **创建分组**：点击底部"📁"按钮，输入分组名称
+- **重命名分组**：右键分组标题 → 选择"✏️ 重命名分组"
+- **删除分组**：右键分组标题 → 选择"🗑️ 删除分组"（任务会移至未分组）
+- **折叠/展开**：点击分组标题左侧的"▼"图标
+- **调整顺序**：悬停分组标题，点击"▲▼"按钮上下移动分组
+
+#### 🔄 任务拖动
+
+- **分组内拖动**：点住任务的"☰"按钮，在同一分组内上下拖动调整顺序
+- **跨分组拖动**：
+  - 拖动到目标分组的任务列表中，插入到指定位置
+  - 拖动到目标分组的标题上，任务会添加到该分组末尾
+- **拖动提示**：拖动时目标区域会显示蓝色高亮
+
+#### ⏰ 时间管理
+
+- **设置截止时间**：右键任务 → "📅 设置截止时间" → 选择日期和时间
+- **移除截止时间**：右键任务 → "🗑️ 移除截止时间"
+- **时间指示器**：
+  - 🟢 **绿色**：距离截止时间充足（悬停显示截止日期）
+  - 🔴 **红色**：已超过截止时间（悬停显示已超时）
+  - 🟡 **黄色**：任务已创建多天（悬停显示创建天数）
+
+#### ✅ 已完成任务
+
+- **查看已完成**：点击底部"已完成"分组展开查看
+- **清空已完成**：点击已完成分组右侧的垃圾桶图标清除所有已完成任务
+- **恢复任务**：点击已完成任务的"↶"按钮恢复到未完成状态
+
+#### ⚙️ 其他功能
+
+- **任务统计**：顶部显示"已完成/总任务"数量
+- **右键菜单**：右键任务或分组可快速访问更多操作
+- **设置面板**：点击右上角"⚙️"按钮打开设置
 
 ### 环境要求
 
@@ -103,14 +142,53 @@ DeskHive is a lightweight, cross-platform desktop to-do management tool built wi
 - Window control (transparency, position management)
 - Settings management (auto-start, window position, etc.)
 
-### Usage
+### User Guide
 
-- **Add tasks**: Enter task content in the bottom input box, press Enter or click the "+" button to add
-- **Complete tasks**: Click the circular checkbox in front of the task to mark it as completed
-- **Delete tasks**: Double-click on a task item to delete it directly
-- **Set deadline**: Right-click on a task item, select "📅 Set Deadline", and choose date and time in the popup dialog
-- **Remove deadline**: For tasks with existing deadlines, right-click on the task item and select "🗑️ Remove Deadline"
-- **View task details**: Right-click on a task item to view detailed information such as task status, creation time, and deadline
+#### 📝 Task Management
+
+- **Create Task**: Enter task content in bottom input, press Enter or click "+" button
+- **Complete Task**: Hover over task and click "✓" button on the right, task moves to completed group
+- **Uncomplete Task**: Click "↶" button in completed group to restore task
+- **Delete Task**: Double-click task item for quick deletion
+- **Edit Task**: Right-click task → select "✏️ Edit Task" to modify content
+- **Drag to Reorder**: Hover over task and drag "☰" button to adjust order
+
+#### 📁 Group Management
+
+- **Create Group**: Click "📁" button at bottom, enter group name
+- **Rename Group**: Right-click group header → select "✏️ Rename Group"
+- **Delete Group**: Right-click group header → select "🗑️ Delete Group" (tasks move to ungrouped)
+- **Collapse/Expand**: Click "▼" icon on the left of group header
+- **Adjust Order**: Hover over group header, click "▲▼" buttons to move group up/down
+
+#### 🔄 Task Dragging
+
+- **Drag Within Group**: Hold task's "☰" button and drag up/down within the same group
+- **Drag Between Groups**:
+  - Drag to target group's task list to insert at specific position
+  - Drag to target group's header to add task at the end
+- **Drag Indicator**: Target area shows blue highlight during dragging
+
+#### ⏰ Time Management
+
+- **Set Deadline**: Right-click task → "📅 Set Deadline" → select date and time
+- **Remove Deadline**: Right-click task → "🗑️ Remove Deadline"
+- **Time Indicators**:
+  - 🟢 **Green**: Sufficient time until deadline (hover to see deadline date)
+  - 🔴 **Red**: Past deadline (hover to see overdue status)
+  - 🟡 **Yellow**: Task created multiple days ago (hover to see days created)
+
+#### ✅ Completed Tasks
+
+- **View Completed**: Click "Completed" group at bottom to expand
+- **Clear Completed**: Click trash icon on the right of completed group to clear all
+- **Restore Task**: Click "↶" button on completed task to restore to active state
+
+#### ⚙️ Other Features
+
+- **Task Statistics**: Top bar shows "Completed/Total" task count
+- **Context Menu**: Right-click tasks or groups for quick access to more actions
+- **Settings Panel**: Click "⚙️" button in top-right corner to open settings
 
 ### Prerequisites
 

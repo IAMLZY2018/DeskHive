@@ -1,16 +1,15 @@
 <template>
   <div 
     v-if="show" 
+    ref="menuRef"
     class="group-context-menu"
-    :style="{ top: position.y + 'px', left: position.x + 'px' }"
+    :style="{ top: adjustedPosition.y + 'px', left: adjustedPosition.x + 'px' }"
     @click.stop
   >
     <div class="menu-item" @click="handleRename">
-      <span class="menu-icon">✏️</span>
       <span>重命名</span>
     </div>
     <div class="menu-item" @click="handleToggleCollapse">
-      <span class="menu-icon">{{ group?.collapsed ? '📂' : '📁' }}</span>
       <span>{{ group?.collapsed ? '展开' : '折叠' }}</span>
     </div>
     <div 
@@ -18,14 +17,13 @@
       class="menu-item danger" 
       @click="handleDelete"
     >
-      <span class="menu-icon">🗑️</span>
       <span>删除分组</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch, nextTick } from 'vue';
 import type { TodoGroup } from '../types';
 
 interface Props {
@@ -42,6 +40,9 @@ const emit = defineEmits<{
   'delete': [];
 }>();
 
+const menuRef = ref<HTMLElement | null>(null);
+const adjustedPosition = ref({ x: 0, y: 0 });
+
 const isDefaultGroup = computed(() => props.group?.id === 'default');
 
 function handleRename() {
@@ -55,6 +56,45 @@ function handleToggleCollapse() {
 function handleDelete() {
   emit('delete');
 }
+
+// 调整菜单位置以防止溢出屏幕
+function adjustMenuPosition() {
+  if (!menuRef.value) return;
+
+  const menu = menuRef.value;
+  const rect = menu.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  let newX = props.position.x;
+  let newY = props.position.y;
+
+  // 检查右侧是否超出视口
+  if (newX + rect.width > viewportWidth) {
+    newX = viewportWidth - rect.width - 10;
+  }
+
+  // 检查底部是否超出视口
+  if (newY + rect.height > viewportHeight) {
+    newY = viewportHeight - rect.height - 10;
+  }
+
+  // 确保不会小于0
+  newX = Math.max(10, newX);
+  newY = Math.max(10, newY);
+
+  adjustedPosition.value = { x: newX, y: newY };
+}
+
+// 监听显示状态和位置变化
+watch(() => [props.show, props.position.x, props.position.y], () => {
+  if (props.show) {
+    adjustedPosition.value = { ...props.position };
+    nextTick(() => {
+      adjustMenuPosition();
+    });
+  }
+}, { immediate: true });
 </script>
 
 <style scoped>
@@ -62,23 +102,22 @@ function handleDelete() {
   position: fixed;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(229, 231, 235, 0.3);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  border-radius: clamp(6px, 1.2vw, 8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(10px);
   z-index: 1000;
-  min-width: 160px;
-  padding: 4px;
+  min-width: clamp(100px, 20vw, 120px);
+  padding: clamp(2px, 0.5vh, 3px);
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  padding: clamp(4px, 1vh, 6px) clamp(8px, 2vw, 10px);
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: clamp(4px, 0.8vw, 5px);
   transition: all 0.2s ease;
-  font-size: 0.85rem;
+  font-size: clamp(0.7rem, 1.8vw, 0.8rem);
   color: #333;
 }
 
@@ -94,9 +133,7 @@ function handleDelete() {
   background: rgba(244, 67, 54, 0.1);
 }
 
-.menu-icon {
-  font-size: 1rem;
-}
+
 
 /* 夜间主题 */
 body.dark-theme .group-context-menu {

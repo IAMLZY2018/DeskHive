@@ -80,55 +80,56 @@ function handleCancel() {
 
 .dialog {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  padding: 20px;
-  min-width: 300px;
-  max-width: 400px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  border-radius: clamp(8px, 1.5vw, 10px);
+  padding: clamp(14px, 3vh, 16px) clamp(16px, 3.5vw, 18px);
+  min-width: clamp(220px, 45vw, 260px);
+  max-width: clamp(280px, 60vw, 320px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(229, 231, 235, 0.3);
 }
 
 .dialog-title {
-  font-size: 1.1rem;
+  font-size: clamp(0.9rem, 2.2vw, 1rem);
   font-weight: 600;
   color: #333;
-  margin-bottom: 16px;
+  margin-bottom: clamp(10px, 2vh, 12px);
 }
 
 .dialog-input {
   width: 100%;
-  padding: 10px 12px;
+  padding: clamp(7px, 1.5vh, 8px) clamp(10px, 2vw, 12px);
   border: 1px solid rgba(229, 231, 235, 0.3);
-  border-radius: 8px;
+  border-radius: clamp(6px, 1.2vw, 7px);
   outline: none;
   background: rgba(255, 255, 255, 0.8);
   color: #333;
-  font-size: 0.9rem;
+  font-size: clamp(0.75rem, 1.8vw, 0.85rem);
   transition: all 0.3s ease;
-  margin-bottom: 16px;
+  margin-bottom: clamp(10px, 2vh, 12px);
 }
 
 .dialog-input:focus {
   border-color: #007aff;
-  box-shadow: 0 0 8px rgba(0, 122, 255, 0.3);
+  box-shadow: 0 0 6px rgba(0, 122, 255, 0.3);
   background: rgba(255, 255, 255, 0.95);
 }
 
 .dialog-actions {
   display: flex;
-  gap: 10px;
+  gap: clamp(6px, 1.2vw, 8px);
   justify-content: flex-end;
 }
 
 .dialog-btn {
-  padding: 8px 16px;
+  padding: clamp(6px, 1.2vh, 7px) clamp(12px, 2.5vw, 14px);
   border: none;
-  border-radius: 6px;
+  border-radius: clamp(5px, 1vw, 6px);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: clamp(0.7rem, 1.8vw, 0.8rem);
   font-weight: 500;
   transition: all 0.2s ease;
+  min-width: clamp(50px, 12vw, 60px);
 }
 
 .dialog-btn.cancel {
@@ -138,6 +139,7 @@ function handleCancel() {
 
 .dialog-btn.cancel:hover {
   background: rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
 }
 
 .dialog-btn.confirm {
@@ -147,12 +149,15 @@ function handleCancel() {
 
 .dialog-btn.confirm:hover {
   background: #0051d5;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
 }
 
 /* 夜间主题 */
 body.dark-theme .dialog {
   background: rgba(37, 38, 39, 0.95);
   border-color: rgba(231, 233, 237, 0.3);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
 }
 
 body.dark-theme .dialog-title {
@@ -165,6 +170,10 @@ body.dark-theme .dialog-input {
   border-color: rgba(231, 233, 237, 0.2);
 }
 
+body.dark-theme .dialog-input:focus {
+  box-shadow: 0 0 6px rgba(0, 122, 255, 0.4);
+}
+
 body.dark-theme .dialog-btn.cancel {
   background: rgba(255, 255, 255, 0.05);
   color: #aaa;
@@ -172,5 +181,10 @@ body.dark-theme .dialog-btn.cancel {
 
 body.dark-theme .dialog-btn.cancel:hover {
   background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+body.dark-theme .dialog-btn.confirm:hover {
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.4);
 }
 </style>
