@@ -64,9 +64,9 @@ const props = defineProps<Props>();
 const emit = defineEmits<{
   'toggleCollapse': [];
   'showMenu': [event: MouseEvent];
-  'toggleTodo': [index: number];
-  'deleteTodo': [index: number];
-  'todoContextmenu': [event: MouseEvent, todo: Todo];
+  'toggle-todo': [index: number];
+  'delete-todo': [index: number];
+  'todo-contextmenu': [event: MouseEvent, todo: Todo];
   'reorder': [newOrder: Todo[]];
   'drag-start': [todo: Todo];
   'drag-end': [];
@@ -98,7 +98,7 @@ function moveDown() {
   emit('move-down');
 }
 
-function handleDragEnter(event: DragEvent) {
+function handleDragEnter(_event: DragEvent) {
   isDragOver.value = true;
 }
 
@@ -118,7 +118,7 @@ function handleDragLeave(event: DragEvent) {
   }
 }
 
-function handleDrop(event: DragEvent) {
+function handleDrop(_event: DragEvent) {
   isDragOver.value = false;
   console.log('Drop on group header:', props.group.name);
   emit('drop-on-header');
@@ -257,6 +257,7 @@ function handleDrop(event: DragEvent) {
   overflow: visible;
   animation: slideDown 0.3s ease;
   position: relative;
+  min-height: 0;
 }
 
 @keyframes slideDown {
@@ -311,25 +312,18 @@ body.dark-theme .group-menu-btn:hover {
   color: #e7e9ed;
 }
 
-.group-content {
-  padding: clamp(8px, 2vh, 12px) clamp(4px, 1vw, 8px);
-  width: 100%;
-  overflow: visible;
-}
-
 .empty-group-hint {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   text-align: center;
-  padding: clamp(8px, 2vh, 12px) clamp(8px, 2vw, 12px);
+  padding: clamp(12px, 2.5vh, 16px) clamp(8px, 2vw, 12px);
   color: #bbb;
   font-size: clamp(0.65rem, 1.6vw, 0.75rem);
   pointer-events: none;
   user-select: none;
   white-space: nowrap;
-  z-index: 0;
+  min-height: clamp(40px, 8vh, 50px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 body.dark-theme .empty-group-hint {

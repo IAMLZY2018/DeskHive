@@ -41,15 +41,15 @@
         <!-- 其他分组 -->
         <TransitionGroup name="group-list" tag="div" class="active-groups">
           <TodoGroupComponent
-            v-for="(group, index) in sortedGroupsWithoutDefault"
+            v-for="group in sortedGroupsWithoutDefault"
             :key="group.id"
             :group="group"
             :todos="getGroupTodos(group.id, false)"
             @toggleCollapse="toggleGroupCollapse(group.id)"
             @showMenu="(event) => showGroupContextMenu(event, group)"
-            @toggleTodo="(index) => toggleTodo(group.id, index)"
-            @deleteTodo="(index) => deleteTodo(group.id, index)"
-            @todoContextmenu="showTodoContextMenu"
+            @toggle-todo="(index: number) => toggleTodo(group.id, index)"
+            @delete-todo="(index: number) => deleteTodo(group.id, index)"
+            @todo-contextmenu="showTodoContextMenu"
             @reorder="(newOrder) => handleTodoReorder(group.id, newOrder)"
             @drag-start="(todo) => handleDragStart(todo)"
             @drag-end="handleDragEnd"
@@ -231,7 +231,11 @@ const completedTasksCount = computed(() => todos.value.filter(t => t.completed).
 
 const showEmptyState = computed(() => todos.value.length === 0);
 const showAllCompletedState = computed(() => {
-  return todos.value.length > 0 && todos.value.every(t => t.completed);
+  // 只有当所有任务都完成，且所有分组（除了default）都被删除时才显示
+  const hasActiveTodos = todos.value.some(t => !t.completed);
+  const hasNonDefaultGroups = sortedGroupsWithoutDefault.value.length > 0;
+  
+  return todos.value.length > 0 && !hasActiveTodos && !hasNonDefaultGroups;
 });
 
 // 获取分组的任务
@@ -262,10 +266,7 @@ function initializeDefaultGroup() {
   }
 }
 
-// 选择分组（已移除选中状态，保留函数以避免错误）
-function selectGroup(groupId: string) {
-  // 不再需要选中状态
-}
+// 选择分组函数已移除，不再需要
 
 // 切换分组折叠状态
 function toggleGroupCollapse(groupId: string) {
@@ -283,6 +284,24 @@ function toggleCompletedSection() {
 
 // 添加任务
 function addTask(text: string) {
+  // 检查是否是创建分组的命令（以 / 开头）
+  if (text.startsWith('/')) {
+    const groupName = text.slice(1).trim();
+    if (groupName) {
+      // 直接创建分组，不弹窗
+      const maxOrder = Math.max(0, ...groups.value.map(g => g.order));
+      groups.value.push({
+        id: generateUniqueId(),
+        name: groupName,
+        order: maxOrder + 1,
+        collapsed: false
+      });
+      saveGroupData();
+      showToastMessage('分组已创建', 'success');
+    }
+    return;
+  }
+  
   const now = Math.floor(Date.now() / 1000);
   // 新任务始终添加到未分组（default）
   const maxOrder = Math.max(0, ...todos.value.filter(t => t.groupId === 'default').map(t => t.order));
@@ -747,7 +766,7 @@ function handleTodoChange(groupId: string, event: any) {
   // 当任务被添加到这个分组时
   if (event.added) {
     const todo = event.added.element;
-    const newIndex = event.added.newIndex;
+    // const newIndex = event.added.newIndex; // 暂时不需要使用
     const todoIndex = todos.value.findIndex(t => t.id === todo.id);
     
     if (todoIndex !== -1) {
@@ -851,14 +870,14 @@ async function loadTodoData() {
       todos: { id: string; text: string; completed: boolean; created_at: number; deadline?: number; order: number; group_id: string }[]
     };
     
-    todos.value = data.todos.map(todo => ({
+    todos.value = data.todos.map((todo, index) => ({
       id: todo.id,
       text: todo.text,
       completed: todo.completed,
       createdAt: todo.created_at,
       deadline: todo.deadline,
-      order: todo.order,
-      groupId: todo.group_id
+      order: todo.order ?? index, // 如果没有order，使用索引
+      groupId: todo.group_id || 'default' // 如果没有groupId，使用default
     }));
     
     console.log('任务数据加载成功');

@@ -38,7 +38,7 @@
       </button>
     </div>
     
-    <!-- 时间指示器 - 放到最后 -->
+    <!-- 时间指示器 - 放到最右侧 -->
     <Tooltip 
       v-if="props.todo.deadline && !props.todo.completed"
       :text="getCountdownTooltip()"
@@ -144,13 +144,13 @@ function showContextMenu(event: MouseEvent) {
   emit('contextmenu', event, props.todo);
 }
 
-function formatCreatedDate(timestamp: number): string {
-  const date = new Date(timestamp * 1000);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+// function formatCreatedDate(timestamp: number): string {
+//   const date = new Date(timestamp * 1000);
+//   const year = date.getFullYear();
+//   const month = String(date.getMonth() + 1).padStart(2, '0');
+//   const day = String(date.getDate()).padStart(2, '0');
+//   return `${year}-${month}-${day}`;
+// }
 
 function formatDeadlineDate(timestamp: number): string {
   const date = new Date(timestamp * 1000);

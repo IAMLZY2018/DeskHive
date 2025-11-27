@@ -102,38 +102,38 @@ function onConfirm() {
 /* 对话框主体 */
 .dialog-box {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+  border-radius: clamp(8px, 1.5vw, 10px);
+  padding: clamp(12px, 2.5vh, 16px) clamp(14px, 3vw, 18px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(229, 231, 235, 0.2);
-  min-width: 300px;
-  max-width: 400px;
+  min-width: clamp(220px, 45vw, 260px);
+  max-width: clamp(280px, 55vw, 320px);
 }
 
 /* 对话框标题 */
 .dialog-title {
-  font-size: 1.1rem;
+  font-size: clamp(0.85rem, 2.2vw, 0.95rem);
   font-weight: 600;
   color: #333;
-  margin-bottom: 20px;
+  margin-bottom: clamp(12px, 2.5vh, 14px);
   text-align: center;
 }
 
 /* 对话框内容 */
 .dialog-content {
-  margin-bottom: 24px;
+  margin-bottom: clamp(14px, 2.8vh, 16px);
 }
 
 /* 输入组 */
 .input-group {
-  margin-bottom: 16px;
+  margin-bottom: clamp(10px, 2vh, 12px);
 }
 
 .input-group label {
   display: block;
-  margin-bottom: 6px;
-  font-size: 0.9rem;
+  margin-bottom: clamp(4px, 0.8vh, 5px);
+  font-size: clamp(0.75rem, 1.8vw, 0.8rem);
   font-weight: 500;
   color: #555;
 }
@@ -141,36 +141,36 @@ function onConfirm() {
 /* 对话框输入框 */
 .dialog-input {
   width: 100%;
-  padding: 10px 12px;
+  padding: clamp(6px, 1.2vh, 8px) clamp(8px, 1.8vw, 10px);
   border: 1px solid rgba(229, 231, 235, 0.3);
-  border-radius: 8px;
+  border-radius: clamp(6px, 1.2vw, 7px);
   outline: none;
   background: rgba(255, 255, 255, 0.9);
   color: #333;
-  font-size: 0.9rem;
+  font-size: clamp(0.75rem, 1.8vw, 0.8rem);
   transition: all 0.3s ease;
   box-sizing: border-box;
 }
 
 .dialog-input:focus {
   border-color: #007aff;
-  box-shadow: 0 0 8px rgba(0, 122, 255, 0.2);
+  box-shadow: 0 0 6px rgba(0, 122, 255, 0.2);
   background: rgba(255, 255, 255, 1);
 }
 
 /* 对话框按钮组 */
 .dialog-buttons {
   display: flex;
-  gap: 12px;
+  gap: clamp(8px, 1.5vw, 10px);
   justify-content: flex-end;
 }
 
 /* 对话框按钮 */
 .dialog-btn {
-  padding: 10px 20px;
+  padding: clamp(6px, 1.2vh, 8px) clamp(12px, 2.5vw, 16px);
   border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  border-radius: clamp(6px, 1.2vw, 7px);
+  font-size: clamp(0.75rem, 1.8vw, 0.8rem);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;

@@ -8,6 +8,8 @@ export default defineConfig({
   plugins: [
     vue()
   ],
+  // 使用相对路径，确保在 Tauri 中正常工作
+  base: './',
   build: {
     rollupOptions: {
       input: {

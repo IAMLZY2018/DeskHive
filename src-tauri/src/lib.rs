@@ -11,7 +11,6 @@ use std::ffi::OsStr;
 use std::os::windows::ffi::OsStrExt;
 
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::time::Duration;
 use tauri::{Manager, Emitter};
 
 // 模块声明
@@ -56,6 +55,15 @@ async fn is_dev_mode() -> Result<bool, String> {
 // Tauri 命令：退出应用
 #[tauri::command]
 async fn quit_app(app: tauri::AppHandle) -> Result<(), String> {
+    // 关闭所有窗口
+    if let Some(main_window) = app.get_webview_window("main") {
+        let _ = main_window.close();
+    }
+    if let Some(settings_window) = app.get_webview_window("settings") {
+        let _ = settings_window.close();
+    }
+    
+    // 退出应用
     app.exit(0);
     Ok(())
 }
@@ -245,13 +253,10 @@ pub fn run() {
                 #[cfg(target_os = "windows")]
                 {
                     let win_handle = window.clone();
-
-                    // 创建拖动防抖器
-                    let drag_debouncer = utils::drag_debounce::DragDebouncer::new();
                     
                     // 监听窗口事件
                     let app_handle_for_events = app.handle().clone();
-                    let debouncer_for_events = drag_debouncer.clone();
+                    
                     window.on_window_event(move |event| {
                         match event {
                             // 检测窗口可见性变化
@@ -272,10 +277,15 @@ pub fn run() {
                                     });
                                 }
                             }
-                            // 检测窗口移动事件 - 使用防抖机制
+                            // 检测窗口移动事件 - 简化处理，只保存位置
                             tauri::WindowEvent::Moved(position) => {
-                                // 记录拖动事件，但不立即处理
-                                debouncer_for_events.on_drag_move(position.x, position.y);
+                                // 异步保存位置，不阻塞事件循环
+                                let app_handle = app_handle_for_events.clone();
+                                let x = position.x;
+                                let y = position.y;
+                                tauri::async_runtime::spawn(async move {
+                                    let _ = save_window_position(app_handle, x, y).await;
+                                });
                             }
                             // 检测窗口关闭请求事件 - 最小化到托盘而不是退出
                             tauri::WindowEvent::CloseRequested { api, .. } => {
@@ -298,13 +308,11 @@ pub fn run() {
                         }
                     });
 
-                    // 定时器：处理 Win+D 恢复和拖动防抖
+                    // 定时器：只处理 Win+D 恢复
                     let win_handle2 = window.clone();
-                    let app_handle_for_timer = app.handle().clone();
-                    let debouncer_for_timer = drag_debouncer.clone();
                     std::thread::spawn(move || {
                         loop {
-                            std::thread::sleep(std::time::Duration::from_millis(300)); // 更频繁检查防抖
+                            std::thread::sleep(std::time::Duration::from_millis(300));
 
                             // 检查窗口是否还存在
                             if win_handle2.is_visible().is_err() {
@@ -332,28 +340,6 @@ pub fn run() {
                                         WIN_D_PRESSED.store(false, Ordering::SeqCst);
                                     }
                                 }
-                            }
-
-                            // 检查是否需要处理拖动结束事件（500ms 防抖延迟）
-                            if let Some((x, y)) = debouncer_for_timer.should_process_drag_end(Duration::from_millis(500)) {
-                                println!("拖动结束，检查位置: ({}, {})", x, y);
-                                
-                                // 使用实际窗口尺寸验证并修正窗口位置
-                                let (fixed_x, fixed_y) = window::position::validate_position_with_actual_size(&win_handle2, x, y, true);
-                                
-                                // 如果位置需要修正，调整窗口位置
-                                if window::position::position_needs_correction(x, y, fixed_x, fixed_y) {
-                                    let _ = win_handle2.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
-                                        x: fixed_x,
-                                        y: fixed_y,
-                                    }));
-                                }
-                                
-                                // 保存最终位置
-                                let app_handle = app_handle_for_timer.clone();
-                                tauri::async_runtime::spawn(async move {
-                                    let _ = save_window_position(app_handle, fixed_x, fixed_y).await;
-                                });
                             }
                         }
                     });

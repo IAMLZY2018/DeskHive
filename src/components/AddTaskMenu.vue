@@ -51,18 +51,9 @@ function addTask() {
   const text = newTaskText.value.trim();
   if (!text) return;
   
-  // 如果以 / 开头，创建分组
-  if (text.startsWith('/')) {
-    const groupName = text.slice(1).trim();
-    if (groupName) {
-      emit('add-group', groupName);
-      newTaskText.value = '';
-    }
-  } else {
-    // 否则创建任务
-    emit('add-task', text);
-    newTaskText.value = '';
-  }
+  // 直接发送文本，让父组件处理是任务还是分组
+  emit('add-task', text);
+  newTaskText.value = '';
 }
 
 // 调整菜单位置以防止溢出屏幕

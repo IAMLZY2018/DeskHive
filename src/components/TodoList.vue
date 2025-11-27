@@ -33,9 +33,11 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import draggable from 'vuedraggable';
+import VueDraggable from 'vuedraggable';
 import TodoItem from './TodoItem.vue';
 import type { Todo } from '../types';
+
+const draggable = VueDraggable;
 
 interface Props {
   todos: Todo[];
@@ -83,7 +85,7 @@ function onDragStart(evt: any) {
   }
 }
 
-function onDragEnd(evt: any) {
+function onDragEnd(_evt: any) {
   // 拖拽结束，通知父组件
   emit('drag-end');
 }
@@ -101,7 +103,7 @@ function onChange(evt: any) {
 }
 
 .todo-list {
-  min-height: 60px;
+  min-height: 0;
   width: 100%;
   display: flex;
   flex-direction: column;
