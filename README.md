@@ -1,8 +1,8 @@
-# DeskHive 🐝
+# DeskHive 一个纯粹的桌面TODO记事本
 
 <div align="center">
 
-![DeskHive Logo](other/pic/deskhive.png)
+![image-20251127102445172](https://typeropic.oss-cn-beijing.aliyuncs.com/cp/image-20251127102445172.png)
 
 **一个轻量级、高效的桌面待办事项管理工具**
 
