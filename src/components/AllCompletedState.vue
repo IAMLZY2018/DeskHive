@@ -22,8 +22,8 @@
 .celebration-message {
   font-size: clamp(1.1rem, 3vw, 1.3rem);
   font-weight: 700;
-  color: #4CAF50;
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.2));
+  color: #6EE748;
+  background: linear-gradient(135deg, rgba(110, 231, 72, 0.1), rgba(110, 231, 72, 0.2));
   padding: clamp(16px, 3vh, 24px) clamp(20px, 4vw, 32px);
   border-radius: clamp(12px, 2.5vw, 16px);
   border: 2px solid rgba(76, 175, 80, 0.3);

@@ -37,6 +37,7 @@
         @toggle="(index) => emit('toggle-todo', index)"
         @delete="(index) => emit('delete-todo', index)"
         @contextmenu="(event, todo) => emit('todo-contextmenu', event, todo)"
+        @edit="(todo) => emit('edit-todo', todo)"
         @reorder="(newOrder) => emit('reorder', newOrder)"
         @drag-start="(todo) => emit('drag-start', todo)"
         @drag-end="emit('drag-end')"
@@ -67,6 +68,7 @@ const emit = defineEmits<{
   'toggle-todo': [index: number];
   'delete-todo': [index: number];
   'todo-contextmenu': [event: MouseEvent, todo: Todo];
+  'edit-todo': [todo: Todo];
   'reorder': [newOrder: Todo[]];
   'drag-start': [todo: Todo];
   'drag-end': [];

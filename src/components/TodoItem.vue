@@ -1,7 +1,7 @@
 <template>
   <div 
     :class="['todo-item', { completed: props.todo.completed }]"
-    @dblclick="deleteTodo"
+    @dblclick="editTodo"
     @contextmenu.prevent="showContextMenu"
   >
     <span 
@@ -10,37 +10,65 @@
     ></span>
     <span class="todo-text">{{ props.todo.text }}</span>
     
-    <!-- 右侧操作按钮区域 -->
+    <!-- 悬浮操作按钮区域 -->
     <div class="action-buttons">
-      <button 
+      <Tooltip 
         v-if="!props.todo.completed"
-        class="action-btn complete-btn" 
-        @click.stop="toggleTodo"
-        title="完成"
+        text="完成"
+        :delay="500"
       >
-        ✓
-      </button>
-      <button 
+        <button 
+          class="action-btn complete-btn" 
+          @click.stop="toggleTodo"
+        >
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </Tooltip>
+      <Tooltip 
         v-else
-        class="action-btn uncomplete-btn" 
-        @click.stop="toggleTodo"
-        title="取消完成"
+        text="撤销"
+        :delay="500"
       >
-        ↶
-      </button>
-      <button 
-        class="action-btn drag-btn drag-handle" 
-        @click.stop
-        @mousedown.stop
-        title="拖动排序"
+        <button 
+          class="action-btn uncomplete-btn" 
+          @click.stop="toggleTodo"
+        >
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 12C3 16.9706 7.02944 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C9.5 3 7.25 4.1 5.75 5.85" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M3 3V8H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </Tooltip>
+      <Tooltip 
+        text="拖动排序"
+        :delay="500"
       >
-        ☰
-      </button>
+        <button 
+          class="action-btn drag-btn drag-handle" 
+          @click.stop
+          @mousedown.stop
+        >
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 6H16M8 12H16M8 18H16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </Tooltip>
     </div>
     
     <!-- 时间指示器 - 放到最右侧 -->
     <Tooltip 
-      v-if="props.todo.deadline && !props.todo.completed"
+      v-if="props.todo.completed"
+      :text="getCompletedDaysTooltip()"
+      :delay="300"
+    >
+      <div class="completed-indicator">
+        耗时{{ calculateDaysCreated(props.todo.createdAt) }}天
+      </div>
+    </Tooltip>
+    <Tooltip 
+      v-else-if="props.todo.deadline"
       :text="getCountdownTooltip()"
       :delay="300"
     >
@@ -79,6 +107,7 @@ const emit = defineEmits<{
   toggle: [index: number];
   delete: [index: number];
   contextmenu: [event: MouseEvent, todo: Todo];
+  edit: [todo: Todo];
 }>();
 
 function calculateDaysCreated(timestamp: number): number {
@@ -140,6 +169,10 @@ function deleteTodo() {
   emit('delete', props.index);
 }
 
+function editTodo() {
+  emit('edit', props.todo);
+}
+
 function showContextMenu(event: MouseEvent) {
   emit('contextmenu', event, props.todo);
 }
@@ -163,6 +196,11 @@ function formatDeadlineDate(timestamp: number): string {
 function getDaysIndicatorTooltip(): string {
   const days = calculateDaysCreated(props.todo.createdAt);
   return `已创建 ${days} 天`;
+}
+
+function getCompletedDaysTooltip(): string {
+  const days = calculateDaysCreated(props.todo.createdAt);
+  return `从创建到完成耗时 ${days} 天`;
 }
 
 function getCountdownTooltip(): string {
@@ -208,48 +246,62 @@ function getCountdownTooltip(): string {
   border-color: rgba(229, 231, 235, 0.2);
 }
 
-/* 操作按钮区域 */
+/* 悬浮操作按钮区域 */
 .action-buttons {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
-  gap: clamp(4px, 1vw, 6px);
+  gap: 3px;
   opacity: 0;
-  transition: opacity 0.3s ease;
-  flex-shrink: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 10;
 }
 
 .todo-item:hover .action-buttons {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .action-btn {
-  width: clamp(20px, 4vw, 24px);
-  height: clamp(20px, 4vw, 24px);
+  width: 20px;
+  height: 20px;
   border: none;
   border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(0.65rem, 1.5vw, 0.75rem);
   cursor: pointer;
   transition: all 0.2s ease;
-  flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.95);
   color: #666;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+  padding: 0;
+}
+
+.action-btn svg {
+  width: 12px;
+  height: 12px;
 }
 
 .action-btn:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+}
+
+.action-btn:active {
+  transform: scale(0.95);
 }
 
 .complete-btn:hover {
-  background: #4CAF50;
+  background: #6EE748;
   color: white;
 }
 
 .complete-btn:active {
-  transform: scale(0.9);
   animation: complete-pulse 0.4s ease;
 }
 
@@ -258,17 +310,13 @@ function getCountdownTooltip(): string {
   color: white;
 }
 
-.uncomplete-btn:active {
-  transform: scale(0.9);
-}
-
 @keyframes complete-pulse {
   0% {
-    transform: scale(1);
+    transform: scale(0.95);
   }
   50% {
-    transform: scale(1.2);
-    box-shadow: 0 0 0 8px rgba(76, 175, 80, 0.2);
+    transform: scale(1.15);
+    box-shadow: 0 0 0 6px rgba(110, 231, 72, 0.2);
   }
   100% {
     transform: scale(1);
@@ -277,7 +325,6 @@ function getCountdownTooltip(): string {
 
 .drag-btn {
   cursor: grab;
-  font-size: clamp(0.8rem, 2vw, 1rem);
 }
 
 .drag-btn:hover {
@@ -331,6 +378,7 @@ function getCountdownTooltip(): string {
   font-weight: bold;
   color: #333;
   margin-left: auto;
+  margin-right: 4px;
   flex-shrink: 0;
   box-shadow: 0 2px 6px rgba(255, 224, 130, 0.4);
   border: 1px solid rgba(255, 224, 130, 0.6);
@@ -341,21 +389,22 @@ function getCountdownTooltip(): string {
   cursor: help;
 }
 
-.days-indicator:hover {
-  transform: scale(1.05);
-  box-shadow: 0 3px 10px rgba(255, 224, 130, 0.6);
+.todo-item:hover .days-indicator {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .countdown-indicator {
-  background: #4CAF50;
-  color: white;
+  background: #6EE748;
+  color: #000;
   border-radius: 12px;
   padding: clamp(2px, 0.5vh, 4px) clamp(6px, 1.2vw, 8px);
   font-size: clamp(0.6rem, 1.3vw, 0.7rem);
   font-weight: bold;
   margin-left: auto;
-  border: 1px solid rgba(76, 175, 80, 0.6);
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+  margin-right: 4px;
+  border: 1px solid rgba(110, 231, 72, 0.6);
+  box-shadow: 0 2px 8px rgba(110, 231, 72, 0.3);
   backdrop-filter: blur(3px);
   flex-shrink: 0;
   white-space: nowrap;
@@ -365,13 +414,14 @@ function getCountdownTooltip(): string {
   cursor: help;
 }
 
-.countdown-indicator:hover {
-  transform: scale(1.05);
-  box-shadow: 0 3px 12px rgba(76, 175, 80, 0.5);
+.todo-item:hover .countdown-indicator {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .countdown-indicator.overdue {
   background: #F44336;
+  color: white;
   border-color: rgba(244, 67, 54, 0.6);
   box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
 }
@@ -394,8 +444,65 @@ function getCountdownTooltip(): string {
   opacity: 0.8;
 }
 
+.completed-indicator {
+  background: #9E9E9E;
+  color: white;
+  border-radius: 12px;
+  padding: clamp(2px, 0.5vh, 4px) clamp(6px, 1.2vw, 8px);
+  font-size: clamp(0.6rem, 1.3vw, 0.7rem);
+  font-weight: bold;
+  margin-left: auto;
+  margin-right: 4px;
+  border: 1px solid rgba(158, 158, 158, 0.6);
+  box-shadow: 0 2px 8px rgba(158, 158, 158, 0.3);
+  backdrop-filter: blur(3px);
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-width: fit-content;
+  transition: all 0.3s ease;
+  user-select: none;
+  cursor: help;
+  opacity: 0.8;
+}
+
+.todo-item:hover .completed-indicator {
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* 夜间主题 */
 body.dark-theme .todo-item.completed {
   background: rgba(40, 40, 40, 0.8);
+}
+
+body.dark-theme .action-btn {
+  background: rgba(40, 40, 40, 0.95);
+  color: #aaa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-theme .action-btn:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-theme .complete-btn:hover {
+  background: #6EE748;
+  color: #000;
+}
+
+body.dark-theme .uncomplete-btn:hover {
+  background: #FF9800;
+  color: #fff;
+}
+
+body.dark-theme .drag-btn:hover {
+  background: #007aff;
+  color: #fff;
+}
+
+body.dark-theme .completed-indicator {
+  background: #666;
+  border-color: rgba(102, 102, 102, 0.6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 </style>

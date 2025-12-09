@@ -9,6 +9,8 @@ pub struct Todo {
     pub completed: bool,
     pub created_at: i64, // Unix时间戳（秒）
     #[serde(default)] // 为了兼容旧数据，设为默认值
+    pub completed_at: Option<i64>, // 完成时间，Unix时间戳（秒），可选
+    #[serde(default)] // 为了兼容旧数据，设为默认值
     pub deadline: Option<i64>, // 截止时间，Unix时间戳（秒），可选
     #[serde(default)] // 为了兼容旧数据，设为默认值
     pub order: i32, // 在分组内的排序

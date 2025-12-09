@@ -24,6 +24,7 @@
             @toggle="toggleTodo"
             @delete="deleteTodo"
             @contextmenu="showContextMenu"
+            @edit="(todo) => emit('edit', todo)"
           />
         </div>
       </template>
@@ -51,6 +52,7 @@ const emit = defineEmits<{
   toggle: [index: number];
   delete: [index: number];
   contextmenu: [event: MouseEvent, todo: Todo];
+  edit: [todo: Todo];
   reorder: [newOrder: Todo[]];
   'drag-start': [todo: Todo];
   'drag-end': [];

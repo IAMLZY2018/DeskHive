@@ -5,37 +5,67 @@
     class="context-menu" 
     :style="{ left: initialPosition.x + 'px', top: initialPosition.y + 'px' }"
   >
-    <div class="context-menu-item">
-      <div class="context-menu-label">状态：</div>
-      <div class="context-menu-value status-value">
+    <!-- 状态信息 -->
+    <div class="menu-info">
+      <div class="info-row">
         <span :class="['status-dot', props.todo?.completed ? 'completed' : 'pending']"></span>
-        {{ props.todo?.completed ? '已完成' : '待完成' }}
+        <span class="info-text">{{ props.todo?.completed ? '已完成' : '待完成' }}</span>
+        <span v-if="!props.todo?.completed && getTimeIndicator()" :class="['time-indicator', getTimeIndicatorClass()]">
+          {{ getTimeIndicator() }}
+        </span>
+      </div>
+      <div v-if="props.todo?.completed && calculateDaysCreated() >= 1" class="info-row">
+        <span class="info-label">耗时</span>
+        <span class="info-text">{{ calculateDaysCreated() }}天</span>
+      </div>
+      <div v-if="!props.todo?.completed" class="info-row">
+        <span class="info-label">创建</span>
+        <span class="info-text">{{ props.todo ? formatDateTime(props.todo.createdAt) : '' }}</span>
+      </div>
+      <div v-if="props.todo?.completed && props.todo?.completedAt" class="info-row">
+        <span class="info-label">完成</span>
+        <span class="info-text">{{ calculateDaysFromCompleted() }}天前</span>
+      </div>
+      <div v-if="props.todo?.deadline && !props.todo?.completed" class="info-row">
+        <span class="info-label">截止</span>
+        <span class="info-text">{{ formatDateTime(props.todo.deadline) }}</span>
       </div>
     </div>
-    <div class="context-menu-item">
-      <div class="context-menu-label">创建时间：</div>
-      <div class="context-menu-value">
-        {{ props.todo ? formatDateTime(props.todo.createdAt) : '' }}
-      </div>
-    </div>
-    <div v-if="props.todo?.deadline" class="context-menu-item">
-      <div class="context-menu-label">截止时间：</div>
-      <div class="context-menu-value">
-        {{ formatDateTime(props.todo.deadline) }}
-      </div>
-    </div>
-    <div class="context-menu-divider"></div>
-    <div class="context-menu-button" @click="onEditTodo">
-      ✏️ 编辑任务
-    </div>
-    <div class="context-menu-button" @click="onSetDeadline">
-      📅 设置截止时间
-    </div>
-    <div v-if="props.todo?.deadline" class="context-menu-button" @click="onRemoveDeadline">
-      🗑️ 移除截止时间
-    </div>
-    <div class="context-menu-button" @click="onDeleteTodo">
-      🗑️ 删除任务
+    
+    <div class="menu-divider"></div>
+    
+    <!-- 操作按钮 -->
+    <div class="menu-actions">
+      <button class="menu-btn" @click="onEditTodo">
+        <svg class="menu-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>编辑任务</span>
+      </button>
+      
+      <button class="menu-btn" @click="onSetDeadline">
+        <svg class="menu-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M16 2V6M8 2V6M3 10H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>{{ props.todo?.deadline ? '修改截止时间' : '设置截止时间' }}</span>
+      </button>
+      
+      <button v-if="props.todo?.deadline" class="menu-btn" @click="onRemoveDeadline">
+        <svg class="menu-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>移除截止时间</span>
+      </button>
+      
+      <button class="menu-btn delete-btn" @click="onDeleteTodo">
+        <svg class="menu-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>删除任务</span>
+      </button>
     </div>
   </div>
 </template>
@@ -73,6 +103,87 @@ function formatDateTime(timestamp: number): string {
     second: '2-digit',
     hour12: false
   });
+}
+
+// 计算已创建天数
+function calculateDaysCreated(): number {
+  if (!props.todo) return 0;
+  const now = Date.now();
+  const createdTime = props.todo.createdAt * 1000;
+  const diffMs = now - createdTime;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  return diffDays;
+}
+
+// 计算完成后的天数
+function calculateDaysFromCompleted(): number {
+  if (!props.todo?.completedAt) return 0;
+  const now = Date.now();
+  const completedTime = props.todo.completedAt * 1000;
+  const diffMs = now - completedTime;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  return diffDays;
+}
+
+// 计算距离截止时间
+function calculateDeadlineDiff(): number {
+  if (!props.todo?.deadline) return 0;
+  const now = Math.floor(Date.now() / 1000);
+  const diff = props.todo.deadline - now;
+  return Math.floor(diff / (60 * 60 * 24)); // 转换为天数
+}
+
+// 获取时间指示器文本
+function getTimeIndicator(): string {
+  if (!props.todo) return '';
+  
+  // 如果有截止时间
+  if (props.todo.deadline) {
+    const daysDiff = calculateDeadlineDiff();
+    
+    if (daysDiff < 0) {
+      // 已逾期
+      const overdueDays = Math.abs(daysDiff);
+      return `逾期${overdueDays}天`;
+    } else if (daysDiff === 0) {
+      return '今天到期';
+    } else if (daysDiff === 1) {
+      return '明天到期';
+    } else if (daysDiff <= 3) {
+      return `${daysDiff}天后到期`;
+    } else {
+      return `距离到期${daysDiff}天`;
+    }
+  }
+  
+  // 没有截止时间，显示已创建天数
+  const daysCreated = calculateDaysCreated();
+  if (daysCreated >= 1) {
+    return `已创建${daysCreated}天`;
+  }
+  
+  return '';
+}
+
+// 获取时间指示器样式类
+function getTimeIndicatorClass(): string {
+  if (!props.todo) return '';
+  
+  if (props.todo.deadline) {
+    const daysDiff = calculateDeadlineDiff();
+    
+    if (daysDiff < 0) {
+      return 'overdue'; // 逾期
+    } else if (daysDiff <= 1) {
+      return 'urgent'; // 紧急（今天或明天）
+    } else if (daysDiff <= 3) {
+      return 'warning'; // 警告（3天内）
+    } else {
+      return 'normal'; // 正常
+    }
+  }
+  
+  return 'created'; // 已创建
 }
 
 // 编辑任务
@@ -154,109 +265,256 @@ watch(() => props.position, (newPos) => {
 </script>
 
 <style scoped>
-/* 右键菜单样式 */
 .context-menu {
   position: fixed;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 10px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(20px);
   z-index: 1000;
-  min-width: 200px;
-  padding: 6px;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  min-width: 180px;
+  padding: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   box-sizing: border-box;
 }
 
-.context-menu-item {
-  padding: 6px 10px;
-  font-size: 0.8rem;
-  color: #333;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
-  margin: 1px 0;
+/* 信息区域 */
+.menu-info {
+  padding: 4px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
-.context-menu-item:hover {
-  background: rgba(0, 0, 0, 0.03);
-}
-
-.context-menu-label {
-  font-weight: 500;
-  color: #666;
-  margin-bottom: 2px;
-  font-size: 0.75rem;
-}
-
-.context-menu-value {
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
-  background: rgba(0, 0, 0, 0.05);
-  padding: 4px 8px;
-  border-radius: 5px;
-  font-size: 0.75rem;
-  color: #444;
-  font-weight: 500;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.status-value {
+.info-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 0.7rem;
+  color: #666;
+  line-height: 1.3;
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  display: inline-block;
   flex-shrink: 0;
 }
 
 .status-dot.completed {
-  background-color: #10b981; /* emerald-500 */
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+  background: #10b981;
+  box-shadow: 0 0 0 1.5px rgba(16, 185, 129, 0.2);
 }
 
 .status-dot.pending {
-  background-color: #ef4444; /* red-500 */
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+  background: #f59e0b;
+  box-shadow: 0 0 0 1.5px rgba(245, 158, 11, 0.2);
 }
 
-/* 右键菜单分割线 */
-.context-menu-divider {
-  height: 1px;
-  background: rgba(0, 0, 0, 0.08);
-  margin: 4px 0;
+.info-label {
+  font-weight: 600;
+  color: #888;
+  min-width: 28px;
+  font-size: 0.68rem;
 }
 
-/* 右键菜单按钮 */
-.context-menu-button {
-  padding: 6px 10px;
-  font-size: 0.8rem;
+.info-text {
   color: #333;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  user-select: none;
   font-weight: 500;
+  font-size: 0.68rem;
+}
+
+.time-indicator {
+  margin-left: auto;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.time-indicator.overdue {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.time-indicator.urgent {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
+.time-indicator.warning {
+  background: rgba(251, 191, 36, 0.1);
+  color: #ca8a04;
+}
+
+.time-indicator.normal {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.time-indicator.created {
+  background: rgba(148, 163, 184, 0.1);
+  color: #64748b;
+}
+
+/* 分割线 */
+.menu-divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  margin: 3px 0;
+}
+
+/* 操作按钮区域 */
+.menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.menu-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 1px 0;
-  border: 1px solid transparent;
+  gap: 8px;
+  padding: 6px 8px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  width: 100%;
+  font-family: inherit;
+  line-height: 1.2;
 }
 
-.context-menu-button:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: #111;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+.menu-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: #000;
 }
 
-.context-menu-button:active {
+.menu-btn:active {
   background: rgba(0, 0, 0, 0.08);
-  transform: translateY(1px);
+  transform: scale(0.98);
+}
+
+.menu-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: #666;
+  transition: color 0.15s ease;
+}
+
+.menu-btn:hover .menu-icon {
+  color: #333;
+}
+
+/* 删除按钮特殊样式 */
+.delete-btn {
+  color: #ef4444;
+}
+
+.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+}
+
+.delete-btn .menu-icon {
+  color: #ef4444;
+}
+
+.delete-btn:hover .menu-icon {
+  color: #dc2626;
+}
+
+/* 夜间主题 */
+body.dark-theme .context-menu {
+  background: rgba(30, 30, 30, 0.98);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .info-row {
+  color: #aaa;
+}
+
+body.dark-theme .info-label {
+  color: #888;
+}
+
+body.dark-theme .info-text {
+  color: #e0e0e0;
+}
+
+body.dark-theme .menu-divider {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-theme .menu-btn {
+  color: #e0e0e0;
+}
+
+body.dark-theme .menu-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+body.dark-theme .menu-btn:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .menu-icon {
+  color: #aaa;
+}
+
+body.dark-theme .menu-btn:hover .menu-icon {
+  color: #e0e0e0;
+}
+
+body.dark-theme .delete-btn {
+  color: #f87171;
+}
+
+body.dark-theme .delete-btn:hover {
+  background: rgba(248, 113, 113, 0.12);
+  color: #fca5a5;
+}
+
+body.dark-theme .delete-btn .menu-icon {
+  color: #f87171;
+}
+
+body.dark-theme .delete-btn:hover .menu-icon {
+  color: #fca5a5;
+}
+
+body.dark-theme .time-indicator.overdue {
+  background: rgba(248, 113, 113, 0.15);
+  color: #fca5a5;
+}
+
+body.dark-theme .time-indicator.urgent {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+body.dark-theme .time-indicator.warning {
+  background: rgba(253, 224, 71, 0.15);
+  color: #fde047;
+}
+
+body.dark-theme .time-indicator.normal {
+  background: rgba(52, 211, 153, 0.15);
+  color: #6ee7b7;
+}
+
+body.dark-theme .time-indicator.created {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
 }
 </style>

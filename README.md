@@ -1,12 +1,17 @@
 # DeskHive 一个纯粹的桌面TODO记事本
 
 <div align="center">
+<a href="https://www.feijimiao.cn/deskhive">
+  <img src="https://img.shields.io/badge/🌐_官网下载-6EE748?style=for-the-badge&labelColor=000000&logoColor=white" alt="官网下载" />
+</a>
 
-![image-20251127102445172](https://typeropic.oss-cn-beijing.aliyuncs.com/cp/image-20251127102445172.png)
+-----------------------------------------------------------------------
+
+![image-20251209075736214](https://typeropic.oss-cn-beijing.aliyuncs.com/cp/image-20251209075736214.png)
 
 **一个轻量级、高效的桌面待办事项管理工具**
 
-[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/yourusername/DeskHive)
+[![Version](https://img.shields.io/badge/version-0.3.1-blue.svg)](https://github.com/yourusername/DeskHive)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-orange.svg)](https://tauri.app/)
 [![Vue](https://img.shields.io/badge/Vue-3.5-brightgreen.svg)](https://vuejs.org/)

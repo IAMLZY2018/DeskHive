@@ -3,6 +3,7 @@ export interface Todo {
   text: string;
   completed: boolean;
   createdAt: number; // Unix时间戳（秒）
+  completedAt?: number; // 完成时间，Unix时间戳（秒），可选
   deadline?: number; // 截止时间，Unix时间戳（秒），可选
   order: number; // 在分组内的排序
   groupId: string; // 所属分组ID

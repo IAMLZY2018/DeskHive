@@ -2,7 +2,7 @@
   <div class="container">
     <header :data-tauri-drag-region="!isDragDisabled ? '' : null">
       <div class="header-title" :data-tauri-drag-region="!isDragDisabled ? '' : null">
-        <img src="/icons/app-icon.png" alt="DeskHive" class="app-icon">
+        <img src="/icons/app-icon.svg" alt="DeskHive" class="app-icon">
         DeskHive
       </div>
       <div class="header-right">
@@ -31,6 +31,7 @@
             @toggle="(index) => toggleTodo('default', index)"
             @delete="(index) => deleteTodo('default', index)"
             @contextmenu="showTodoContextMenu"
+            @edit="handleEditTodo"
             @reorder="(newOrder) => handleTodoReorder('default', newOrder)"
             @drag-start="(todo) => handleDragStart(todo)"
             @drag-end="handleDragEnd"
@@ -50,6 +51,7 @@
             @toggle-todo="(index: number) => toggleTodo(group.id, index)"
             @delete-todo="(index: number) => deleteTodo(group.id, index)"
             @todo-contextmenu="showTodoContextMenu"
+            @edit-todo="handleEditTodo"
             @reorder="(newOrder) => handleTodoReorder(group.id, newOrder)"
             @drag-start="(todo) => handleDragStart(todo)"
             @drag-end="handleDragEnd"
@@ -85,6 +87,7 @@
                 @toggle="(index) => toggleCompletedTodo(index)"
                 @delete="(index) => deleteCompletedTodo(index)"
                 @contextmenu="showTodoContextMenu"
+                @edit="handleEditTodo"
               />
             </div>
           </div>
@@ -326,6 +329,7 @@ function toggleTodo(groupId: string, index: number) {
   
   if (todoIndex !== -1) {
     todos.value[todoIndex].completed = true;
+    todos.value[todoIndex].completedAt = Math.floor(Date.now() / 1000); // 记录完成时间
     saveTodoData();
   }
 }
@@ -337,6 +341,7 @@ function toggleCompletedTodo(index: number) {
   
   if (todoIndex !== -1) {
     todos.value[todoIndex].completed = false;
+    todos.value[todoIndex].completedAt = undefined; // 清除完成时间
     saveTodoData();
   }
 }
@@ -512,6 +517,12 @@ function openEditDialog() {
   
   editDialogTodo.value = contextMenuTodo.value;
   hideContextMenu();
+  showEditDialog.value = true;
+}
+
+// 处理双击编辑任务
+function handleEditTodo(todo: Todo) {
+  editDialogTodo.value = todo;
   showEditDialog.value = true;
 }
 
@@ -830,6 +841,7 @@ async function saveTodoData() {
       text: todo.text,
       completed: todo.completed,
       created_at: todo.createdAt,
+      completed_at: todo.completedAt || null,
       deadline: todo.deadline || null,
       order: todo.order,
       group_id: todo.groupId
@@ -867,7 +879,7 @@ async function saveGroupData() {
 async function loadTodoData() {
   try {
     const data = await invoke('load_todo_data_with_groups') as {
-      todos: { id: string; text: string; completed: boolean; created_at: number; deadline?: number; order: number; group_id: string }[]
+      todos: { id: string; text: string; completed: boolean; created_at: number; completed_at?: number; deadline?: number; order: number; group_id: string }[]
     };
     
     todos.value = data.todos.map((todo, index) => ({
@@ -875,6 +887,7 @@ async function loadTodoData() {
       text: todo.text,
       completed: todo.completed,
       createdAt: todo.created_at,
+      completedAt: todo.completed_at,
       deadline: todo.deadline,
       order: todo.order ?? index, // 如果没有order，使用索引
       groupId: todo.group_id || 'default' // 如果没有groupId，使用default

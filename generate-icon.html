@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeskHive 图标生成器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .preview {
+            display: flex;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .preview-item {
+            text-align: center;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        .preview-item p {
+            margin: 0 0 10px 0;
+            font-weight: bold;
+            color: #666;
+        }
+        canvas {
+            border: 1px solid #ddd;
+            background: #fff;
+            display: block;
+            margin: 10px auto;
+        }
+        button {
+            background: #6EE748;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #5fc940;
+        }
+        .download-all {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+        .download-all button {
+            font-size: 16px;
+            padding: 12px 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 DeskHive 图标生成器</h1>
+        
+        <div class="preview">
+            <div class="preview-item">
+                <p>32x32</p>
+                <canvas id="canvas32" width="32" height="32"></canvas>
+                <button onclick="downloadCanvas('canvas32', '32x32.png')">下载</button>
+            </div>
+            <div class="preview-item">
+                <p>128x128</p>
+                <canvas id="canvas128" width="128" height="128"></canvas>
+                <button onclick="downloadCanvas('canvas128', '128x128.png')">下载</button>
+            </div>
+            <div class="preview-item">
+                <p>256x256 (128@2x)</p>
+                <canvas id="canvas256" width="256" height="256"></canvas>
+                <button onclick="downloadCanvas('canvas256', '128x128@2x.png')">下载</button>
+            </div>
+            <div class="preview-item">
+                <p>512x512 (app-icon)</p>
+                <canvas id="canvas512" width="512" height="512"></canvas>
+                <button onclick="downloadCanvas('canvas512', 'app-icon.png')">下载</button>
+            </div>
+        </div>
+
+        <div class="download-all">
+            <button onclick="downloadAll()">📦 下载所有图标</button>
+        </div>
+    </div>
+
+    <script>
+        const svgString = `<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="4" width="120" height="120" rx="32" fill="#000000"/>
+            <path d="M62 14.5L22 37.5V90.5L62 113.5V86.5L46 77.5V50.5L62 41.5V14.5Z" fill="white"/>
+            <path d="M66 14.5V41.5L82 50.5V77.5L66 86.5V113.5L106 90.5V37.5L66 14.5Z" fill="#6EE748"/>
+            <path d="M52 64L60 72L76 56" stroke="#6EE748" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`;
+
+        function renderSVGToCanvas(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            const img = new Image();
+            const blob = new Blob([svgString], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            
+            img.onload = function() {
+                ctx.clearRect(0, 0, size, size);
+                ctx.drawImage(img, 0, 0, size, size);
+                URL.revokeObjectURL(url);
+            };
+            
+            img.src = url;
+        }
+
+        function downloadCanvas(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        function downloadAll() {
+            const downloads = [
+                { canvasId: 'canvas32', filename: '32x32.png' },
+                { canvasId: 'canvas128', filename: '128x128.png' },
+                { canvasId: 'canvas256', filename: '128x128@2x.png' },
+                { canvasId: 'canvas512', filename: 'app-icon.png' }
+            ];
+
+            downloads.forEach((item, index) => {
+                setTimeout(() => {
+                    downloadCanvas(item.canvasId, item.filename);
+                }, index * 300); // 每个下载间隔300ms
+            });
+        }
+
+        // 页面加载时渲染所有尺寸
+        window.onload = function() {
+            renderSVGToCanvas('canvas32', 32);
+            renderSVGToCanvas('canvas128', 128);
+            renderSVGToCanvas('canvas256', 256);
+            renderSVGToCanvas('canvas512', 512);
+        };
+    </script>
+</body>
+</html>
