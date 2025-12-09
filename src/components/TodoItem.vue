@@ -99,6 +99,7 @@ interface Props {
   todo: Todo;
   index: number;
   isCompletedList?: boolean;
+  priorityColor?: string;
 }
 
 const props = defineProps<Props>();
@@ -179,8 +180,8 @@ function togglePriority() {
 }
 
 function getPriorityColor(): string {
-  // 优先级 1 = 橙色，0 = 灰色
-  return props.todo.priority === 1 ? '#FF9800' : '#d2dbd6';
+  // 优先级 1 = 自定义颜色，0 = 灰色
+  return props.todo.priority === 1 ? (props.priorityColor || '#FF9800') : '#d2dbd6';
 }
 
 function showContextMenu(event: MouseEvent) {
@@ -230,17 +231,17 @@ function getCountdownTooltip(): string {
 <style scoped>
 .todo-item {
   background: rgba(255, 255, 255, 0.9);
-  padding: clamp(4px, 1vh, 6px) clamp(8px, 2vw, 10px);
-  margin-bottom: clamp(3px, 0.8vh, 4px);
-  border-radius: clamp(6px, 1.2vw, 8px);
+  padding: 5px 9px;
+  margin-bottom: 3.5px;
+  border-radius: 7px;
   display: flex;
   align-items: center;
-  gap: clamp(6px, 1.5vw, 8px);
+  gap: 7px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid rgba(229, 231, 235, 0.15);
   backdrop-filter: blur(10px);
-  min-height: clamp(28px, 4vh, 32px);
+  min-height: 30px;
   cursor: default;
   position: relative;
   width: 100%;
@@ -360,7 +361,7 @@ function getCountdownTooltip(): string {
 }
 
 .todo-text {
-  font-size: clamp(0.75rem, 2vw, 0.85rem);
+  font-size: 0.8rem;
   word-break: break-word;
   flex: 1;
   line-height: 1.2;
@@ -383,8 +384,8 @@ function getCountdownTooltip(): string {
 .days-indicator {
   background: #FFE082;
   border-radius: 12px;
-  padding: clamp(2px, 0.5vh, 4px) clamp(6px, 1.2vw, 8px);
-  font-size: clamp(0.6rem, 1.5vw, 0.7rem);
+  padding: 3px 7px;
+  font-size: 0.65rem;
   font-weight: bold;
   color: #333;
   margin-left: auto;
@@ -408,8 +409,8 @@ function getCountdownTooltip(): string {
   background: #6EE748;
   color: #000;
   border-radius: 12px;
-  padding: clamp(2px, 0.5vh, 4px) clamp(6px, 1.2vw, 8px);
-  font-size: clamp(0.6rem, 1.3vw, 0.7rem);
+  padding: 3px 7px;
+  font-size: 0.65rem;
   font-weight: bold;
   margin-left: auto;
   margin-right: 4px;
@@ -458,8 +459,8 @@ function getCountdownTooltip(): string {
   background: #9E9E9E;
   color: white;
   border-radius: 12px;
-  padding: clamp(2px, 0.5vh, 4px) clamp(6px, 1.2vw, 8px);
-  font-size: clamp(0.6rem, 1.3vw, 0.7rem);
+  padding: 3px 7px;
+  font-size: 0.65rem;
   font-weight: bold;
   margin-left: auto;
   margin-right: 4px;

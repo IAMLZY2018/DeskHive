@@ -12,7 +12,9 @@
         @click="addTask"
         @contextmenu.prevent="showMenu"
       >
-        ➕
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </button>
     </div>
     
@@ -133,26 +135,26 @@ onUnmounted(() => {
 
 .add-task {
   display: flex;
-  padding: clamp(6px, 1.5vh, 10px);
+  padding: 8px;
   border-top: 1px solid rgba(229, 231, 235, 0.2);
   background: rgba(255, 255, 255, 0.6);
-  gap: clamp(6px, 1.2vw, 10px);
+  gap: 8px;
   backdrop-filter: blur(10px);
-  min-height: clamp(34px, 6vh, 42px);
+  min-height: 38px;
   align-items: center;
 }
 
 .add-task input {
   flex: 1;
-  padding: clamp(6px, 1.5vh, 8px) clamp(8px, 2vw, 10px);
+  padding: 7px 9px;
   border: 1px solid rgba(229, 231, 235, 0.3);
-  border-radius: clamp(8px, 1.5vw, 12px);
+  border-radius: 10px;
   outline: none;
   background: rgba(255, 255, 255, 0.8);
   color: #333;
-  font-size: clamp(0.75rem, 2vw, 0.85rem);
+  font-size: 0.8rem;
   transition: all 0.3s ease;
-  height: clamp(28px, 4.5vh, 32px);
+  height: 30px;
 }
 
 .add-task input:focus {
@@ -166,29 +168,38 @@ onUnmounted(() => {
 }
 
 .add-btn {
-  width: clamp(28px, 4.5vh, 32px);
-  height: clamp(28px, 4.5vh, 32px);
+  width: 30px;
+  height: 30px;
   background: rgba(255, 255, 255, 0.8);
   border: none;
   border-radius: 50%;
   cursor: pointer;
   color: #333;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
-  font-size: clamp(0.7rem, 2vw, 0.85rem);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(229, 231, 235, 0.2);
+  padding: 0;
+}
+
+.add-btn svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.3s ease;
 }
 
 .add-btn:hover {
   background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.add-btn:hover svg {
+  transform: rotate(90deg);
 }
 
 .add-btn:active {
@@ -199,23 +210,23 @@ onUnmounted(() => {
   position: fixed;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(229, 231, 235, 0.3);
-  border-radius: clamp(6px, 1.2vw, 8px);
+  border-radius: 7px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(10px);
   z-index: 1000;
-  min-width: clamp(120px, 25vw, 140px);
-  padding: clamp(3px, 0.6vh, 4px);
+  min-width: 130px;
+  padding: 3.5px;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  gap: clamp(6px, 1.2vw, 8px);
-  padding: clamp(6px, 1.2vh, 7px) clamp(8px, 1.8vw, 10px);
+  gap: 7px;
+  padding: 6.5px 9px;
   cursor: pointer;
-  border-radius: clamp(4px, 0.8vw, 5px);
+  border-radius: 4.5px;
   transition: all 0.2s ease;
-  font-size: clamp(0.7rem, 1.8vw, 0.8rem);
+  font-size: 0.75rem;
   color: #333;
   white-space: nowrap;
 }
@@ -226,7 +237,7 @@ onUnmounted(() => {
 }
 
 .menu-icon {
-  font-size: clamp(0.8rem, 2vw, 0.9rem);
+  font-size: 0.85rem;
   flex-shrink: 0;
 }
 

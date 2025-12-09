@@ -34,6 +34,7 @@
       <TodoList
         :todos="todos"
         :show-border="true"
+        :priority-color="props.priorityColor"
         @toggle="(index) => emit('toggle-todo', index)"
         @delete="(index) => emit('delete-todo', index)"
         @contextmenu="(event, todo) => emit('todo-contextmenu', event, todo)"
@@ -59,6 +60,7 @@ import type { TodoGroup, Todo } from '../types';
 interface Props {
   group: TodoGroup;
   todos: Todo[];
+  priorityColor?: string;
 }
 
 const props = defineProps<Props>();
@@ -131,7 +133,7 @@ function handleDrop(_event: DragEvent) {
 
 <style scoped>
 .todo-group {
-  margin-bottom: clamp(6px, 1.5vh, 8px);
+  margin-bottom: 7px;
   width: 100%;
   position: relative;
   z-index: 1;
@@ -140,16 +142,16 @@ function handleDrop(_event: DragEvent) {
 .group-header {
   display: flex;
   align-items: center;
-  padding: clamp(4px, 1vh, 6px) clamp(8px, 2vw, 10px);
+  padding: 5px 9px;
   background: rgba(248, 250, 252, 0.6);
-  border-radius: clamp(8px, 1.5vw, 10px);
+  border-radius: 9px;
   cursor: pointer;
   transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   user-select: none;
-  gap: clamp(6px, 1.5vw, 8px);
+  gap: 7px;
   border: 1px solid rgba(226, 232, 240, 0.5);
   backdrop-filter: blur(5px);
-  min-height: clamp(28px, 4vh, 32px);
+  min-height: 30px;
   width: 100%;
 }
 

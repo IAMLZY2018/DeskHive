@@ -13,7 +13,7 @@
           :class="{ active: activeSection === key }"
           @click="activeSection = key"
         >
-          <span class="menu-item-icon">{{ section.icon }}</span>
+          <span class="menu-item-icon" v-html="section.icon"></span>
           {{ section.name }}
         </button>
       </div>
@@ -47,19 +47,6 @@
                 <span class="range-value">{{ Math.round(settings.opacity * 100) }}%</span>
               </div>
             </div>
-            <div class="setting-item">
-              <div>
-                <div class="setting-label">禁止拖动窗口</div>
-                <div class="setting-description">禁用标题栏拖动功能，防止意外移动窗口</div>
-              </div>
-              <div class="setting-control">
-                <div 
-                  class="toggle-switch" 
-                  :class="{ active: settings.disable_drag }" 
-                  @click="settings.disable_drag = !settings.disable_drag"
-                ></div>
-              </div>
-            </div>
             <!-- 添加主题切换按钮 -->
             <div class="setting-item">
               <div>
@@ -73,8 +60,35 @@
                   @click="toggleTheme"
                 >
                   <div class="theme-toggle-slider"></div>
-                  <span class="theme-label light-label">☀️</span>
-                  <span class="theme-label dark-label">🌙</span>
+                  <span class="theme-label light-label">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="12" cy="12" r="5" fill="currentColor"/>
+                      <path d="M12 1V3M12 21V23M4.22 4.22L5.64 5.64M18.36 18.36L19.78 19.78M1 12H3M21 12H23M4.22 19.78L5.64 18.36M18.36 5.64L19.78 4.22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </span>
+                  <span class="theme-label dark-label">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/>
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <!-- 高优先级颜色 -->
+            <div class="setting-item">
+              <div>
+                <div class="setting-label">高优先级颜色</div>
+                <div class="setting-description">双击任务标记为高优先级时的圆点颜色</div>
+              </div>
+              <div class="setting-control">
+                <div class="color-picker-wrapper">
+                  <input 
+                    type="color" 
+                    v-model="settings.priority_color" 
+                    class="color-picker"
+                    @input="applyPriorityColorPreview"
+                  >
+                  <span class="color-value">{{ settings.priority_color }}</span>
                 </div>
               </div>
             </div>
@@ -83,7 +97,52 @@
 
         <!-- 行为设置 -->
         <div v-if="activeSection === 'behavior'" class="setting-section">
-          <div class="section-title">启动行为</div>
+          <div class="section-title">窗口行为</div>
+          <div class="setting-group">
+            <div class="setting-item">
+              <div>
+                <div class="setting-label">禁止拖动窗口</div>
+                <div class="setting-description">禁用标题栏拖动功能，防止意外移动窗口</div>
+              </div>
+              <div class="setting-control">
+                <div 
+                  class="toggle-switch" 
+                  :class="{ active: settings.disable_drag }" 
+                  @click="settings.disable_drag = !settings.disable_drag"
+                ></div>
+              </div>
+            </div>
+            <div class="setting-item">
+              <div>
+                <div class="setting-label">窗口层级</div>
+                <div class="setting-description">选择窗口显示在顶层还是桌面层</div>
+              </div>
+              <div class="setting-control">
+                <div class="radio-group">
+                  <label class="radio-option">
+                    <input 
+                      type="radio" 
+                      value="always_on_top" 
+                      v-model="settings.window_level"
+                      @change="applyWindowLevel"
+                    >
+                    <span class="radio-label">置于顶层</span>
+                  </label>
+                  <label class="radio-option">
+                    <input 
+                      type="radio" 
+                      value="always_on_bottom" 
+                      v-model="settings.window_level"
+                      @change="applyWindowLevel"
+                    >
+                    <span class="radio-label">置于桌面</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-title" style="margin-top: 24px;">启动行为</div>
           <div class="setting-group">
             <div class="setting-item">
               <div>
@@ -98,60 +157,53 @@
                 ></div>
               </div>
             </div>
-
           </div>
         </div>
 
         <!-- 使用说明页面 -->
         <div v-if="activeSection === 'help'" class="setting-section">
-          <div class="section-title">使用说明</div>
+          <div class="section-title">快速上手</div>
           <div class="setting-group">
             <div class="setting-item">
               <div class="help-content">
-                <h3>📝 任务管理</h3>
-                <p>• 创建任务：底部输入框输入内容，按回车或点击"+"</p>
-                <p>• 完成任务：悬停任务后点击"✓"按钮（时间指示器左侧）</p>
-                <p>• 取消完成：在已完成分组中点击"↶"按钮恢复</p>
-                <p>• 删除任务：双击任务项快速删除</p>
-                <p>• 编辑任务：右键任务 → "✏️ 编辑任务"</p>
-                <p>• 拖动排序：悬停任务后点击"☰"按钮拖动调整顺序</p>
+                <h3>📝 任务操作</h3>
+                <p>• 新建：底部输入框输入内容后回车</p>
+                <p>• 完成：悬停任务点击左侧"✓"按钮</p>
+                <p>• 编辑：右键任务选择"编辑"</p>
+                <p>• 标记：双击任务快速标记成高优先级</p>
+                <p>• 排序：点住"☰"图标拖动调整顺序</p>
+                <p>• 截止时间：右键任务设置或移除</p>
                 
-                <h3>📁 分组管理</h3>
-                <p>• 快速创建：底部输入框输入 "/分组名" 按回车</p>
-                <p>• 对话框创建：右键点击底部"+"按钮 → "📁 新建分组"</p>
-                <p>• 重命名分组：右键分组标题 → "✏️ 重命名分组"</p>
-                <p>• 删除分组：右键分组标题 → "🗑️ 删除分组"</p>
-                <p>• 折叠/展开：点击分组标题左侧"▼"图标</p>
-                <p>• 调整顺序：悬停分组标题，点击"▲▼"按钮上下移动</p>
+                <h3>📁 分组功能</h3>
+                <p>• 快速创建：输入框输入"/分组名"后回车</p>
+                <p>• 菜单创建：右键底部"+"按钮选择新建分组</p>
+                <p>• 重命名：右键分组标题选择重命名</p>
+                <p>• 删除：右键分组标题选择删除（任务会移到未分组）</p>
+                <p>• 折叠：点击分组标题左侧"▼"图标</p>
+                <p>• 排序：悬停分组标题点击"▲▼"按钮</p>
                 
-                <h3>🔄 任务拖动</h3>
-                <p>• 分组内拖动：点住"☰"按钮在同一分组内上下拖动</p>
-                <p>• 跨分组拖动：拖到目标分组任务列表插入指定位置</p>
-                <p>• 拖到分组标题：任务会添加到该分组末尾</p>
-                <p>• 拖动提示：目标区域显示蓝色高亮</p>
+                <h3>🔄 拖动技巧</h3>
+                <p>• 同组排序：拖动到目标位置释放</p>
+                <p>• 跨组移动：拖到其他分组的任务列表</p>
+                <p>• 快速移动：拖到分组标题添加到末尾</p>
                 
-                <h3>⏰ 时间管理</h3>
-                <p>• 设置截止时间：右键任务 → "📅 设置截止时间"</p>
-                <p>• 移除截止时间：右键任务 → "🗑️ 移除截止时间"</p>
-                <p>• 时间显示位置：任务条最右侧（拖动按钮右边）</p>
-                <p>• 🟢 绿色指示器：距离截止时间充足（悬停显示日期）</p>
-                <p>• 🔴 红色指示器：已超过截止时间（悬停显示已超时）</p>
-                <p>• 🟡 黄色指示器：任务已创建多天（悬停显示天数）</p>
+                <h3>⏰ 时间提示</h3>
+                <p>• 🟢 绿色：距离截止时间充足</p>
+                <p>• 🟡 黄色：即将到期或已创建多天</p>
+                <p>• 🔴 红色：已超过截止时间</p>
+                <p>• 悬停查看：鼠标悬停显示详细时间</p>
                 
-                <h3>✅ 已完成任务</h3>
-                <p>• 查看已完成：点击底部"已完成"分组展开</p>
-                <p>• 清空已完成：点击已完成分组右侧垃圾桶图标</p>
-                <p>• 恢复任务：点击已完成任务的"↶"按钮</p>
+                <h3>⚙️ 常用设置</h3>
+                <p>• 透明度：外观 → 主窗口透明度</p>
+                <p>• 主题：外观 → 主题模式</p>
+                <p>• 拖动：外观 → 禁止拖动窗口</p>
+                <p>• 自启：行为 → 开机自启动</p>
                 
-                <h3>⚙️ 窗口设置</h3>
-                <p>• 移动窗口：拖拽窗口顶部（需启用拖动功能）</p>
-                <p>• 调整透明度：外观设置 → 主窗口透明度</p>
-                <p>• 切换主题：外观设置 → 主题模式（日间/夜间）</p>
-                <p>• 开机自启：行为设置 → 开机自启动</p>
-                
-                <h3>🖱️ 系统托盘</h3>
-                <p>• 左键点击：显示/隐藏主窗口</p>
-                <p>• 右键菜单：快速添加任务、退出应用</p>
+                <h3>💡 实用技巧</h3>
+                <p>• 托盘左键：快速显示/隐藏窗口</p>
+                <p>• 已完成：点击底部展开查看</p>
+                <p>• 批量清理：已完成分组右侧垃圾桶图标</p>
+                <p>• 窗口位置：拖动后自动记住位置</p>
               </div>
             </div>
           </div>
@@ -167,7 +219,10 @@
                 <div class="contact-row logo-row">
                   <img src="/mypic/feijimiao.png" alt="作者Logo" class="contact-logo" />
                   <button class="blog-btn" @click="openBlog">
-                    🌐 点击访问
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M14 3V5H17.59L7.76 14.83L9.17 16.24L19 6.41V10H21V3M19 19H5V5H12V3H5C3.89 3 3 3.9 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V12H19V19Z" fill="currentColor"/>
+                    </svg>
+                    点击访问
                   </button>
                 </div>
                 
@@ -264,6 +319,8 @@ interface AppSettings {
   disable_drag: boolean
   auto_start: boolean
   theme: string
+  priority_color: string
+  window_level: string
 }
 
 type SectionKey = 'appearance' | 'behavior' | 'help' | 'contact' | 'about'
@@ -280,18 +337,35 @@ const originalOpacity = ref(0.95)
 const appVersion = ref('...')
 
 const sections: Record<SectionKey, Section> = {
-  appearance: { name: '外观', icon: '🎨' },
-  behavior: { name: '行为', icon: '⚡' },
-  help: { name: '使用说明', icon: '📖' },
-  contact: { name: '联系作者', icon: '✉️' },
-  about: { name: '关于', icon: 'ℹ️' }
+  appearance: { 
+    name: '外观', 
+    icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C11.5 2 11 2.19 10.59 2.59L2.59 10.59C1.8 11.37 1.8 12.63 2.59 13.41L10.59 21.41C11.37 22.2 12.63 22.2 13.41 21.41L21.41 13.41C22.2 12.63 22.2 11.37 21.41 10.59L13.41 2.59C13 2.19 12.5 2 12 2M12 4L20 12L12 20L4 12L12 4M12 6C9.79 6 8 7.79 8 10C8 12.21 9.79 14 12 14C14.21 14 16 12.21 16 10C16 7.79 14.21 6 12 6Z" fill="currentColor"/></svg>' 
+  },
+  behavior: { 
+    name: '行为', 
+    icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2.03V2.05L13 4.05C17.39 4.59 20.5 8.58 19.96 12.97C19.5 16.61 16.64 19.5 13 19.93V21.93C18.5 21.38 22.5 16.5 21.95 11C21.5 6.25 17.73 2.5 13 2.03M11 2.06C9.05 2.25 7.19 3 5.67 4.26L7.1 5.74C8.22 4.84 9.57 4.26 11 4.06V2.06M4.26 5.67C3 7.19 2.25 9.04 2.05 11H4.05C4.24 9.58 4.8 8.23 5.69 7.1L4.26 5.67M2.06 13C2.26 14.96 3.03 16.81 4.27 18.33L5.69 16.9C4.81 15.77 4.24 14.42 4.06 13H2.06M7.1 18.37L5.67 19.74C7.18 21 9.04 21.79 11 22V20C9.58 19.82 8.23 19.25 7.1 18.37M12.5 7V12.25L17 14.92L16.25 16.15L11 13V7H12.5Z" fill="currentColor"/></svg>' 
+  },
+  help: { 
+    name: '使用说明', 
+    icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 2H14.82C14.4 0.84 13.3 0 12 0C10.7 0 9.6 0.84 9.18 2H5C3.9 2 3 2.9 3 4V18C3 19.1 3.9 20 5 20H9.11C9.56 21.19 10.69 22 12 22C13.31 22 14.44 21.19 14.89 20H19C20.1 20 21 19.1 21 18V4C21 2.9 20.1 2 19 2M12 2C12.55 2 13 2.45 13 3C13 3.55 12.55 4 12 4C11.45 4 11 3.55 11 3C11 2.45 11.45 2 12 2M12 20C11.45 20 11 19.55 11 19C11 18.45 11.45 18 12 18C12.55 18 13 18.45 13 19C13 19.55 12.55 20 12 20M19 18H14.82C14.4 16.84 13.3 16 12 16C10.7 16 9.6 16.84 9.18 18H5V4H9.18C9.6 5.16 10.7 6 12 6C13.3 6 14.4 5.16 14.82 4H19V18M12 9C10.9 9 10 9.9 10 11C10 12.1 10.9 13 12 13C13.1 13 14 12.1 14 11C14 9.9 13.1 9 12 9Z" fill="currentColor"/></svg>' 
+  },
+  contact: { 
+    name: '联系作者', 
+    icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 4H4C2.9 4 2.01 4.9 2.01 6L2 18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4M20 8L12 13L4 8V6L12 11L20 6V8Z" fill="currentColor"/></svg>' 
+  },
+  about: { 
+    name: '关于', 
+    icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 7H13V9H11V7M11 11H13V17H11V11M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2M12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="currentColor"/></svg>' 
+  }
 }
 
 const settings = reactive<AppSettings>({
   opacity: 1.0,
   disable_drag: false,
   auto_start: false,
-  theme: 'light'
+  theme: 'light',
+  priority_color: '#FF9800',
+  window_level: 'always_on_bottom'
 })
 
 // 透明度的计算属性，确保始终为数字类型
@@ -319,6 +393,34 @@ async function applyOpacityPreview() {
     await invoke('apply_opacity', { opacity: parseFloat(settings.opacity.toString()) })
   } catch (error) {
     console.error('应用透明度预览失败:', error)
+  }
+}
+
+// 实时预览高优先级颜色
+async function applyPriorityColorPreview() {
+  try {
+    // 通知主窗口更新高优先级颜色
+    await invoke('emit_priority_color_changed', { color: settings.priority_color })
+  } catch (error) {
+    console.error('应用高优先级颜色预览失败:', error)
+  }
+}
+
+// 实时应用窗口层级设置
+async function applyWindowLevel() {
+  try {
+    // 临时保存并应用窗口层级设置以实现预览
+    const tempSettings = {
+      opacity: settings.opacity,
+      disable_drag: settings.disable_drag,
+      auto_start: settings.auto_start,
+      theme: settings.theme,
+      priority_color: settings.priority_color,
+      window_level: settings.window_level
+    }
+    await invoke('save_app_settings', { settings: tempSettings })
+  } catch (error) {
+    console.error('应用窗口层级失败:', error)
   }
 }
 
@@ -503,13 +605,17 @@ onMounted(async () => {
 }
 
 .sidebar-header {
-  padding: 16px 16px 14px;
+  padding: 16px 16px 16px;
   border-bottom: 1px solid #e8eaed;
   -webkit-app-region: drag;
   user-select: none;
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
+  height: 60px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
 }
 
 .sidebar-header h1 {
@@ -518,6 +624,7 @@ onMounted(async () => {
   color: #1a1a1a;
   margin: 0;
   letter-spacing: -0.3px;
+  line-height: 1;
 }
 
 .sidebar-menu {
@@ -583,13 +690,17 @@ onMounted(async () => {
 }
 
 .content-header {
-  padding: 16px 24px 14px;
+  padding: 16px 24px 16px;
   border-bottom: 1px solid #e8eaed;
   -webkit-app-region: drag;
   user-select: none;
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
+  height: 60px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
 }
 
 .content-header h2 {
@@ -598,6 +709,7 @@ onMounted(async () => {
   color: #202124;
   margin: 0;
   letter-spacing: -0.3px;
+  line-height: 1;
 }
 
 .content-body {
@@ -766,26 +878,33 @@ onMounted(async () => {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 14px;
   pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-label svg {
+  width: 14px;
+  height: 14px;
 }
 
 .light-label {
-  left: 8px;
-  color: #f5c442;
+  left: 7px;
+  color: #fbbf24;
 }
 
 .dark-label {
-  right: 8px;
-  color: #4a90e2;
+  right: 7px;
+  color: #60a5fa;
 }
 
 .theme-toggle-switch.theme-dark .light-label {
-  color: rgba(245, 196, 66, 0.5);
+  color: rgba(251, 191, 36, 0.4);
 }
 
 .theme-toggle-switch.theme-dark .dark-label {
-  color: #4a90e2;
+  color: #60a5fa;
 }
 
 .range-value {
@@ -794,6 +913,61 @@ onMounted(async () => {
   font-weight: 500;
   min-width: 40px;
   text-align: right;
+}
+
+.color-picker-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-picker {
+  width: 50px;
+  height: 32px;
+  border: 2px solid #e5e5e5;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.color-picker:hover {
+  border-color: #007aff;
+  transform: scale(1.05);
+}
+
+.color-value {
+  font-size: 14px;
+  color: #5f6368;
+  font-weight: 500;
+  font-family: 'Courier New', monospace;
+}
+
+.radio-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.radio-option input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #007aff;
+}
+
+.radio-label {
+  margin-left: 6px;
+  font-size: 14px;
+  color: #202124;
+  font-weight: 500;
 }
 
 .content-footer {
@@ -1033,30 +1207,20 @@ body.dark-theme .theme-toggle-switch.theme-dark .theme-toggle-slider {
   transform: translateX(30px);
 }
 
-body.dark-theme .theme-label {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 14px;
-  pointer-events: none;
-}
-
 body.dark-theme .light-label {
-  left: 8px;
-  color: #f5c442;
+  color: #fbbf24;
 }
 
 body.dark-theme .dark-label {
-  right: 8px;
-  color: #4a90e2;
+  color: #60a5fa;
 }
 
 body.dark-theme .theme-toggle-switch.theme-dark .light-label {
-  color: rgba(245, 196, 66, 0.5);
+  color: rgba(251, 191, 36, 0.4);
 }
 
 body.dark-theme .theme-toggle-switch.theme-dark .dark-label {
-  color: #4a90e2;
+  color: #60a5fa;
 }
 
 body.dark-theme .range-value {
@@ -1065,6 +1229,26 @@ body.dark-theme .range-value {
   font-weight: 500;
   min-width: 40px;
   text-align: right;
+}
+
+body.dark-theme .color-picker {
+  border-color: #444b4f;
+}
+
+body.dark-theme .color-picker:hover {
+  border-color: #0a84ff;
+}
+
+body.dark-theme .color-value {
+  color: #9ca3af;
+}
+
+body.dark-theme .radio-option input[type="radio"] {
+  accent-color: #0a84ff;
+}
+
+body.dark-theme .radio-label {
+  color: #e8eaed;
 }
 
 body.dark-theme .content-footer {
@@ -1207,6 +1391,14 @@ body.dark-theme .contact-logo {
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.blog-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 .blog-btn:hover {

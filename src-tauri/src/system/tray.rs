@@ -9,11 +9,12 @@ pub fn create_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let show_hide = MenuItemBuilder::with_id("show_hide", "显示/隐藏").build(app)?;
     let always_on_top = MenuItemBuilder::with_id("always_on_top", "置于顶层").build(app)?;
     let pin_to_desktop = MenuItemBuilder::with_id("pin_to_desktop", "置于桌面").build(app)?;
+    let reset_position = MenuItemBuilder::with_id("reset_position", "重置窗口位置").build(app)?;
     let settings = MenuItemBuilder::with_id("settings", "设置").build(app)?;
     let quit = MenuItemBuilder::with_id("quit", "退出").build(app)?;
     
     let menu = MenuBuilder::new(app)
-        .items(&[&show_hide, &always_on_top, &pin_to_desktop, &settings, &quit])
+        .items(&[&show_hide, &always_on_top, &pin_to_desktop, &reset_position, &settings, &quit])
         .build()?;
 
     // 创建系统托盘图标
@@ -82,6 +83,13 @@ pub fn create_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
                             }
                         }
                     }
+                }
+                "reset_position" => {
+                    let app_handle = app.clone();
+                    tauri::async_runtime::spawn(async move {
+                        use crate::window::management::reset_window_position;
+                        let _ = reset_window_position(app_handle).await;
+                    });
                 }
                 "settings" => {
                     let app_handle = app.clone();

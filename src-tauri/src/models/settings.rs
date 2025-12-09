@@ -15,6 +15,10 @@ pub struct AppSettings {
     pub silent_start: bool,
     #[serde(default = "default_theme")]
     pub theme: String,
+    #[serde(default = "default_priority_color")]
+    pub priority_color: String,
+    #[serde(default = "default_window_level")]
+    pub window_level: String, // "normal" | "always_on_top" | "always_on_bottom"
 }
 
 impl Default for AppSettings {
@@ -27,6 +31,8 @@ impl Default for AppSettings {
             auto_start: false,
             silent_start: false,
             theme: "light".to_string(),
+            priority_color: "#FF9800".to_string(),
+            window_level: "always_on_bottom".to_string(),
         }
     }
 }
@@ -50,4 +56,12 @@ pub fn default_silent_start() -> bool {
 
 pub fn default_theme() -> String {
     "light".to_string()
+}
+
+pub fn default_priority_color() -> String {
+    "#FF9800".to_string()
+}
+
+pub fn default_window_level() -> String {
+    "always_on_bottom".to_string()
 }

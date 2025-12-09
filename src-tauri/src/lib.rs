@@ -75,6 +75,13 @@ async fn emit_theme_changed(app: tauri::AppHandle, theme: String) -> Result<(), 
     Ok(())
 }
 
+// Tauri 命令：发送高优先级颜色更改事件
+#[tauri::command]
+async fn emit_priority_color_changed(app: tauri::AppHandle, color: String) -> Result<(), String> {
+    app.emit("priority-color-changed", color).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 // 检查是否已经有一个实例在运行
 #[cfg(target_os = "windows")]
 fn is_single_instance() -> bool {
@@ -139,13 +146,15 @@ pub fn run() {
             window::management::restore_from_tray,
             window::management::open_settings_window,
             window::management::close_settings_window,
+            window::management::reset_window_position,
             
             // 系统相关命令
             system::date_info::get_current_date,
             get_app_version,
             is_dev_mode,
             quit_app,
-            emit_theme_changed
+            emit_theme_changed,
+            emit_priority_color_changed
         ])
         .setup(|app| {
             // 初始化日志系统
@@ -235,16 +244,54 @@ pub fn run() {
                     let _ = window.set_focus();
                 }
                 
-                // 延迟应用透明度设置，确保窗口完全初始化
+                // 延迟应用透明度和窗口层级设置，确保窗口完全初始化
                 if let Some(settings) = loaded_settings {
-                    let window_for_opacity = window.clone();
+                    let window_for_settings = window.clone();
                     let opacity_value = settings.opacity;
+                    let window_level = settings.window_level.clone();
                     std::thread::spawn(move || {
                         std::thread::sleep(std::time::Duration::from_millis(100));
-                        if let Err(e) = window::opacity::set_window_opacity(&window_for_opacity, opacity_value) {
+                        
+                        // 应用透明度
+                        if let Err(e) = window::opacity::set_window_opacity(&window_for_settings, opacity_value) {
                             println!("应用启动透明度失败: {}", e);
                         } else {
                             println!("成功应用启动透明度: {}", opacity_value);
+                        }
+                        
+                        // 应用窗口层级
+                        match window_level.as_str() {
+                            "always_on_top" => {
+                                let _ = window_for_settings.set_always_on_top(true);
+                                println!("应用窗口层级: 置于顶层");
+                            },
+                            "always_on_bottom" => {
+                                #[cfg(target_os = "windows")]
+                                {
+                                    use windows::Win32::Foundation::HWND;
+                                    use windows::Win32::UI::WindowsAndMessaging::{
+                                        SetWindowPos, HWND_BOTTOM, SWP_NOMOVE, SWP_NOSIZE, SWP_NOACTIVATE
+                                    };
+                                    
+                                    if let Ok(hwnd) = window_for_settings.hwnd() {
+                                        unsafe {
+                                            let window_hwnd = HWND(hwnd.0 as _);
+                                            let _ = SetWindowPos(
+                                                window_hwnd,
+                                                HWND_BOTTOM,
+                                                0, 0, 0, 0,
+                                                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE
+                                            );
+                                        }
+                                    }
+                                }
+                                let _ = window_for_settings.set_always_on_top(false);
+                                println!("应用窗口层级: 置于桌面");
+                            },
+                            _ => {
+                                let _ = window_for_settings.set_always_on_top(false);
+                                println!("应用窗口层级: 普通");
+                            }
                         }
                     });
                 }
@@ -277,14 +324,27 @@ pub fn run() {
                                     });
                                 }
                             }
-                            // 检测窗口移动事件 - 简化处理，只保存位置
+                            // 检测窗口移动事件 - 验证位置并保存
                             tauri::WindowEvent::Moved(position) => {
-                                // 异步保存位置，不阻塞事件循环
                                 let app_handle = app_handle_for_events.clone();
+                                let window = win_handle.clone();
                                 let x = position.x;
                                 let y = position.y;
+                                
+                                // 验证并修正位置
+                                let (fixed_x, fixed_y) = window::position::validate_and_fix_position(x, y);
+                                
+                                // 如果位置被修正了，更新窗口位置
+                                if fixed_x != x || fixed_y != y {
+                                    let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
+                                        x: fixed_x,
+                                        y: fixed_y,
+                                    }));
+                                }
+                                
+                                // 异步保存位置
                                 tauri::async_runtime::spawn(async move {
-                                    let _ = save_window_position(app_handle, x, y).await;
+                                    let _ = save_window_position(app_handle, fixed_x, fixed_y).await;
                                 });
                             }
                             // 检测窗口关闭请求事件 - 最小化到托盘而不是退出

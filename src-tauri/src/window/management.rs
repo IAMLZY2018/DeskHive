@@ -114,3 +114,30 @@ pub async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+// Tauri 命令：重置窗口位置到屏幕中心
+#[tauri::command]
+pub async fn reset_window_position(app: tauri::AppHandle) -> Result<(), String> {
+    use crate::window::position;
+    use crate::data::save_window_position;
+    
+    if let Some(window) = app.get_webview_window("main") {
+        // 获取屏幕中心位置
+        let (x, y) = position::get_center_position();
+        
+        // 设置窗口位置
+        window.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x, y }))
+            .map_err(|e| format!("设置窗口位置失败: {}", e))?;
+        
+        // 保存新位置
+        save_window_position(app.clone(), x, y).await?;
+        
+        // 显示并聚焦窗口
+        let _ = window.show();
+        let _ = window.set_focus();
+        
+        println!("窗口位置已重置到屏幕中心: ({}, {})", x, y);
+    }
+    
+    Ok(())
+}
+

@@ -21,6 +21,7 @@
             :todo="element"
             :index="index"
             :is-completed-list="props.isCompletedList"
+            :priority-color="props.priorityColor"
             @toggle="toggleTodo"
             @delete="deleteTodo"
             @contextmenu="showContextMenu"
@@ -45,6 +46,7 @@ interface Props {
   todos: Todo[];
   isCompletedList?: boolean;
   showBorder?: boolean;
+  priorityColor?: string;
 }
 
 const props = defineProps<Props>();

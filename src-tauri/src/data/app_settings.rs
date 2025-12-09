@@ -52,8 +52,41 @@ pub async fn save_app_settings(app: tauri::AppHandle, settings: AppSettings) -> 
         // 设置透明度（只应用于主窗口）
         let _ = set_window_opacity(&main_window, settings.opacity);
         
-        // 不再设置置顶状态，always_on_top 现在表示"记住窗口位置"
-        // let _ = main_window.set_always_on_top(settings.always_on_top);
+        // 设置窗口层级 - 与托盘菜单功能保持一致
+        match settings.window_level.as_str() {
+            "always_on_top" => {
+                // 置于顶层：使用 set_always_on_top
+                let _ = main_window.set_always_on_top(true);
+            },
+            "always_on_bottom" => {
+                // 置于桌面：使用 Windows API 将窗口置于底层
+                #[cfg(target_os = "windows")]
+                {
+                    use windows::Win32::Foundation::HWND;
+                    use windows::Win32::UI::WindowsAndMessaging::{
+                        SetWindowPos, HWND_BOTTOM, SWP_NOMOVE, SWP_NOSIZE, SWP_NOACTIVATE
+                    };
+                    
+                    if let Ok(hwnd) = main_window.hwnd() {
+                        unsafe {
+                            let window_hwnd = HWND(hwnd.0 as _);
+                            let _ = SetWindowPos(
+                                window_hwnd,
+                                HWND_BOTTOM,
+                                0, 0, 0, 0,
+                                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE
+                            );
+                        }
+                    }
+                }
+                // 确保不是置顶状态
+                let _ = main_window.set_always_on_top(false);
+            },
+            _ => {
+                // 默认：取消置顶
+                let _ = main_window.set_always_on_top(false);
+            }
+        }
         
         // 通知前端更新拖动设置
         let _ = main_window.emit("drag-setting-changed", settings.disable_drag);
@@ -78,6 +111,8 @@ pub async fn load_app_settings(app: tauri::AppHandle) -> Result<AppSettings, Str
             auto_start: false,
             silent_start: false,
             theme: "light".to_string(),
+            priority_color: "#FF9800".to_string(),
+            window_level: "always_on_bottom".to_string(),
         });
     }
     
