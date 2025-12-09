@@ -120,13 +120,13 @@ function onCancel() {
 
 .dialog-box {
   background: rgba(255, 255, 255, 0.98);
-  border-radius: 10px;
-  padding: 16px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(0, 0, 0, 0.08);
-  min-width: 240px;
-  max-width: 280px;
+  min-width: 220px;
+  max-width: 260px;
   animation: slideUp 0.3s ease;
 }
 
@@ -144,45 +144,45 @@ function onCancel() {
 .dialog-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
-  padding-bottom: 10px;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .dialog-icon {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   color: #888;
   flex-shrink: 0;
 }
 
 .dialog-title {
-  font-size: 0.88rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #333;
   margin: 0;
 }
 
 .dialog-content {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .dialog-input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 6px 8px;
   border: 1.5px solid rgba(0, 0, 0, 0.1);
-  border-radius: 7px;
+  border-radius: 6px;
   outline: none;
   background: rgba(255, 255, 255, 0.95);
   color: #333;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-family: inherit;
   transition: all 0.2s ease;
   box-sizing: border-box;
   resize: vertical;
-  min-height: 70px;
-  line-height: 1.5;
+  min-height: 60px;
+  line-height: 1.4;
 }
 
 .dialog-input:hover {
@@ -201,18 +201,18 @@ function onCancel() {
 
 .dialog-buttons {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: flex-end;
 }
 
 .dialog-btn {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 7px 14px;
+  gap: 4px;
+  padding: 5px 12px;
   border: none;
-  border-radius: 7px;
-  font-size: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;

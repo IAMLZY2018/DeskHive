@@ -80,33 +80,33 @@ function handleCancel() {
 
 .dialog {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: clamp(8px, 1.5vw, 10px);
-  padding: clamp(14px, 3vh, 16px) clamp(16px, 3.5vw, 18px);
-  min-width: clamp(220px, 45vw, 260px);
-  max-width: clamp(280px, 60vw, 320px);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+  border-radius: clamp(6px, 1.2vw, 8px);
+  padding: clamp(12px, 2.5vh, 14px) clamp(14px, 3vw, 16px);
+  min-width: clamp(200px, 40vw, 240px);
+  max-width: clamp(260px, 55vw, 300px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(229, 231, 235, 0.3);
 }
 
 .dialog-title {
-  font-size: clamp(0.9rem, 2.2vw, 1rem);
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
   font-weight: 600;
   color: #333;
-  margin-bottom: clamp(10px, 2vh, 12px);
+  margin-bottom: clamp(8px, 1.8vh, 10px);
 }
 
 .dialog-input {
   width: 100%;
-  padding: clamp(7px, 1.5vh, 8px) clamp(10px, 2vw, 12px);
+  padding: clamp(6px, 1.3vh, 7px) clamp(9px, 1.8vw, 10px);
   border: 1px solid rgba(229, 231, 235, 0.3);
-  border-radius: clamp(6px, 1.2vw, 7px);
+  border-radius: clamp(5px, 1vw, 6px);
   outline: none;
   background: rgba(255, 255, 255, 0.8);
   color: #333;
-  font-size: clamp(0.75rem, 1.8vw, 0.85rem);
+  font-size: clamp(0.7rem, 1.6vw, 0.8rem);
   transition: all 0.3s ease;
-  margin-bottom: clamp(10px, 2vh, 12px);
+  margin-bottom: clamp(8px, 1.8vh, 10px);
 }
 
 .dialog-input:focus {
@@ -117,19 +117,19 @@ function handleCancel() {
 
 .dialog-actions {
   display: flex;
-  gap: clamp(6px, 1.2vw, 8px);
+  gap: clamp(5px, 1vw, 6px);
   justify-content: flex-end;
 }
 
 .dialog-btn {
-  padding: clamp(6px, 1.2vh, 7px) clamp(12px, 2.5vw, 14px);
+  padding: clamp(5px, 1vh, 6px) clamp(10px, 2.2vw, 12px);
   border: none;
-  border-radius: clamp(5px, 1vw, 6px);
+  border-radius: clamp(4px, 0.8vw, 5px);
   cursor: pointer;
-  font-size: clamp(0.7rem, 1.8vw, 0.8rem);
+  font-size: clamp(0.65rem, 1.6vw, 0.75rem);
   font-weight: 500;
   transition: all 0.2s ease;
-  min-width: clamp(50px, 12vw, 60px);
+  min-width: clamp(45px, 11vw, 55px);
 }
 
 .dialog-btn.cancel {

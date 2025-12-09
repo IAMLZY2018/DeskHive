@@ -38,6 +38,7 @@
         @delete="(index) => emit('delete-todo', index)"
         @contextmenu="(event, todo) => emit('todo-contextmenu', event, todo)"
         @edit="(todo) => emit('edit-todo', todo)"
+        @toggle-priority="(todo) => emit('toggle-priority', todo)"
         @reorder="(newOrder) => emit('reorder', newOrder)"
         @drag-start="(todo) => emit('drag-start', todo)"
         @drag-end="emit('drag-end')"
@@ -69,6 +70,7 @@ const emit = defineEmits<{
   'delete-todo': [index: number];
   'todo-contextmenu': [event: MouseEvent, todo: Todo];
   'edit-todo': [todo: Todo];
+  'toggle-priority': [todo: Todo];
   'reorder': [newOrder: Todo[]];
   'drag-start': [todo: Todo];
   'drag-end': [];
@@ -275,43 +277,45 @@ function handleDrop(_event: DragEvent) {
 
 /* 夜间主题 */
 body.dark-theme .group-header {
-  background: rgba(37, 38, 39, 0.5);
-  border-color: rgba(231, 233, 237, 0.2);
+  background: rgba(42, 45, 52, 0.5);
+  border: none;
 }
 
 body.dark-theme .group-header:hover {
-  background: rgba(37, 38, 39, 0.7);
+  background: rgba(48, 52, 60, 0.6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 body.dark-theme .group-header.drag-over {
   background: rgba(0, 122, 255, 0.15);
-  border-color: rgba(0, 122, 255, 0.5);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
+  border: 1px solid rgba(0, 122, 255, 0.4);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
 }
 
 body.dark-theme .sort-btn {
-  color: #aaa;
+  color: #9ca3af;
 }
 
 body.dark-theme .sort-btn:hover {
-  color: #e7e9ed;
+  color: #e8eaed;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 body.dark-theme .group-name {
-  color: #e7e9ed;
+  color: #e8eaed;
 }
 
 body.dark-theme .collapse-indicator {
-  color: #aaa;
+  color: #9ca3af;
 }
 
 body.dark-theme .group-menu-btn {
-  color: #aaa;
+  color: #9ca3af;
 }
 
 body.dark-theme .group-menu-btn:hover {
   background: rgba(255, 255, 255, 0.05);
-  color: #e7e9ed;
+  color: #e8eaed;
 }
 
 .empty-group-hint {
@@ -329,8 +333,7 @@ body.dark-theme .group-menu-btn:hover {
 }
 
 body.dark-theme .empty-group-hint {
-  color: #aaa;
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.1);
+  color: #6b7280;
+  background: transparent;
 }
 </style>

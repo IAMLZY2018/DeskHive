@@ -103,6 +103,8 @@ pub async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
     .decorations(false)
     .always_on_top(false)
     .skip_taskbar(false)
+    .icon(app.default_window_icon().unwrap().clone())
+    .map_err(|e| format!("设置窗口图标失败: {}", e))?
     .build()
     .map_err(|e| format!("创建设置窗口失败: {}", e))?;
 

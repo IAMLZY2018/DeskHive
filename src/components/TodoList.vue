@@ -25,6 +25,7 @@
             @delete="deleteTodo"
             @contextmenu="showContextMenu"
             @edit="(todo) => emit('edit', todo)"
+            @toggle-priority="(todo) => emit('togglePriority', todo)"
           />
         </div>
       </template>
@@ -53,6 +54,7 @@ const emit = defineEmits<{
   delete: [index: number];
   contextmenu: [event: MouseEvent, todo: Todo];
   edit: [todo: Todo];
+  togglePriority: [todo: Todo];
   reorder: [newOrder: Todo[]];
   'drag-start': [todo: Todo];
   'drag-end': [];

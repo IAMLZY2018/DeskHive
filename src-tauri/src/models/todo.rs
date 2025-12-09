@@ -16,6 +16,8 @@ pub struct Todo {
     pub order: i32, // 在分组内的排序
     #[serde(default = "default_group_id")] // 为兼容旧数据，设为默认分组
     pub group_id: String, // 所属分组ID
+    #[serde(default)] // 为了兼容旧数据，设为默认值
+    pub priority: i32, // 优先级：0=普通，1=重要
 }
 
 // 默认分组ID

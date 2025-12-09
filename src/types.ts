@@ -7,7 +7,8 @@ export interface Todo {
   deadline?: number; // 截止时间，Unix时间戳（秒），可选
   order: number; // 在分组内的排序
   groupId: string; // 所属分组ID
-  color?: string; // 小圆点颜色，可选
+  priority: number; // 优先级：0=普通，1=重要
+  color?: string; // 小圆点颜色，可选（已弃用，由优先级决定）
 }
 
 export interface TodoGroup {

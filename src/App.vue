@@ -32,6 +32,7 @@
             @delete="(index) => deleteTodo('default', index)"
             @contextmenu="showTodoContextMenu"
             @edit="handleEditTodo"
+            @toggle-priority="handleTogglePriority"
             @reorder="(newOrder) => handleTodoReorder('default', newOrder)"
             @drag-start="(todo) => handleDragStart(todo)"
             @drag-end="handleDragEnd"
@@ -52,6 +53,7 @@
             @delete-todo="(index: number) => deleteTodo(group.id, index)"
             @todo-contextmenu="showTodoContextMenu"
             @edit-todo="handleEditTodo"
+            @toggle-priority="handleTogglePriority"
             @reorder="(newOrder) => handleTodoReorder(group.id, newOrder)"
             @drag-start="(todo) => handleDragStart(todo)"
             @drag-end="handleDragEnd"
@@ -88,6 +90,7 @@
                 @delete="(index) => deleteCompletedTodo(index)"
                 @contextmenu="showTodoContextMenu"
                 @edit="handleEditTodo"
+                @toggle-priority="handleTogglePriority"
               />
             </div>
           </div>
@@ -110,6 +113,7 @@
       @remove-deadline="removeDeadline"
       @delete-todo="deleteTodoFromContextMenu"
       @edit-todo="openEditDialog"
+      @remove-old-completed="removeOldCompletedTodos"
     />
     
     <!-- 分组右键菜单 -->
@@ -315,7 +319,8 @@ function addTask(text: string) {
     completed: false,
     createdAt: now,
     order: maxOrder + 1,
-    groupId: 'default'
+    groupId: 'default',
+    priority: 0 // 默认优先级为普通
   });
   
   saveTodoData();
@@ -374,6 +379,33 @@ function clearAllCompletedTodos() {
   todos.value = todos.value.filter(t => !t.completed);
   saveTodoData();
   showToastMessage('已清除所有已完成任务', 'success');
+}
+
+// 移除完成7天前的任务
+function removeOldCompletedTodos() {
+  const now = Math.floor(Date.now() / 1000);
+  const sevenDaysAgo = now - (7 * 24 * 60 * 60); // 7天前的时间戳
+  
+  const beforeCount = todos.value.length;
+  todos.value = todos.value.filter(t => {
+    // 保留未完成的任务
+    if (!t.completed) return true;
+    // 保留没有完成时间的任务（兼容旧数据）
+    if (!t.completedAt) return true;
+    // 保留7天内完成的任务
+    return t.completedAt > sevenDaysAgo;
+  });
+  
+  const removedCount = beforeCount - todos.value.length;
+  
+  if (removedCount > 0) {
+    saveTodoData();
+    showToastMessage(`已移除 ${removedCount} 个完成7天前的任务`, 'success');
+  } else {
+    showToastMessage('没有完成7天前的任务', 'warning');
+  }
+  
+  hideContextMenu();
 }
 
 // 显示任务右键菜单
@@ -524,6 +556,16 @@ function openEditDialog() {
 function handleEditTodo(todo: Todo) {
   editDialogTodo.value = todo;
   showEditDialog.value = true;
+}
+
+// 处理切换优先级
+function handleTogglePriority(todo: Todo) {
+  const todoIndex = todos.value.findIndex(t => t.id === todo.id);
+  if (todoIndex !== -1) {
+    // 切换优先级：0 <-> 1
+    todos.value[todoIndex].priority = todos.value[todoIndex].priority === 1 ? 0 : 1;
+    saveTodoData();
+  }
 }
 
 // 关闭编辑任务对话框
@@ -844,7 +886,8 @@ async function saveTodoData() {
       completed_at: todo.completedAt || null,
       deadline: todo.deadline || null,
       order: todo.order,
-      group_id: todo.groupId
+      group_id: todo.groupId,
+      priority: todo.priority || 0
     }));
     
     await invoke('save_todo_data_with_groups', {
@@ -879,7 +922,7 @@ async function saveGroupData() {
 async function loadTodoData() {
   try {
     const data = await invoke('load_todo_data_with_groups') as {
-      todos: { id: string; text: string; completed: boolean; created_at: number; completed_at?: number; deadline?: number; order: number; group_id: string }[]
+      todos: { id: string; text: string; completed: boolean; created_at: number; completed_at?: number; deadline?: number; order: number; group_id: string; priority?: number }[]
     };
     
     todos.value = data.todos.map((todo, index) => ({
@@ -890,7 +933,8 @@ async function loadTodoData() {
       completedAt: todo.completed_at,
       deadline: todo.deadline,
       order: todo.order ?? index, // 如果没有order，使用索引
-      groupId: todo.group_id || 'default' // 如果没有groupId，使用default
+      groupId: todo.group_id || 'default', // 如果没有groupId，使用default
+      priority: todo.priority ?? 0 // 如果没有priority，默认为0
     }));
     
     console.log('任务数据加载成功');
@@ -1024,7 +1068,7 @@ html, body, #app {
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #e8e4f3;
+  background: transparent;
   color: #333;
 }
 
@@ -1041,6 +1085,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border-radius: 12px;
 }
 
 header {
@@ -1290,48 +1335,57 @@ header {
 }
 
 /* 夜间主题 */
+body.dark-theme .container {
+  background: #1a1d23;
+}
+
 body.dark-theme header {
-  background: rgba(24, 26, 27, 0.8);
-  border-bottom: 1px solid rgba(231, 233, 237, 0.2);
-  color: #e7e9ed;
+  background: rgba(30, 33, 39, 0.8);
+  border-bottom: none;
+  color: #e8eaed;
 }
 
 body.dark-theme .progress-indicator {
-  background: rgba(24, 26, 27, 0.9);
-  color: #e7e9ed;
-  border: 1px solid rgba(231, 233, 237, 0.2);
+  background: rgba(42, 45, 52, 0.8);
+  color: #e8eaed;
+  border: none;
 }
 
 body.dark-theme .settings-btn {
-  background: rgba(24, 26, 27, 0.9);
-  color: #e7e9ed;
-  border: 1px solid rgba(231, 233, 237, 0.2);
+  background: rgba(42, 45, 52, 0.8);
+  color: #e8eaed;
+  border: none;
+}
+
+body.dark-theme .completed-group {
+  border-top: 1px dashed rgba(255, 255, 255, 0.05);
 }
 
 body.dark-theme .completed-group .group-header {
-  background: rgba(37, 38, 39, 0.5);
-  border-color: rgba(231, 233, 237, 0.2);
+  background: rgba(42, 45, 52, 0.5);
+  border: none;
 }
 
 body.dark-theme .completed-group .group-header:hover {
-  background: rgba(37, 38, 39, 0.7);
+  background: rgba(48, 52, 60, 0.6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 body.dark-theme .group-name {
-  color: #e7e9ed;
+  color: #e8eaed;
 }
 
 body.dark-theme .collapse-indicator {
-  color: #aaa;
+  color: #9ca3af;
 }
 
 body.dark-theme .clear-completed-btn {
-  color: #aaa;
+  color: #9ca3af;
 }
 
 body.dark-theme .clear-completed-btn:hover {
-  background: rgba(244, 67, 54, 0.2);
-  color: #f44336;
+  background: rgba(244, 67, 54, 0.15);
+  color: #f87171;
 }
 
 body.dark-theme .group-icon circle {

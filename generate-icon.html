@@ -80,9 +80,24 @@
         
         <div class="preview">
             <div class="preview-item">
+                <p>16x16</p>
+                <canvas id="canvas16" width="16" height="16"></canvas>
+                <button onclick="downloadCanvas('canvas16', '16x16.png')">下载</button>
+            </div>
+            <div class="preview-item">
                 <p>32x32</p>
                 <canvas id="canvas32" width="32" height="32"></canvas>
                 <button onclick="downloadCanvas('canvas32', '32x32.png')">下载</button>
+            </div>
+            <div class="preview-item">
+                <p>48x48</p>
+                <canvas id="canvas48" width="48" height="48"></canvas>
+                <button onclick="downloadCanvas('canvas48', '48x48.png')">下载</button>
+            </div>
+            <div class="preview-item">
+                <p>64x64</p>
+                <canvas id="canvas64" width="64" height="64"></canvas>
+                <button onclick="downloadCanvas('canvas64', '64x64.png')">下载</button>
             </div>
             <div class="preview-item">
                 <p>128x128</p>
@@ -147,7 +162,10 @@
 
         function downloadAll() {
             const downloads = [
+                { canvasId: 'canvas16', filename: '16x16.png' },
                 { canvasId: 'canvas32', filename: '32x32.png' },
+                { canvasId: 'canvas48', filename: '48x48.png' },
+                { canvasId: 'canvas64', filename: '64x64.png' },
                 { canvasId: 'canvas128', filename: '128x128.png' },
                 { canvasId: 'canvas256', filename: '128x128@2x.png' },
                 { canvasId: 'canvas512', filename: 'app-icon.png' }
@@ -162,7 +180,10 @@
 
         // 页面加载时渲染所有尺寸
         window.onload = function() {
+            renderSVGToCanvas('canvas16', 16);
             renderSVGToCanvas('canvas32', 32);
+            renderSVGToCanvas('canvas48', 48);
+            renderSVGToCanvas('canvas64', 64);
             renderSVGToCanvas('canvas128', 128);
             renderSVGToCanvas('canvas256', 256);
             renderSVGToCanvas('canvas512', 512);

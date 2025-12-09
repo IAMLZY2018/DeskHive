@@ -10,6 +10,9 @@
       <div class="info-row">
         <span :class="['status-dot', props.todo?.completed ? 'completed' : 'pending']"></span>
         <span class="info-text">{{ props.todo?.completed ? '已完成' : '待完成' }}</span>
+        <span v-if="props.todo?.priority === 1" class="time-indicator priority-high">
+          高优先级
+        </span>
         <span v-if="!props.todo?.completed && getTimeIndicator()" :class="['time-indicator', getTimeIndicatorClass()]">
           {{ getTimeIndicator() }}
         </span>
@@ -22,10 +25,7 @@
         <span class="info-label">创建</span>
         <span class="info-text">{{ props.todo ? formatDateTime(props.todo.createdAt) : '' }}</span>
       </div>
-      <div v-if="props.todo?.completed && props.todo?.completedAt" class="info-row">
-        <span class="info-label">完成</span>
-        <span class="info-text">{{ calculateDaysFromCompleted() }}天前</span>
-      </div>
+
       <div v-if="props.todo?.deadline && !props.todo?.completed" class="info-row">
         <span class="info-label">截止</span>
         <span class="info-text">{{ formatDateTime(props.todo.deadline) }}</span>
@@ -59,6 +59,13 @@
         <span>移除截止时间</span>
       </button>
       
+      <button v-if="props.todo?.completed" class="menu-btn" @click="onRemoveOldCompleted">
+        <svg class="menu-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 8V12L15 15M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>移除完成7天前</span>
+      </button>
+      
       <button class="menu-btn delete-btn" @click="onDeleteTodo">
         <svg class="menu-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -89,6 +96,7 @@ const emit = defineEmits<{
   removeDeadline: [];
   deleteTodo: []; // 添加删除事件
   editTodo: []; // 添加编辑事件
+  removeOldCompleted: []; // 移除旧的已完成任务
 }>();
 
 // 格式化时间
@@ -204,6 +212,11 @@ function onRemoveDeadline() {
 // 删除任务
 function onDeleteTodo() {
   emit('deleteTodo');
+}
+
+// 移除旧的已完成任务
+function onRemoveOldCompleted() {
+  emit('removeOldCompleted');
 }
 
 // 调整菜单位置以确保完整显示
@@ -358,6 +371,11 @@ watch(() => props.position, (newPos) => {
 .time-indicator.created {
   background: rgba(148, 163, 184, 0.1);
   color: #64748b;
+}
+
+.time-indicator.priority-high {
+  background: rgba(255, 152, 0, 0.1);
+  color: #f57c00;
 }
 
 /* 分割线 */
@@ -516,5 +534,10 @@ body.dark-theme .time-indicator.normal {
 body.dark-theme .time-indicator.created {
   background: rgba(148, 163, 184, 0.15);
   color: #94a3b8;
+}
+
+body.dark-theme .time-indicator.priority-high {
+  background: rgba(255, 152, 0, 0.15);
+  color: #ffb74d;
 }
 </style>

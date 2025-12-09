@@ -25,19 +25,19 @@ defineProps<Props>();
 /* Toast 内部提示样式 */
 .toast-notification {
   position: fixed;
-  top: 20px;
+  top: 16px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 3000;
-  padding: 12px 20px;
-  border-radius: 8px;
+  padding: 8px 16px;
+  border-radius: 6px;
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  font-size: 0.9rem;
-  font-weight: 600;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  font-size: 0.8rem;
+  font-weight: 500;
   animation: toast-slide-in 0.3s ease-out;
-  max-width: 300px;
-  min-width: 200px;
+  max-width: 280px;
+  min-width: 160px;
 }
 
 .toast-success {
@@ -61,11 +61,11 @@ defineProps<Props>();
 .toast-content {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .toast-icon {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   flex-shrink: 0;
 }
 

@@ -1,12 +1,12 @@
 <template>
   <div 
     :class="['todo-item', { completed: props.todo.completed }]"
-    @dblclick="editTodo"
+    @dblclick="togglePriority"
     @contextmenu.prevent="showContextMenu"
   >
     <span 
       class="todo-dot" 
-      :style="{ backgroundColor: props.todo.color || '#d2dbd6' }"
+      :style="{ backgroundColor: getPriorityColor() }"
     ></span>
     <span class="todo-text">{{ props.todo.text }}</span>
     
@@ -108,6 +108,7 @@ const emit = defineEmits<{
   delete: [index: number];
   contextmenu: [event: MouseEvent, todo: Todo];
   edit: [todo: Todo];
+  togglePriority: [todo: Todo];
 }>();
 
 function calculateDaysCreated(timestamp: number): number {
@@ -171,6 +172,15 @@ function deleteTodo() {
 
 function editTodo() {
   emit('edit', props.todo);
+}
+
+function togglePriority() {
+  emit('togglePriority', props.todo);
+}
+
+function getPriorityColor(): string {
+  // 优先级 1 = 橙色，0 = 灰色
+  return props.todo.priority === 1 ? '#FF9800' : '#d2dbd6';
 }
 
 function showContextMenu(event: MouseEvent) {
@@ -471,18 +481,38 @@ function getCountdownTooltip(): string {
 }
 
 /* 夜间主题 */
+body.dark-theme .todo-item {
+  background: rgba(42, 45, 52, 0.6);
+  border: none;
+  color: #e8eaed;
+  box-shadow: none;
+}
+
+body.dark-theme .todo-item:hover {
+  background: rgba(48, 52, 60, 0.7);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
 body.dark-theme .todo-item.completed {
-  background: rgba(40, 40, 40, 0.8);
+  background: rgba(35, 38, 44, 0.4);
+}
+
+body.dark-theme .todo-text {
+  color: #e8eaed;
+}
+
+body.dark-theme .todo-item.completed .todo-text {
+  color: #9ca3af;
 }
 
 body.dark-theme .action-btn {
-  background: rgba(40, 40, 40, 0.95);
-  color: #aaa;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: rgba(60, 65, 75, 0.9);
+  color: #9ca3af;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 body.dark-theme .action-btn:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 body.dark-theme .complete-btn:hover {
@@ -501,8 +531,8 @@ body.dark-theme .drag-btn:hover {
 }
 
 body.dark-theme .completed-indicator {
-  background: #666;
-  border-color: rgba(102, 102, 102, 0.6);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: #5f6368;
+  border-color: rgba(95, 99, 104, 0.4);
+  box-shadow: none;
 }
 </style>
