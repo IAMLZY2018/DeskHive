@@ -113,7 +113,7 @@ function onChange(evt: any) {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 2px;
   position: relative;
   z-index: 1;
 }
@@ -121,15 +121,14 @@ function onChange(evt: any) {
 .todo-list.with-border {
   background: transparent;
   border-radius: clamp(6px, 1.2vw, 8px);
-  border: 1px dashed transparent;
+  border: none;
   padding: clamp(2px, 0.5vh, 3px);
-  transition: background 0.3s ease, border-color 0.3s ease;
+  transition: background 0.3s ease;
 }
 
 /* 拖动悬停时的高亮效果 */
 .todo-list.with-border:has(.sortable-drag) {
   background: rgba(59, 130, 246, 0.05);
-  border-color: rgba(59, 130, 246, 0.3);
 }
 
 .todo-item-wrapper {
@@ -154,7 +153,6 @@ function onChange(evt: any) {
 
 /* 夜间主题 */
 body.dark-theme .todo-list.with-border {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: transparent;
 }
 </style>

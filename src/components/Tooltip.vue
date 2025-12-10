@@ -44,7 +44,7 @@ function handleMouseEnter() {
   // 先检测位置
   if (wrapperRef.value) {
     const rect = wrapperRef.value.getBoundingClientRect();
-    const tooltipHeight = 40; // 估计的提示框高度
+    const tooltipHeight = 60; // 估计的提示框高度（增加更多余量以避免遮挡）
     const spaceAbove = rect.top;
     
     // 如果上方空间不足，显示在下方
@@ -63,7 +63,6 @@ const tooltipStyle = computed(() => ({}));
 .tooltip-wrapper {
   position: relative;
   display: inline-flex;
-  z-index: 1;
 }
 
 .tooltip {
@@ -75,7 +74,7 @@ const tooltipStyle = computed(() => ({}));
   font-size: 0.7rem;
   line-height: 1.4;
   white-space: nowrap;
-  z-index: 99999;
+  z-index: 10000000;
   pointer-events: none;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(12px);

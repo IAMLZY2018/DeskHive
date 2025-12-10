@@ -92,6 +92,8 @@
 </template>
 
 <script setup lang="ts">
+import { inject, computed } from 'vue';
+import type { Ref } from 'vue';
 import Tooltip from './Tooltip.vue';
 import type { Todo } from '../types';
 
@@ -106,28 +108,49 @@ const props = defineProps<Props>();
 
 const emit = defineEmits<{
   toggle: [index: number];
-  delete: [index: number];
   contextmenu: [event: MouseEvent, todo: Todo];
   edit: [todo: Todo];
   togglePriority: [todo: Todo];
 }>();
 
-function calculateDaysCreated(timestamp: number): number {
-  const now = Date.now();
-  const createdTime = timestamp * 1000;
+// 注入当前时间戳（用于倒计时实时更新）
+const currentTimestamp = inject<Ref<number>>('currentTimestamp');
+
+// 计算已创建天数（响应式）
+const daysCreated = computed(() => {
+  // 依赖 currentTimestamp 以实现自动更新
+  const now = currentTimestamp?.value || Date.now();
+  const createdTime = props.todo.createdAt * 1000;
   const diffMs = now - createdTime;
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  return diffDays;
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+});
+
+function calculateDaysCreated(timestamp: number): number {
+  // 使用计算属性的值
+  return daysCreated.value;
 }
+
+// 判断是否逾期（响应式）
+const isOverdueComputed = computed(() => {
+  if (!props.todo.deadline) return false;
+  // 依赖 currentTimestamp 以实现自动更新
+  const now = currentTimestamp?.value || Date.now();
+  return props.todo.deadline < Math.floor(now / 1000);
+});
 
 function isOverdue(deadline: number): boolean {
-  const now = Math.floor(Date.now() / 1000);
-  return deadline < now;
+  // 使用计算属性的值
+  return isOverdueComputed.value;
 }
 
-function getCountdownText(deadline: number): string {
-  const now = Math.floor(Date.now() / 1000);
-  const diff = deadline - now;
+// 倒计时文本（响应式）
+const countdownText = computed(() => {
+  if (!props.todo.deadline) return '';
+  
+  // 依赖 currentTimestamp 以实现自动更新
+  const now = currentTimestamp?.value || Date.now();
+  const nowSeconds = Math.floor(now / 1000);
+  const diff = props.todo.deadline - nowSeconds;
   
   if (diff <= 0) {
     const overdueDiff = Math.abs(diff);
@@ -161,14 +184,15 @@ function getCountdownText(deadline: number): string {
     const hours = Math.floor((diff % 86400) / 3600);
     return hours > 0 ? `${days}天${hours}时` : `${days}天`;
   }
+});
+
+function getCountdownText(deadline: number): string {
+  // 使用计算属性的值
+  return countdownText.value;
 }
 
 function toggleTodo() {
   emit('toggle', props.index);
-}
-
-function deleteTodo() {
-  emit('delete', props.index);
 }
 
 function editTodo() {
@@ -196,12 +220,14 @@ function showContextMenu(event: MouseEvent) {
 //   return `${year}-${month}-${day}`;
 // }
 
-function formatDeadlineDate(timestamp: number): string {
+function formatDeadlineDateTime(timestamp: number): string {
   const date = new Date(timestamp * 1000);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
 function getDaysIndicatorTooltip(): string {
@@ -216,14 +242,14 @@ function getCompletedDaysTooltip(): string {
 
 function getCountdownTooltip(): string {
   if (!props.todo.deadline) return '';
-  const deadlineDate = formatDeadlineDate(props.todo.deadline);
+  const deadlineDateTime = formatDeadlineDateTime(props.todo.deadline);
   const now = Math.floor(Date.now() / 1000);
   const isOverdueNow = props.todo.deadline < now;
   
   if (isOverdueNow) {
-    return `已超时 ${deadlineDate}`;
+    return `已超时 ${deadlineDateTime}`;
   } else {
-    return `截止 ${deadlineDate}`;
+    return `截止 ${deadlineDateTime}`;
   }
 }
 </script>
@@ -232,7 +258,7 @@ function getCountdownTooltip(): string {
 .todo-item {
   background: rgba(255, 255, 255, 0.9);
   padding: 5px 9px;
-  margin-bottom: 3.5px;
+  margin-bottom: 0;
   border-radius: 7px;
   display: flex;
   align-items: center;
@@ -245,6 +271,7 @@ function getCountdownTooltip(): string {
   cursor: default;
   position: relative;
   width: 100%;
+  z-index: 1;
 }
 
 .todo-item:last-child {
@@ -255,6 +282,7 @@ function getCountdownTooltip(): string {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   border-color: rgba(229, 231, 235, 0.2);
+  z-index: 100;
 }
 
 /* 悬浮操作按钮区域 */
@@ -268,7 +296,7 @@ function getCountdownTooltip(): string {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease;
-  z-index: 10;
+  z-index: 1000000;
 }
 
 .todo-item:hover .action-buttons {
@@ -483,37 +511,37 @@ function getCountdownTooltip(): string {
 
 /* 夜间主题 */
 body.dark-theme .todo-item {
-  background: rgba(42, 45, 52, 0.6);
+  background: rgba(20, 20, 20, 0.7);
   border: none;
-  color: #e8eaed;
+  color: #e0e0e0;
   box-shadow: none;
 }
 
 body.dark-theme .todo-item:hover {
-  background: rgba(48, 52, 60, 0.7);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: rgba(30, 30, 30, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 body.dark-theme .todo-item.completed {
-  background: rgba(35, 38, 44, 0.4);
+  background: rgba(15, 15, 15, 0.5);
 }
 
 body.dark-theme .todo-text {
-  color: #e8eaed;
+  color: #e0e0e0;
 }
 
 body.dark-theme .todo-item.completed .todo-text {
-  color: #9ca3af;
+  color: #808080;
 }
 
 body.dark-theme .action-btn {
-  background: rgba(60, 65, 75, 0.9);
-  color: #9ca3af;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  background: rgba(35, 35, 35, 0.95);
+  color: #a0a0a0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 body.dark-theme .action-btn:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 body.dark-theme .complete-btn:hover {
@@ -532,8 +560,8 @@ body.dark-theme .drag-btn:hover {
 }
 
 body.dark-theme .completed-indicator {
-  background: #5f6368;
-  border-color: rgba(95, 99, 104, 0.4);
+  background: #404040;
+  border-color: rgba(64, 64, 64, 0.4);
   box-shadow: none;
 }
 </style>

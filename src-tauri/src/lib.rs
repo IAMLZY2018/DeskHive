@@ -19,6 +19,7 @@ mod data;
 mod window;
 mod system;
 mod utils;
+mod notification;
 
 // 重新导出需要的类型和函数
 use data::{
@@ -82,6 +83,21 @@ async fn emit_priority_color_changed(app: tauri::AppHandle, color: String) -> Re
     Ok(())
 }
 
+// Tauri 命令：测试通知功能
+#[tauri::command]
+async fn test_notification(app: tauri::AppHandle) -> Result<(), String> {
+    use tauri_plugin_notification::NotificationExt;
+    
+    app.notification()
+        .builder()
+        .title("DeskHive 测试通知")
+        .body("通知功能正常工作！")
+        .show()
+        .map_err(|e| e.to_string())?;
+    
+    Ok(())
+}
+
 // 检查是否已经有一个实例在运行
 #[cfg(target_os = "windows")]
 fn is_single_instance() -> bool {
@@ -123,6 +139,7 @@ pub fn run() {
     }
     
     tauri::Builder::default()
+        .plugin(tauri_plugin_notification::init())
         .invoke_handler(tauri::generate_handler![
             // 数据相关命令
             save_todo_data, 
@@ -154,7 +171,8 @@ pub fn run() {
             is_dev_mode,
             quit_app,
             emit_theme_changed,
-            emit_priority_color_changed
+            emit_priority_color_changed,
+            test_notification
         ])
         .setup(|app| {
             // 初始化日志系统
@@ -168,6 +186,17 @@ pub fn run() {
 
             // 创建系统托盘
             system::tray::create_tray(app)?;
+
+            // 启动通知检查定时器
+            let app_handle = app.handle().clone();
+            std::thread::spawn(move || {
+                let notification_manager = notification::NotificationManager::new(app_handle);
+                loop {
+                    // 每分钟检查一次
+                    std::thread::sleep(std::time::Duration::from_secs(60));
+                    notification_manager.check_and_notify();
+                }
+            });
 
             // 获取主窗口
             if let Some(window) = app.get_webview_window("main") {

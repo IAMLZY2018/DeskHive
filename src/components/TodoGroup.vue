@@ -19,11 +19,17 @@
       <div class="group-actions">
         <!-- 排序按钮 -->
         <div class="sort-buttons">
-          <button class="sort-btn" @click.stop="moveUp" title="上移">▲</button>
-          <button class="sort-btn" @click.stop="moveDown" title="下移">▼</button>
+          <Tooltip text="上移分组" :delay="500">
+            <button class="sort-btn" @click.stop="moveUp">▲</button>
+          </Tooltip>
+          <Tooltip text="下移分组" :delay="500">
+            <button class="sort-btn" @click.stop="moveDown">▼</button>
+          </Tooltip>
         </div>
         
-        <button class="group-menu-btn" @click.stop="showGroupMenu">⋮</button>
+        <Tooltip text="更多操作" :delay="500">
+          <button class="group-menu-btn" @click.stop="showGroupMenu">⋮</button>
+        </Tooltip>
       </div>
       
       <!-- 任务数量 - 放到最后 -->
@@ -55,6 +61,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import TodoList from './TodoList.vue';
+import Tooltip from './Tooltip.vue';
 import type { TodoGroup, Todo } from '../types';
 
 interface Props {
@@ -133,10 +140,14 @@ function handleDrop(_event: DragEvent) {
 
 <style scoped>
 .todo-group {
-  margin-bottom: 7px;
+  margin-bottom: 2px;
   width: 100%;
   position: relative;
   z-index: 1;
+}
+
+.todo-group:hover {
+  z-index: 100;
 }
 
 .group-header {
@@ -279,45 +290,45 @@ function handleDrop(_event: DragEvent) {
 
 /* 夜间主题 */
 body.dark-theme .group-header {
-  background: rgba(42, 45, 52, 0.5);
+  background: rgba(20, 20, 20, 0.6);
   border: none;
 }
 
 body.dark-theme .group-header:hover {
-  background: rgba(48, 52, 60, 0.6);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: rgba(30, 30, 30, 0.7);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 body.dark-theme .group-header.drag-over {
-  background: rgba(0, 122, 255, 0.15);
-  border: 1px solid rgba(0, 122, 255, 0.4);
-  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+  background: rgba(0, 122, 255, 0.2);
+  border: 1px solid rgba(0, 122, 255, 0.5);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.3);
 }
 
 body.dark-theme .sort-btn {
-  color: #9ca3af;
+  color: #808080;
 }
 
 body.dark-theme .sort-btn:hover {
-  color: #e8eaed;
-  background: rgba(255, 255, 255, 0.05);
+  color: #e0e0e0;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 body.dark-theme .group-name {
-  color: #e8eaed;
+  color: #e0e0e0;
 }
 
 body.dark-theme .collapse-indicator {
-  color: #9ca3af;
+  color: #808080;
 }
 
 body.dark-theme .group-menu-btn {
-  color: #9ca3af;
+  color: #808080;
 }
 
 body.dark-theme .group-menu-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #e8eaed;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e0e0e0;
 }
 
 .empty-group-hint {
@@ -335,7 +346,7 @@ body.dark-theme .group-menu-btn:hover {
 }
 
 body.dark-theme .empty-group-hint {
-  color: #6b7280;
+  color: #505050;
   background: transparent;
 }
 </style>

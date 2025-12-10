@@ -1,6 +1,6 @@
 <template>
-  <div v-if="show" class="dialog-overlay" @click="onClose">
-    <div class="dialog-box" @click.stop>
+  <div v-if="show" class="dialog-overlay" @click="onClose" @keydown.esc="onClose">
+    <div class="dialog-box" @click.stop @keydown.stop>
       <div class="dialog-header">
         <svg class="dialog-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -19,10 +19,13 @@
             <span>日期</span>
           </label>
           <input 
+            ref="dateInput"
             type="date" 
             id="deadline-date" 
             v-model="deadlineDate" 
             class="dialog-input"
+            @keydown.tab="handleShiftTabFromDate"
+            tabindex="1"
           >
         </div>
         
@@ -35,22 +38,36 @@
             <span>时间</span>
           </label>
           <input 
+            ref="timeInput"
             type="time" 
             id="deadline-time" 
             v-model="deadlineTime" 
             class="dialog-input"
+            @keydown.enter.prevent="handleEnterKey"
+            tabindex="2"
           >
         </div>
       </div>
       
       <div class="dialog-buttons">
-        <button class="dialog-btn cancel" @click="onClose">
+        <button 
+          ref="cancelButton" 
+          class="dialog-btn cancel" 
+          @click="onClose" 
+          @keydown.tab="handleTabFromCancel"
+          tabindex="4"
+        >
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
           <span>取消</span>
         </button>
-        <button class="dialog-btn confirm" @click="onConfirm">
+        <button 
+          ref="confirmButton" 
+          class="dialog-btn confirm" 
+          @click="onConfirm" 
+          tabindex="3"
+        >
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -62,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, nextTick } from 'vue';
 
 interface Props {
   show: boolean;
@@ -77,6 +94,12 @@ interface Emits {
 
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
+
+// 输入框和按钮引用
+const dateInput = ref<HTMLInputElement | null>(null);
+const timeInput = ref<HTMLInputElement | null>(null);
+const confirmButton = ref<HTMLButtonElement | null>(null);
+const cancelButton = ref<HTMLButtonElement | null>(null);
 
 // 获取当前日期和时间
 function getCurrentDateTime() {
@@ -112,12 +135,18 @@ watch(() => props.initialTime, (newVal) => {
   }
 });
 
-// 监听show属性，当对话框打开时重置为当前时间（如果没有初始值）
+// 监听show属性，当对话框打开时重置为当前时间（如果没有初始值）并聚焦到日期输入框
 watch(() => props.show, (newVal) => {
-  if (newVal && !props.initialDate && !props.initialTime) {
-    const { date, time } = getCurrentDateTime();
-    deadlineDate.value = date;
-    deadlineTime.value = time;
+  if (newVal) {
+    if (!props.initialDate && !props.initialTime) {
+      const { date, time } = getCurrentDateTime();
+      deadlineDate.value = date;
+      deadlineTime.value = time;
+    }
+    // 对话框打开后自动聚焦到日期输入框
+    nextTick(() => {
+      dateInput.value?.focus();
+    });
   }
 });
 
@@ -128,6 +157,37 @@ function onClose() {
 function onConfirm() {
   if (deadlineDate.value && deadlineTime.value) {
     emit('confirm', deadlineDate.value, deadlineTime.value);
+  }
+}
+
+// 从日期输入框按 Tab 后，聚焦到时间输入框
+function focusTimeInput() {
+  nextTick(() => {
+    timeInput.value?.focus();
+  });
+}
+
+// 处理时间输入框的回车键
+function handleEnterKey() {
+  if (deadlineDate.value && deadlineTime.value) {
+    onConfirm();
+  }
+}
+
+// 处理 Tab 键循环（焦点陷阱）
+function handleTabFromCancel(event: KeyboardEvent) {
+  if (!event.shiftKey) {
+    // 正向 Tab：从取消按钮回到日期输入框
+    event.preventDefault();
+    dateInput.value?.focus();
+  }
+}
+
+function handleShiftTabFromDate(event: KeyboardEvent) {
+  if (event.shiftKey) {
+    // 反向 Tab：从日期输入框回到取消按钮
+    event.preventDefault();
+    cancelButton.value?.focus();
   }
 }
 </script>

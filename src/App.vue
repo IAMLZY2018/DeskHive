@@ -7,6 +7,23 @@
       </div>
       <div class="header-right">
         <div class="progress-indicator">{{ completedTasksCount }}/{{ totalTasksCount }}</div>
+        <Tooltip :text="isTimelineView ? '切换到列表视图' : '切换到时间轴视图'">
+          <button class="view-toggle-btn" @click="toggleView">
+            <svg v-if="!isTimelineView" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- 树状时间轴图标 -->
+              <path d="M6 3v18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="6" cy="6" r="2" fill="currentColor"/>
+              <path d="M6 6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="6" cy="12" r="2" fill="currentColor"/>
+              <path d="M6 12h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="6" cy="18" r="2" fill="currentColor"/>
+              <path d="M6 18h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </Tooltip>
         <button class="settings-btn" @click="openSettings">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -26,10 +43,25 @@
       <!-- 全部任务完成状态 -->
       <AllCompletedState v-if="showAllCompletedState" />
 
-      <!-- 分组列表 -->
-      <div v-if="!showEmptyState && !showAllCompletedState" class="groups-container">
+      <!-- 时间轴视图 -->
+      <Transition name="view-fade" mode="out-in">
+        <TimelineView
+          v-if="isTimelineView && !showEmptyState && !showAllCompletedState"
+          key="timeline"
+          :todos="todos"
+          :groups="groups"
+          :priority-color="priorityColor"
+          :deadline-priority="timelineDeadlinePriority"
+          @toggle="handleTimelineToggle"
+          @delete="handleTimelineDelete"
+          @contextmenu="showTodoContextMenu"
+          @toggle-priority="handleTogglePriority"
+        />
+
+        <!-- 分组列表 -->
+        <div v-else-if="!showEmptyState && !showAllCompletedState" key="list" class="groups-container">
         <!-- 未分组的任务 - 直接显示 -->
-        <div v-if="getGroupTodos('default', false).length > 0">
+        <div v-if="getGroupTodos('default', false).length > 0" class="default-tasks">
           <TodoList
             :todos="getGroupTodos('default', false)"
             :show-border="false"
@@ -103,7 +135,8 @@
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </Transition>
     </div>
     
     <!-- 底部添加任务区域 -->
@@ -170,13 +203,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, provide, nextTick } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import type { Todo, TodoGroup, DateInfo } from './types';
 import EmptyState from './components/EmptyState.vue';
 import AllCompletedState from './components/AllCompletedState.vue';
 import TodoGroupComponent from './components/TodoGroup.vue';
+import TimelineView from './components/TimelineView.vue';
+import Tooltip from './components/Tooltip.vue';
 import TodoList from './components/TodoList.vue';
 import AddTaskMenu from './components/AddTaskMenu.vue';
 import ContextMenu from './components/ContextMenu.vue';
@@ -193,6 +228,8 @@ const dateInfo = ref<DateInfo | null>(null);
 const isCompletedCollapsed = ref(true);
 const isDragDisabled = ref(false);
 const priorityColor = ref('#FF9800');
+const isTimelineView = ref(false);
+const timelineDeadlinePriority = ref(true);
 
 // 右键菜单状态
 const showContextMenu = ref(false);
@@ -213,6 +250,7 @@ const showDeadlineDialog = ref(false);
 const deadlineDate = ref('');
 const deadlineTime = ref('');
 const dialogTodo = ref<Todo | null>(null);
+const isSettingDeadline = ref(false); // 添加标志位，防止重复操作
 
 const showEditDialog = ref(false);
 const editDialogTodo = ref<Todo | null>(null);
@@ -222,8 +260,9 @@ const showToast = ref(false);
 const toastMessage = ref('');
 const toastType = ref<'error' | 'success' | 'warning'>('error');
 
-// 定时器
+// 定时器和当前时间戳（用于倒计时实时更新）
 const countdownTimer = ref<number | null>(null);
+const currentTimestamp = ref<number>(Date.now()); // 当前时间戳，每30秒更新一次
 
 // 拖动状态
 const draggedTodo = ref<Todo | null>(null);
@@ -601,46 +640,52 @@ async function handleEditConfirm(newText: string) {
 
 // 打开截止时间设置对话框
 function openDeadlineDialog() {
-  if (!contextMenuTodo.value) return;
+  if (!contextMenuTodo.value || isSettingDeadline.value) return;
   
   dialogTodo.value = contextMenuTodo.value;
   
   if (contextMenuTodo.value.deadline) {
+    // 如果有截止时间，使用原来的截止时间
     const deadlineDateTime = new Date(contextMenuTodo.value.deadline * 1000);
     deadlineDate.value = deadlineDateTime.toISOString().split('T')[0];
     deadlineTime.value = deadlineDateTime.toTimeString().slice(0, 5);
   } else {
+    // 如果没有截止时间，使用当前时间的 1 小时后
     const now = new Date();
-    const oneHourLater = new Date(now);
-    oneHourLater.setHours(now.getHours() + 1);
+    const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000); // 加 1 小时（毫秒）
     
     deadlineDate.value = oneHourLater.toISOString().split('T')[0];
     deadlineTime.value = `${oneHourLater.getHours().toString().padStart(2, '0')}:${oneHourLater.getMinutes().toString().padStart(2, '0')}`;
   }
   
   hideContextMenu();
-  showDeadlineDialog.value = true;
+  // 延迟显示对话框，确保右键菜单完全关闭
+  setTimeout(() => {
+    showDeadlineDialog.value = true;
+  }, 50);
 }
 
 // 关闭截止时间设置对话框
 function closeDeadlineDialog() {
   showDeadlineDialog.value = false;
+  isSettingDeadline.value = false;
   dialogTodo.value = null;
   deadlineDate.value = '';
   deadlineTime.value = '';
 }
 
 // 处理截止时间确认
-function handleDeadlineConfirm(date: string, time: string) {
+async function handleDeadlineConfirm(date: string, time: string) {
+  // 防止重复提交
+  if (isSettingDeadline.value) return;
+  isSettingDeadline.value = true;
+  
   deadlineDate.value = date;
   deadlineTime.value = time;
-  setDeadline();
-}
-
-// 设置截止时间
-function setDeadline() {
+  
   if (!dialogTodo.value || !deadlineDate.value || !deadlineTime.value) {
     showToastMessage('请选择日期和时间', 'warning');
+    isSettingDeadline.value = false;
     return;
   }
   
@@ -650,31 +695,53 @@ function setDeadline() {
   const now = Math.floor(Date.now() / 1000);
   if (deadlineTimestamp <= now - 60) {
     showToastMessage('截止时间必须在未来', 'error');
+    isSettingDeadline.value = false;
     return;
   }
   
-  const todoIndex = todos.value.findIndex(t => t.id === dialogTodo.value!.id);
-  if (todoIndex !== -1) {
-    todos.value[todoIndex].deadline = deadlineTimestamp;
-    saveTodoData();
-    showToastMessage('截止时间设置成功', 'success');
-  }
+  const todoId = dialogTodo.value.id;
+  const todoIndex = todos.value.findIndex(t => t.id === todoId);
   
-  closeDeadlineDialog();
+  if (todoIndex !== -1) {
+    // 创建新的 todo 对象，触发响应式更新
+    const updatedTodo = { ...todos.value[todoIndex], deadline: deadlineTimestamp };
+    todos.value[todoIndex] = updatedTodo;
+    
+    // 立即关闭对话框
+    closeDeadlineDialog();
+    
+    // 强制触发响应式更新
+    todos.value = [...todos.value];
+    
+    // 异步保存数据（不等待）
+    saveTodoData();
+    
+    // 显示成功提示
+    showToastMessage('截止时间设置成功', 'success');
+  } else {
+    isSettingDeadline.value = false;
+  }
+}
+
+// 设置截止时间（已废弃，逻辑已移至 handleDeadlineConfirm）
+function setDeadline() {
+  // 此函数已不再使用，保留以防其他地方调用
+  console.warn('setDeadline() 已废弃，请使用 handleDeadlineConfirm()');
 }
 
 // 移除截止时间
 function removeDeadline() {
   if (!contextMenuTodo.value) return;
   
-  const todoIndex = todos.value.findIndex(t => t.id === contextMenuTodo.value!.id);
+  const todoId = contextMenuTodo.value.id;
+  hideContextMenu();
+  
+  const todoIndex = todos.value.findIndex(t => t.id === todoId);
   if (todoIndex !== -1) {
     todos.value[todoIndex].deadline = undefined;
     saveTodoData();
     showToastMessage('截止时间移除成功', 'success');
   }
-  
-  hideContextMenu();
 }
 
 // 显示 Toast 提示
@@ -884,8 +951,8 @@ function handleTodoChange(groupId: string, event: any) {
   }
 }
 
-// 保存任务数据
-async function saveTodoData() {
+// 保存任务数据（异步，不等待完成，不阻塞UI）
+function saveTodoData() {
   try {
     const todosForBackend = todos.value.map(todo => ({
       id: todo.id,
@@ -899,17 +966,50 @@ async function saveTodoData() {
       priority: todo.priority || 0
     }));
     
+    // 异步保存，不等待结果
+    invoke('save_todo_data_with_groups', {
+      todos: todosForBackend
+    }).then(() => {
+      console.log('任务数据保存成功');
+    }).catch(error => {
+      console.error('保存任务数据失败:', error);
+    });
+  } catch (error) {
+    console.error('保存任务数据失败:', error);
+  }
+}
+
+// 保存任务数据并等待完成（用于关键操作）
+async function saveTodoDataAndWait() {
+  try {
+    const todosForBackend = todos.value.map(todo => ({
+      id: todo.id,
+      text: todo.text,
+      completed: todo.completed,
+      created_at: todo.createdAt,
+      completed_at: todo.completedAt || null,
+      deadline: todo.deadline || null,
+      order: todo.order,
+      group_id: todo.groupId,
+      priority: todo.priority || 0
+    }));
+    
+    // 等待保存完成
     await invoke('save_todo_data_with_groups', {
       todos: todosForBackend
     });
     console.log('任务数据保存成功');
   } catch (error) {
     console.error('保存任务数据失败:', error);
+    throw error; // 重新抛出错误，让调用者知道保存失败
   }
 }
 
-// 保存分组数据
+// 保存分组数据（异步，不阻塞UI）
 async function saveGroupData() {
+  // 使用 Promise.resolve() 确保异步执行，不阻塞主线程
+  await Promise.resolve();
+  
   try {
     const groupsForBackend = groups.value.map(group => ({
       id: group.id,
@@ -918,10 +1018,12 @@ async function saveGroupData() {
       collapsed: group.collapsed
     }));
     
-    await invoke('save_group_data', {
+    // 异步保存，不等待结果
+    invoke('save_group_data', {
       groups: groupsForBackend
+    }).catch(error => {
+      console.error('保存分组数据失败:', error);
     });
-    console.log('分组数据保存成功');
   } catch (error) {
     console.error('保存分组数据失败:', error);
   }
@@ -991,13 +1093,44 @@ async function loadAppSettings() {
       hotkey: string,
       theme: string,
       priority_color: string,
-      window_level: string
+      window_level: string,
+      timeline_deadline_priority: boolean
     };
     isDragDisabled.value = settings.disable_drag;
     priorityColor.value = settings.priority_color || '#FF9800';
+    timelineDeadlinePriority.value = settings.timeline_deadline_priority !== undefined ? settings.timeline_deadline_priority : true;
     document.body.className = settings.theme === 'dark' ? 'dark-theme' : '';
   } catch (error) {
     console.error('加载应用设置失败:', error);
+  }
+}
+
+// 切换视图
+function toggleView() {
+  isTimelineView.value = !isTimelineView.value;
+}
+
+// 处理时间轴视图中的任务切换
+function handleTimelineToggle(todo: Todo) {
+  const todoIndex = todos.value.findIndex(t => t.id === todo.id);
+  if (todoIndex !== -1) {
+    todos.value[todoIndex].completed = !todos.value[todoIndex].completed;
+    if (todos.value[todoIndex].completed) {
+      todos.value[todoIndex].completedAt = Math.floor(Date.now() / 1000);
+    } else {
+      todos.value[todoIndex].completedAt = undefined;
+    }
+    saveTodoData();
+  }
+}
+
+// 处理时间轴视图中的任务删除
+function handleTimelineDelete(todo: Todo) {
+  const todoIndex = todos.value.findIndex(t => t.id === todo.id);
+  if (todoIndex !== -1) {
+    todos.value.splice(todoIndex, 1);
+    saveTodoData();
+    showToastMessage('任务已删除', 'success');
   }
 }
 
@@ -1027,15 +1160,45 @@ async function listenPriorityColorChange() {
   });
 }
 
-// 启动倒计时更新定时器
+// 启动倒计时更新定时器（优化版：只在用户不交互时更新）
 function startCountdownTimer() {
+  // 清理旧的定时器
   if (countdownTimer.value) {
     clearInterval(countdownTimer.value);
   }
   
+  let lastInteractionTime = Date.now();
+  
+  // 监听用户交互，记录最后交互时间
+  const updateInteractionTime = () => {
+    lastInteractionTime = Date.now();
+  };
+  
+  document.addEventListener('mousedown', updateInteractionTime);
+  document.addEventListener('contextmenu', updateInteractionTime);
+  document.addEventListener('click', updateInteractionTime);
+  
+  // 每30秒更新一次时间戳
   countdownTimer.value = window.setInterval(() => {
-    todos.value = [...todos.value];
-  }, 60000);
+    // 只在用户最近5秒内没有交互时才更新
+    const timeSinceLastInteraction = Date.now() - lastInteractionTime;
+    if (timeSinceLastInteraction < 5000) {
+      return; // 用户正在交互，跳过更新
+    }
+    
+    // 检查是否有需要更新的任务
+    const hasTimeSensitiveTasks = todos.value.some(t => 
+      (!t.completed && t.deadline) || // 有截止时间的未完成任务
+      (!t.completed && Date.now() - t.createdAt * 1000 >= 86400000) // 创建超过1天的未完成任务
+    );
+    
+    if (hasTimeSensitiveTasks) {
+      // 使用 requestAnimationFrame 在浏览器空闲时更新
+      requestAnimationFrame(() => {
+        currentTimestamp.value = Date.now();
+      });
+    }
+  }, 30000); // 30秒检查一次
 }
 
 // 阻止浏览器默认右键菜单
@@ -1045,6 +1208,9 @@ function preventDefaultContextMenu(event: MouseEvent) {
     event.preventDefault();
   }
 }
+
+// 提供当前时间戳给子组件（用于倒计时实时更新）
+provide('currentTimestamp', currentTimestamp);
 
 // 组件挂载
 onMounted(async () => {
@@ -1067,9 +1233,11 @@ onMounted(async () => {
 
 // 组件卸载
 onUnmounted(() => {
+  // 清理定时器（如果存在）
   if (countdownTimer.value) {
     clearInterval(countdownTimer.value);
   }
+  // 移除事件监听器
   document.removeEventListener('contextmenu', preventDefaultContextMenu);
 });
 </script>
@@ -1089,7 +1257,7 @@ html, body, #app {
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: transparent;
+  background: #ffffff;
   color: #333;
 }
 
@@ -1107,6 +1275,7 @@ body {
   flex-direction: column;
   overflow: hidden;
   border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 header {
@@ -1121,16 +1290,18 @@ header {
   font-weight: 600;
   backdrop-filter: blur(10px);
   min-height: 36px;
+  position: relative;
+  z-index: 1000;
 }
 
 .header-title {
-  flex: 1;
-  text-align: center;
+  flex: 0 0 auto;
+  text-align: left;
   cursor: default;
   user-select: none;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
 }
 
@@ -1144,6 +1315,7 @@ header {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-left: auto;
 }
 
 .progress-indicator {
@@ -1160,6 +1332,7 @@ header {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.view-toggle-btn,
 .settings-btn {
   width: 26px;
   height: 26px;
@@ -1179,12 +1352,14 @@ header {
   padding: 0;
 }
 
+.view-toggle-btn svg,
 .settings-btn svg {
   width: 16px;
   height: 16px;
   transition: transform 0.3s ease;
 }
 
+.view-toggle-btn:hover,
 .settings-btn:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   background: rgba(255, 255, 255, 0.95);
@@ -1192,6 +1367,18 @@ header {
 
 .settings-btn:hover svg {
   transform: rotate(90deg);
+}
+
+.view-toggle-btn svg {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.view-toggle-btn:hover svg {
+  transform: scale(1.1);
+}
+
+.view-toggle-btn:active svg {
+  transform: scale(0.95) rotate(180deg);
 }
 
 .todo-container {
@@ -1219,7 +1406,17 @@ header {
   min-height: 100%;
 }
 
+.default-tasks {
+  margin-bottom: 2px;
+  position: relative;
+  z-index: 1;
+  padding-left: 5px;
+  padding-right: 5px;
+}
 
+.default-tasks:hover {
+  z-index: 100;
+}
 
 .active-groups {
   flex: 0 0 auto;
@@ -1364,58 +1561,85 @@ header {
   }
 }
 
+/* 视图切换动画 */
+.view-fade-enter-active,
+.view-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.view-fade-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.view-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.view-fade-enter-active {
+  transition-delay: 0.15s;
+}
+
 /* 夜间主题 */
+body.dark-theme {
+  background: #0a0a0a;
+  color: #e0e0e0;
+}
+
 body.dark-theme .container {
-  background: #1a1d23;
+  background: #0a0a0a;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 body.dark-theme header {
-  background: rgba(30, 33, 39, 0.8);
+  background: rgba(15, 15, 15, 0.9);
   border-bottom: none;
-  color: #e8eaed;
+  color: #e0e0e0;
 }
 
 body.dark-theme .progress-indicator {
-  background: rgba(42, 45, 52, 0.8);
-  color: #e8eaed;
+  background: rgba(25, 25, 25, 0.9);
+  color: #e0e0e0;
   border: none;
 }
 
+body.dark-theme .view-toggle-btn,
 body.dark-theme .settings-btn {
-  background: rgba(42, 45, 52, 0.8);
-  color: #e8eaed;
+  background: rgba(25, 25, 25, 0.9);
+  color: #e0e0e0;
   border: none;
 }
 
 body.dark-theme .completed-group {
-  border-top: 1px dashed rgba(255, 255, 255, 0.05);
+  border-top: 1px dashed rgba(255, 255, 255, 0.03);
 }
 
 body.dark-theme .completed-group .group-header {
-  background: rgba(42, 45, 52, 0.5);
+  background: rgba(20, 20, 20, 0.6);
   border: none;
 }
 
 body.dark-theme .completed-group .group-header:hover {
-  background: rgba(48, 52, 60, 0.6);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: rgba(30, 30, 30, 0.7);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 body.dark-theme .group-name {
-  color: #e8eaed;
+  color: #e0e0e0;
 }
 
 body.dark-theme .collapse-indicator {
-  color: #9ca3af;
+  color: #808080;
 }
 
 body.dark-theme .clear-completed-btn {
-  color: #9ca3af;
+  color: #808080;
 }
 
 body.dark-theme .clear-completed-btn:hover {
-  background: rgba(244, 67, 54, 0.15);
-  color: #f87171;
+  background: rgba(244, 67, 54, 0.2);
+  color: #ff6b6b;
 }
 
 body.dark-theme .group-icon circle {

@@ -243,38 +243,38 @@ onUnmounted(() => {
 
 /* 夜间主题 */
 body.dark-theme .add-task {
-  background: rgba(24, 26, 27, 0.8);
-  border-top: 1px solid rgba(231, 233, 237, 0.2);
+  background: rgba(15, 15, 15, 0.9);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 body.dark-theme .add-task input {
-  background: rgba(37, 38, 39, 0.8);
-  color: #e7e9ed;
-  border-color: rgba(231, 233, 237, 0.2);
+  background: rgba(20, 20, 20, 0.9);
+  color: #e0e0e0;
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 body.dark-theme .add-task input::placeholder {
-  color: rgba(231, 233, 237, 0.5);
+  color: rgba(255, 255, 255, 0.3);
 }
 
 body.dark-theme .add-btn {
-  background: rgba(37, 38, 39, 0.9);
-  color: #e7e9ed;
-  border-color: rgba(231, 233, 237, 0.2);
+  background: rgba(20, 20, 20, 0.95);
+  color: #e0e0e0;
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 body.dark-theme .context-menu {
-  background: rgba(37, 38, 39, 0.95);
-  border-color: rgba(231, 233, 237, 0.3);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  background: rgba(20, 20, 20, 0.98);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
 body.dark-theme .menu-item {
-  color: #e7e9ed;
+  color: #e0e0e0;
 }
 
 body.dark-theme .menu-item:hover {
-  background: rgba(0, 122, 255, 0.2);
+  background: rgba(0, 122, 255, 0.25);
   transform: translateX(2px);
 }
 </style>

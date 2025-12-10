@@ -17,6 +17,30 @@ pub async fn toggle_main_window(app: tauri::AppHandle) -> Result<(), String> {
                 if !settings.silent_start {
                     let _ = window.set_focus();
                 }
+                
+                // 如果窗口层级是"置于桌面"，需要重新应用该设置
+                // 因为 show() 和 set_focus() 可能会改变窗口层级
+                if settings.window_level == "always_on_bottom" {
+                    #[cfg(target_os = "windows")]
+                    {
+                        use windows::Win32::Foundation::HWND;
+                        use windows::Win32::UI::WindowsAndMessaging::{
+                            SetWindowPos, HWND_BOTTOM, SWP_NOMOVE, SWP_NOSIZE, SWP_NOACTIVATE
+                        };
+                        
+                        if let Ok(hwnd) = window.hwnd() {
+                            unsafe {
+                                let window_hwnd = HWND(hwnd.0 as _);
+                                let _ = SetWindowPos(
+                                    window_hwnd,
+                                    HWND_BOTTOM,
+                                    0, 0, 0, 0,
+                                    SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE
+                                );
+                            }
+                        }
+                    }
+                }
             }
             Err(_) => {
                 let _ = window.show();
@@ -24,6 +48,29 @@ pub async fn toggle_main_window(app: tauri::AppHandle) -> Result<(), String> {
                 let settings = load_app_settings(app.clone()).await.unwrap_or_default();
                 if !settings.silent_start {
                     let _ = window.set_focus();
+                }
+                
+                // 如果窗口层级是"置于桌面"，需要重新应用该设置
+                if settings.window_level == "always_on_bottom" {
+                    #[cfg(target_os = "windows")]
+                    {
+                        use windows::Win32::Foundation::HWND;
+                        use windows::Win32::UI::WindowsAndMessaging::{
+                            SetWindowPos, HWND_BOTTOM, SWP_NOMOVE, SWP_NOSIZE, SWP_NOACTIVATE
+                        };
+                        
+                        if let Ok(hwnd) = window.hwnd() {
+                            unsafe {
+                                let window_hwnd = HWND(hwnd.0 as _);
+                                let _ = SetWindowPos(
+                                    window_hwnd,
+                                    HWND_BOTTOM,
+                                    0, 0, 0, 0,
+                                    SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE
+                                );
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -40,6 +87,30 @@ pub async fn show_main_window(app: tauri::AppHandle) -> Result<(), String> {
         let settings = load_app_settings(app.clone()).await.unwrap_or_default();
         if !settings.silent_start {
             let _ = window.set_focus();
+        }
+        
+        // 如果窗口层级是"置于桌面"，需要重新应用该设置
+        // 因为 show() 和 set_focus() 可能会改变窗口层级
+        if settings.window_level == "always_on_bottom" {
+            #[cfg(target_os = "windows")]
+            {
+                use windows::Win32::Foundation::HWND;
+                use windows::Win32::UI::WindowsAndMessaging::{
+                    SetWindowPos, HWND_BOTTOM, SWP_NOMOVE, SWP_NOSIZE, SWP_NOACTIVATE
+                };
+                
+                if let Ok(hwnd) = window.hwnd() {
+                    unsafe {
+                        let window_hwnd = HWND(hwnd.0 as _);
+                        let _ = SetWindowPos(
+                            window_hwnd,
+                            HWND_BOTTOM,
+                            0, 0, 0, 0,
+                            SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE
+                        );
+                    }
+                }
+            }
         }
     }
     Ok(())
@@ -63,6 +134,29 @@ pub async fn restore_from_tray(app: tauri::AppHandle) -> Result<(), String> {
         let settings = load_app_settings(app.clone()).await.unwrap_or_default();
         if !settings.silent_start {
             let _ = window.set_focus();
+        }
+        
+        // 如果窗口层级是"置于桌面"，需要重新应用该设置
+        if settings.window_level == "always_on_bottom" {
+            #[cfg(target_os = "windows")]
+            {
+                use windows::Win32::Foundation::HWND;
+                use windows::Win32::UI::WindowsAndMessaging::{
+                    SetWindowPos, HWND_BOTTOM, SWP_NOMOVE, SWP_NOSIZE, SWP_NOACTIVATE
+                };
+                
+                if let Ok(hwnd) = window.hwnd() {
+                    unsafe {
+                        let window_hwnd = HWND(hwnd.0 as _);
+                        let _ = SetWindowPos(
+                            window_hwnd,
+                            HWND_BOTTOM,
+                            0, 0, 0, 0,
+                            SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE
+                        );
+                    }
+                }
+            }
         }
     }
     Ok(())
@@ -118,7 +212,7 @@ pub async fn open_settings_window(app: tauri::AppHandle) -> Result<(), String> {
 #[tauri::command]
 pub async fn reset_window_position(app: tauri::AppHandle) -> Result<(), String> {
     use crate::window::position;
-    use crate::data::save_window_position;
+    use crate::data::{save_window_position, save_app_settings};
     
     if let Some(window) = app.get_webview_window("main") {
         // 获取屏幕中心位置
@@ -130,6 +224,14 @@ pub async fn reset_window_position(app: tauri::AppHandle) -> Result<(), String> 
         
         // 保存新位置
         save_window_position(app.clone(), x, y).await?;
+        
+        // 加载当前设置并关闭"禁止拖动窗口"
+        if let Ok(mut settings) = load_app_settings(app.clone()).await {
+            settings.disable_drag = false;
+            // 保存更新后的设置
+            save_app_settings(app.clone(), settings).await?;
+            println!("已关闭禁止拖动窗口设置");
+        }
         
         // 显示并聚焦窗口
         let _ = window.show();

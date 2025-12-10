@@ -113,6 +113,9 @@ pub async fn load_app_settings(app: tauri::AppHandle) -> Result<AppSettings, Str
             theme: "light".to_string(),
             priority_color: "#FF9800".to_string(),
             window_level: "always_on_bottom".to_string(),
+            timeline_deadline_priority: true,
+            enable_deadline_notification: false,
+            notification_minutes_before: 30,
         });
     }
     

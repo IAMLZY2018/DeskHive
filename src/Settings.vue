@@ -157,6 +157,73 @@
                 ></div>
               </div>
             </div>
+            <div v-if="settings.auto_start" class="setting-item">
+              <div>
+                <div class="setting-label">静默启动</div>
+                <div class="setting-description">开机后延时启动且不自动获取焦点，防止电脑卡顿</div>
+              </div>
+              <div class="setting-control">
+                <div 
+                  class="toggle-switch" 
+                  :class="{ active: settings.silent_start }" 
+                  @click="settings.silent_start = !settings.silent_start"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 使用设置 -->
+        <div v-if="activeSection === 'tasks'" class="setting-section">
+          <div class="section-title">时间轴设置</div>
+          <div class="setting-group">
+            <div class="setting-item">
+              <div>
+                <div class="setting-label">时间轴截止时间优先</div>
+                <div class="setting-description">开启后，有截止时间的任务在时间轴上按截止时间排序；关闭则所有任务按创建时间排序</div>
+              </div>
+              <div class="setting-control">
+                <div 
+                  class="toggle-switch" 
+                  :class="{ active: settings.timeline_deadline_priority }" 
+                  @click="settings.timeline_deadline_priority = !settings.timeline_deadline_priority"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-title" style="margin-top: 24px;">倒计时提醒</div>
+          <div class="setting-group">
+            <div class="setting-item">
+              <div>
+                <div class="setting-label">启用倒计时通知</div>
+                <div class="setting-description">在任务截止前指定时间发送系统通知提醒</div>
+              </div>
+              <div class="setting-control">
+                <div 
+                  class="toggle-switch" 
+                  :class="{ active: settings.enable_deadline_notification }" 
+                  @click="settings.enable_deadline_notification = !settings.enable_deadline_notification"
+                ></div>
+              </div>
+            </div>
+            <div v-if="settings.enable_deadline_notification" class="setting-item">
+              <div>
+                <div class="setting-label">提前提醒时间</div>
+                <div class="setting-description">在截止时间前多少分钟发送通知</div>
+              </div>
+              <div class="setting-control">
+                <input 
+                  type="number" 
+                  v-model.number="settings.notification_minutes_before" 
+                  min="1" 
+                  max="1440"
+                  class="number-input"
+                >
+                <span class="input-unit">分钟</span>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -167,43 +234,81 @@
             <div class="setting-item">
               <div class="help-content">
                 <h3>📝 任务操作</h3>
-                <p>• 新建：底部输入框输入内容后回车</p>
-                <p>• 完成：悬停任务点击左侧"✓"按钮</p>
-                <p>• 编辑：右键任务选择"编辑"</p>
-                <p>• 标记：双击任务快速标记成高优先级</p>
-                <p>• 排序：点住"☰"图标拖动调整顺序</p>
-                <p>• 截止时间：右键任务设置或移除</p>
+                <p>• 新建任务：底部输入框输入内容后按回车键</p>
+                <p>• 完成任务：鼠标悬停任务，点击左侧"✓"按钮</p>
+                <p>• 撤销完成：在已完成分组中，悬停任务点击"↻"按钮</p>
+                <p>• 编辑任务：右键任务选择"编辑任务"，或双击任务文字</p>
+                <p>• 删除任务：右键任务选择"删除任务"</p>
+                <p>• 标记优先级：双击任务快速标记/取消高优先级（橙色圆点）</p>
+                <p>• 拖动排序：鼠标悬停任务，点住"☰"图标拖动调整顺序</p>
+                <p>• 查看详情：右键任务查看创建时间、截止时间、优先级等信息</p>
                 
-                <h3>📁 分组功能</h3>
-                <p>• 快速创建：输入框输入"/分组名"后回车</p>
-                <p>• 菜单创建：右键底部"+"按钮选择新建分组</p>
-                <p>• 重命名：右键分组标题选择重命名</p>
-                <p>• 删除：右键分组标题选择删除（任务会移到未分组）</p>
-                <p>• 折叠：点击分组标题左侧"▼"图标</p>
-                <p>• 排序：悬停分组标题点击"▲▼"按钮</p>
+                <h3>⏰ 截止时间</h3>
+                <p>• 设置截止：右键任务选择"设置截止时间"</p>
+                <p>• 快捷操作：对话框中使用 Tab 键切换输入框，Enter 键确认</p>
+                <p>• 默认时间：首次设置默认为当前时间 1 小时后</p>
+                <p>• 修改时间：右键任务选择"修改截止时间"，保留原有时间</p>
+                <p>• 移除截止：右键任务选择"移除截止时间"</p>
+                <p>• 倒计时显示：任务右侧显示剩余时间（绿色/黄色/红色）</p>
+                <p>• 到期提醒：在"使用设置"中启用倒计时通知功能</p>
                 
-                <h3>🔄 拖动技巧</h3>
-                <p>• 同组排序：拖动到目标位置释放</p>
-                <p>• 跨组移动：拖到其他分组的任务列表</p>
-                <p>• 快速移动：拖到分组标题添加到末尾</p>
+                <h3>📁 分组管理</h3>
+                <p>• 快速创建：输入框输入"/分组名"后回车（如：/工作）</p>
+                <p>• 菜单创建：点击底部"+"按钮，选择"新建分组"</p>
+                <p>• 重命名分组：右键分组标题选择"重命名分组"</p>
+                <p>• 删除分组：右键分组标题选择"删除分组"（任务会移到未分组）</p>
+                <p>• 折叠/展开：点击分组标题左侧"▼"图标</p>
+                <p>• 调整顺序：鼠标悬停分组标题，点击"▲▼"按钮上下移动</p>
+                <p>• 未分组：新建任务默认添加到未分组，可拖动到其他分组</p>
                 
-                <h3>⏰ 时间提示</h3>
-                <p>• 🟢 绿色：距离截止时间充足</p>
-                <p>• 🟡 黄色：即将到期或已创建多天</p>
-                <p>• 🔴 红色：已超过截止时间</p>
-                <p>• 悬停查看：鼠标悬停显示详细时间</p>
+                <h3>🔄 拖动功能</h3>
+                <p>• 同组排序：拖动任务到目标位置释放，调整组内顺序</p>
+                <p>• 跨组移动：拖动任务到其他分组的任务列表中</p>
+                <p>• 快速移动：拖动任务到分组标题上，自动添加到该组末尾</p>
+                <p>• 拖动提示：拖动时分组会高亮显示，表示可以放置</p>
+                <p>• 禁止拖动：在"行为"设置中可禁止拖动窗口，方便调整位置</p>
                 
-                <h3>⚙️ 常用设置</h3>
-                <p>• 透明度：外观 → 主窗口透明度</p>
-                <p>• 主题：外观 → 主题模式</p>
-                <p>• 拖动：外观 → 禁止拖动窗口</p>
-                <p>• 自启：行为 → 开机自启动</p>
+                <h3>🎨 视图切换</h3>
+                <p>• 列表视图：默认视图，按分组显示任务</p>
+                <p>• 时间轴视图：点击标题栏"时间轴"图标切换</p>
+                <p>• 时间轴排序：在"使用设置"中可选择按截止时间或创建时间排序</p>
+                <p>• 时间轴操作：支持完成、删除、查看详情、标记优先级</p>
+                
+                <h3>✅ 已完成任务</h3>
+                <p>• 查看已完成：点击底部"已完成"分组展开查看</p>
+                <p>• 撤销完成：悬停已完成任务，点击"↻"按钮恢复为待办</p>
+                <p>• 批量清理：点击"已完成"分组右侧垃圾桶图标清空所有</p>
+                <p>• 自动清理：右键任务选择"移除完成7天前"，清理旧任务</p>
+                <p>• 耗时显示：已完成任务显示从创建到完成的耗时天数</p>
+                
+                <h3>🔔 通知提醒</h3>
+                <p>• 启用通知：在"使用设置"中开启"启用倒计时通知"</p>
+                <p>• 提前时间：设置提前多少分钟提醒（默认 30 分钟）</p>
+                <p>• 通知内容：显示剩余时间、任务内容、截止时间、优先级</p>
+                <p>• 通知位置：Windows 系统右下角通知中心</p>
+                <p>• 提示音：通知时播放系统提示音</p>
+                <p>• 权限设置：如无通知，请检查 Windows 通知权限</p>
+                
+                <h3>⚙️ 外观设置</h3>
+                <p>• 透明度：调整主窗口透明度（50%-100%），设置窗口保持不透明</p>
+                <p>• 主题模式：切换日间/夜间主题，夜间模式更护眼</p>
+                <p>• 优先级颜色：自定义高优先级任务的圆点颜色</p>
+                
+                <h3>🎯 行为设置</h3>
+                <p>• 禁止拖动：开启后无法拖动窗口，防止误操作</p>
+                <p>• 窗口层级：选择"置于顶层"或"置于桌面"</p>
+                <p>• 开机自启：系统启动时自动运行应用</p>
+                <p>• 静默启动：开机后延时启动且不抢占焦点，防止卡顿</p>
                 
                 <h3>💡 实用技巧</h3>
-                <p>• 托盘左键：快速显示/隐藏窗口</p>
-                <p>• 已完成：点击底部展开查看</p>
-                <p>• 批量清理：已完成分组右侧垃圾桶图标</p>
-                <p>• 窗口位置：拖动后自动记住位置</p>
+                <p>• 托盘图标：左键点击快速显示/隐藏窗口</p>
+                <p>• 托盘菜单：右键托盘图标访问快捷功能</p>
+                <p>• 重置位置：托盘菜单选择"重置窗口位置"，自动关闭禁止拖动</p>
+                <p>• 窗口位置：拖动窗口后自动记住位置，下次启动恢复</p>
+                <p>• 关闭窗口：点击关闭按钮会最小化到托盘，不会退出程序</p>
+                <p>• 完全退出：右键托盘图标选择"退出"</p>
+                <p>• 数据保存：所有数据自动保存到文档目录，重装不丢失</p>
+                <p>• 设置同步：所有设置修改即时生效，无需手动保存</p>
               </div>
             </div>
           </div>
@@ -302,15 +407,16 @@
       </div>
 
       <div class="content-footer">
-        <button class="btn btn-secondary" @click="cancelSettings">取消</button>
-        <button class="btn btn-primary" @click="saveSettings">保存设置</button>
+        <button class="btn btn-primary" @click="closeWindow">
+          关闭
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 
@@ -318,12 +424,16 @@ interface AppSettings {
   opacity: number
   disable_drag: boolean
   auto_start: boolean
+  silent_start: boolean
   theme: string
   priority_color: string
   window_level: string
+  timeline_deadline_priority: boolean
+  enable_deadline_notification: boolean
+  notification_minutes_before: number
 }
 
-type SectionKey = 'appearance' | 'behavior' | 'help' | 'contact' | 'about'
+type SectionKey = 'appearance' | 'behavior' | 'tasks' | 'help' | 'contact' | 'about'
 
 interface Section {
   name: string
@@ -345,6 +455,10 @@ const sections: Record<SectionKey, Section> = {
     name: '行为', 
     icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2.03V2.05L13 4.05C17.39 4.59 20.5 8.58 19.96 12.97C19.5 16.61 16.64 19.5 13 19.93V21.93C18.5 21.38 22.5 16.5 21.95 11C21.5 6.25 17.73 2.5 13 2.03M11 2.06C9.05 2.25 7.19 3 5.67 4.26L7.1 5.74C8.22 4.84 9.57 4.26 11 4.06V2.06M4.26 5.67C3 7.19 2.25 9.04 2.05 11H4.05C4.24 9.58 4.8 8.23 5.69 7.1L4.26 5.67M2.06 13C2.26 14.96 3.03 16.81 4.27 18.33L5.69 16.9C4.81 15.77 4.24 14.42 4.06 13H2.06M7.1 18.37L5.67 19.74C7.18 21 9.04 21.79 11 22V20C9.58 19.82 8.23 19.25 7.1 18.37M12.5 7V12.25L17 14.92L16.25 16.15L11 13V7H12.5Z" fill="currentColor"/></svg>' 
   },
+  tasks: { 
+    name: '使用设置', 
+    icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H14.82C14.4 1.84 13.3 1 12 1C10.7 1 9.6 1.84 9.18 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3M12 3C12.55 3 13 3.45 13 4C13 4.55 12.55 5 12 5C11.45 5 11 4.55 11 4C11 3.45 11.45 3 12 3M7 7H17V9H7V7M7 11H17V13H7V11M7 15H14V17H7V15Z" fill="currentColor"/></svg>' 
+  },
   help: { 
     name: '使用说明', 
     icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 2H14.82C14.4 0.84 13.3 0 12 0C10.7 0 9.6 0.84 9.18 2H5C3.9 2 3 2.9 3 4V18C3 19.1 3.9 20 5 20H9.11C9.56 21.19 10.69 22 12 22C13.31 22 14.44 21.19 14.89 20H19C20.1 20 21 19.1 21 18V4C21 2.9 20.1 2 19 2M12 2C12.55 2 13 2.45 13 3C13 3.55 12.55 4 12 4C11.45 4 11 3.55 11 3C11 2.45 11.45 2 12 2M12 20C11.45 20 11 19.55 11 19C11 18.45 11.45 18 12 18C12.55 18 13 18.45 13 19C13 19.55 12.55 20 12 20M19 18H14.82C14.4 16.84 13.3 16 12 16C10.7 16 9.6 16.84 9.18 18H5V4H9.18C9.6 5.16 10.7 6 12 6C13.3 6 14.4 5.16 14.82 4H19V18M12 9C10.9 9 10 9.9 10 11C10 12.1 10.9 13 12 13C13.1 13 14 12.1 14 11C14 9.9 13.1 9 12 9Z" fill="currentColor"/></svg>' 
@@ -363,9 +477,13 @@ const settings = reactive<AppSettings>({
   opacity: 1.0,
   disable_drag: false,
   auto_start: false,
+  silent_start: false,
   theme: 'light',
   priority_color: '#FF9800',
-  window_level: 'always_on_bottom'
+  window_level: 'always_on_bottom',
+  timeline_deadline_priority: true,
+  enable_deadline_notification: false,
+  notification_minutes_before: 30
 })
 
 // 透明度的计算属性，确保始终为数字类型
@@ -435,46 +553,49 @@ async function restoreOriginalOpacity() {
   }
 }
 
-// 取消设置
-async function cancelSettings() {
-  await restoreOriginalOpacity()
-  await closeWindow()
-}
-
-// 保存设置
-async function saveSettings() {
+// 保存设置（即时保存，不关闭窗口）
+async function saveSettingsImmediately() {
   try {
-    console.log('开始保存设置:', settings)
-    
-    // 确保数据类型正确，避免字符串传递给需要数字的字段
+    // 确保数据类型正确
     const settingsToSave = {
       opacity: typeof settings.opacity === 'string' ? parseFloat(settings.opacity) : settings.opacity,
       disable_drag: Boolean(settings.disable_drag),
       auto_start: Boolean(settings.auto_start),
-      theme: settings.theme
+      silent_start: Boolean(settings.silent_start),
+      theme: settings.theme,
+      priority_color: settings.priority_color,
+      window_level: settings.window_level,
+      timeline_deadline_priority: Boolean(settings.timeline_deadline_priority),
+      enable_deadline_notification: Boolean(settings.enable_deadline_notification),
+      notification_minutes_before: typeof settings.notification_minutes_before === 'string' 
+        ? parseInt(settings.notification_minutes_before) 
+        : settings.notification_minutes_before
     }
-    
-    console.log('转换后的设置数据:', settingsToSave)
     
     // 调用 Tauri 命令保存设置
     await invoke('save_app_settings', { settings: settingsToSave })
-    console.log('设置保存成功')
+    console.log('设置已自动保存')
     
     // 通知主窗口主题已更改
     if (settingsToSave.theme) {
       await invoke('emit_theme_changed', { theme: settingsToSave.theme })
     }
-    
-    // 关闭设置窗口
-    await closeWindow()
   } catch (error) {
     console.error('保存设置失败:', error)
-    
-    // 显示更详细的错误信息
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    alert(`保存设置失败: ${errorMessage}\n\n请检查应用权限或重新启动应用。`)
   }
 }
+
+// 监听设置变化，自动保存
+let saveTimeout: number | null = null
+watch(settings, () => {
+  // 防抖：延迟500ms保存，避免频繁保存
+  if (saveTimeout) {
+    clearTimeout(saveTimeout)
+  }
+  saveTimeout = window.setTimeout(() => {
+    saveSettingsImmediately()
+  }, 500)
+}, { deep: true })
 
 // 关闭窗口
 async function closeWindow() {
@@ -539,6 +660,8 @@ function openBlog() {
   window.open('https://www.feijimiao.cn/contact', '_blank')
 }
 
+
+
 // 组件挂载时加载设置和版本信息
 onMounted(async () => {
   await Promise.all([
@@ -587,6 +710,7 @@ onMounted(async () => {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
+  border-radius: 12px;
 }
 
 .sidebar {
@@ -970,6 +1094,53 @@ onMounted(async () => {
   font-weight: 500;
 }
 
+.number-input {
+  width: 80px;
+  padding: 6px 10px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #202124;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.number-input:focus {
+  outline: none;
+  border-color: #007aff;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.input-unit {
+  margin-left: 8px;
+  font-size: 14px;
+  color: #5f6368;
+  font-weight: 500;
+}
+
+.test-btn {
+  padding: 6px 16px;
+  background: #007aff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.test-btn:hover {
+  background: #0051d5;
+  transform: translateY(-1px);
+}
+
+.test-btn:active {
+  transform: translateY(0);
+}
+
 .content-footer {
   padding: 14px 24px;
   border-top: 1px solid #e8eaed;
@@ -1021,27 +1192,28 @@ onMounted(async () => {
 
 /* 夜间主题下的设置页面样式 */
 body.dark-theme {
-  background: #1a1d23;
-  color: #e8eaed;
+  background: #0a0a0a;
+  color: #e0e0e0;
 }
 
 body.dark-theme .container {
-  background: #1a1d23;
+  background: #0a0a0a;
+  border-radius: 12px;
 }
 
 body.dark-theme .sidebar {
-  background: linear-gradient(180deg, #242831 0%, #1f2229 100%);
-  border-right: 1px solid #2d3139;
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(180deg, #0f0f0f 0%, #0a0a0a 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.5);
 }
 
 body.dark-theme .sidebar-header {
-  border-bottom: 1px solid #2d3139;
-  background: rgba(36, 40, 49, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 15, 15, 0.9);
 }
 
 body.dark-theme .sidebar-header h1 {
-  color: #e8eaed;
+  color: #e0e0e0;
 }
 
 body.dark-theme .sidebar-menu {
@@ -1060,18 +1232,18 @@ body.dark-theme .sidebar-menu {
 }
 
 body.dark-theme .menu-item {
-  color: #9ca3af;
+  color: #808080;
 }
 
 body.dark-theme .menu-item:hover {
-  background: rgba(0, 122, 255, 0.12);
+  background: rgba(0, 122, 255, 0.15);
   color: #0a84ff;
 }
 
 body.dark-theme .menu-item.active {
   background: #0a84ff;
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.4);
 }
 
 body.dark-theme .menu-item-icon {
@@ -1091,16 +1263,16 @@ body.dark-theme .content {
 }
 
 body.dark-theme .content-header {
-  border-bottom: 1px solid #2d3139;
-  background: rgba(36, 40, 49, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 15, 15, 0.9);
 }
 
 body.dark-theme .content-header h2 {
-  color: #e8eaed;
+  color: #e0e0e0;
 }
 
 body.dark-theme .content-body {
-  background: #1a1d23;
+  background: #0a0a0a;
 }
 
 .body.dark-theme .content-body::-webkit-scrollbar {
@@ -1122,29 +1294,29 @@ body.dark-theme .section-title {
 }
 
 body.dark-theme .setting-group {
-  background: #242831;
-  border: 1px solid #2d3139;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 body.dark-theme .setting-group:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
 body.dark-theme .setting-item {
-  border-bottom: 1px solid #2d3139;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 body.dark-theme .setting-item:hover {
-  background: #2a2f38;
+  background: #1a1a1a;
 }
 
 body.dark-theme .setting-label {
-  color: #e8eaed;
+  color: #e0e0e0;
 }
 
 body.dark-theme .setting-description {
-  color: #9ca3af;
+  color: #808080;
 }
 
 body.dark-theme .setting-control {
@@ -1153,12 +1325,12 @@ body.dark-theme .setting-control {
 }
 
 body.dark-theme .toggle-switch {
-  background: #3a3f4b;
+  background: #202020;
 }
 
 body.dark-theme .toggle-switch.active {
   background: #30d158;
-  box-shadow: 0 2px 6px rgba(48, 209, 88, 0.4);
+  box-shadow: 0 2px 6px rgba(48, 209, 88, 0.5);
 }
 
 body.dark-theme .setting-control input[type="range"] {
@@ -1168,10 +1340,10 @@ body.dark-theme .setting-control input[type="range"] {
 
 body.dark-theme .setting-control select {
   padding: 8px 12px;
-  border: 1px solid #444b4f;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  background: #252627;
-  color: #e7e9ed;
+  background: #1a1a1a;
+  color: #e0e0e0;
   font-size: 17px;
   min-width: 120px;
 }
@@ -1180,7 +1352,7 @@ body.dark-theme .theme-toggle-switch {
   position: relative;
   width: 60px;
   height: 30px;
-  background: #252627;
+  background: #1a1a1a;
   border-radius: 15px;
   cursor: pointer;
   transition: background-color 0.3s;
@@ -1232,7 +1404,7 @@ body.dark-theme .range-value {
 }
 
 body.dark-theme .color-picker {
-  border-color: #444b4f;
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 body.dark-theme .color-picker:hover {
@@ -1240,7 +1412,7 @@ body.dark-theme .color-picker:hover {
 }
 
 body.dark-theme .color-value {
-  color: #9ca3af;
+  color: #808080;
 }
 
 body.dark-theme .radio-option input[type="radio"] {
@@ -1248,32 +1420,55 @@ body.dark-theme .radio-option input[type="radio"] {
 }
 
 body.dark-theme .radio-label {
-  color: #e8eaed;
+  color: #e0e0e0;
+}
+
+body.dark-theme .number-input {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: #1a1a1a;
+  color: #e0e0e0;
+}
+
+body.dark-theme .number-input:focus {
+  border-color: #0a84ff;
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
+}
+
+body.dark-theme .input-unit {
+  color: #808080;
+}
+
+body.dark-theme .test-btn {
+  background: #0a84ff;
+}
+
+body.dark-theme .test-btn:hover {
+  background: #0077ed;
 }
 
 body.dark-theme .content-footer {
-  border-top: 1px solid #2d3139;
-  background: rgba(36, 40, 49, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 15, 15, 0.98);
 }
 
 body.dark-theme .btn-primary {
   background: #0a84ff;
-  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.4);
 }
 
 body.dark-theme .btn-primary:hover {
   background: #0077ed;
-  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.4);
+  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.5);
 }
 
 body.dark-theme .btn-secondary {
-  background: #242831;
+  background: #141414;
   color: #0a84ff;
   border: 2px solid #0a84ff;
 }
 
 body.dark-theme .btn-secondary:hover {
-  background: rgba(10, 132, 255, 0.12);
+  background: rgba(10, 132, 255, 0.15);
 }
 
 /* 使用说明内容样式 */

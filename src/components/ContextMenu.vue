@@ -28,7 +28,11 @@
 
       <div v-if="props.todo?.deadline && !props.todo?.completed" class="info-row">
         <span class="info-label">截止</span>
-        <span class="info-text">{{ formatDateTime(props.todo.deadline) }}</span>
+        <span class="info-text">{{ formatDeadlineTime(props.todo.deadline) }}</span>
+      </div>
+      <div v-if="props.todo?.deadline && !props.todo?.completed" class="info-row">
+        <span class="info-label"></span>
+        <span :class="['deadline-status', getDeadlineStatusClass()]">{{ getDeadlineStatus() }}</span>
       </div>
     </div>
     
@@ -36,7 +40,7 @@
     
     <!-- 操作按钮 -->
     <div class="menu-actions">
-      <button class="menu-btn" @click="onEditTodo">
+      <button v-if="!props.todo?.completed" class="menu-btn" @click="onEditTodo">
         <svg class="menu-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -44,7 +48,7 @@
         <span>编辑任务</span>
       </button>
       
-      <button class="menu-btn" @click="onSetDeadline">
+      <button v-if="!props.todo?.completed" class="menu-btn" @click="onSetDeadline">
         <svg class="menu-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M16 2V6M8 2V6M3 10H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -52,18 +56,11 @@
         <span>{{ props.todo?.deadline ? '修改截止时间' : '设置截止时间' }}</span>
       </button>
       
-      <button v-if="props.todo?.deadline" class="menu-btn" @click="onRemoveDeadline">
+      <button v-if="!props.todo?.completed && props.todo?.deadline" class="menu-btn" @click="onRemoveDeadline">
         <svg class="menu-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span>移除截止时间</span>
-      </button>
-      
-      <button v-if="props.todo?.completed" class="menu-btn" @click="onRemoveOldCompleted">
-        <svg class="menu-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 8V12L15 15M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span>移除完成7天前</span>
       </button>
       
       <button class="menu-btn delete-btn" @click="onDeleteTodo">
@@ -78,7 +75,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue';
+import { ref, watch, nextTick, inject, computed } from 'vue';
+import type { Ref } from 'vue';
 import type { Todo } from '../../src/types';
 
 interface Props {
@@ -99,7 +97,10 @@ const emit = defineEmits<{
   removeOldCompleted: []; // 移除旧的已完成任务
 }>();
 
-// 格式化时间
+// 注入当前时间戳（用于倒计时实时更新）
+const currentTimestamp = inject<Ref<number>>('currentTimestamp');
+
+// 格式化时间（精确到秒）
 function formatDateTime(timestamp: number): string {
   const date = new Date(timestamp * 1000);
   return date.toLocaleString('zh-CN', {
@@ -113,14 +114,31 @@ function formatDateTime(timestamp: number): string {
   });
 }
 
-// 计算已创建天数
-function calculateDaysCreated(): number {
+// 格式化截止时间（只到分钟）
+function formatDeadlineTime(timestamp: number): string {
+  const date = new Date(timestamp * 1000);
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+}
+
+// 计算已创建天数（响应式）
+const daysCreatedComputed = computed(() => {
   if (!props.todo) return 0;
-  const now = Date.now();
+  // 依赖 currentTimestamp 以实现自动更新
+  const now = currentTimestamp?.value || Date.now();
   const createdTime = props.todo.createdAt * 1000;
   const diffMs = now - createdTime;
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  return diffDays;
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+});
+
+function calculateDaysCreated(): number {
+  return daysCreatedComputed.value;
 }
 
 // 计算完成后的天数
@@ -133,12 +151,78 @@ function calculateDaysFromCompleted(): number {
   return diffDays;
 }
 
-// 计算距离截止时间
-function calculateDeadlineDiff(): number {
+// 计算距离截止时间（秒）（响应式）
+const deadlineDiffSeconds = computed(() => {
   if (!props.todo?.deadline) return 0;
-  const now = Math.floor(Date.now() / 1000);
-  const diff = props.todo.deadline - now;
-  return Math.floor(diff / (60 * 60 * 24)); // 转换为天数
+  // 依赖 currentTimestamp 以实现自动更新
+  const now = currentTimestamp?.value || Date.now();
+  return props.todo.deadline - Math.floor(now / 1000);
+});
+
+function calculateDeadlineDiffSeconds(): number {
+  return deadlineDiffSeconds.value;
+}
+
+// 获取截止时间状态文本
+function getDeadlineStatus(): string {
+  if (!props.todo?.deadline) return '';
+  
+  const diffSeconds = calculateDeadlineDiffSeconds();
+  
+  // 已逾期
+  if (diffSeconds < 0) {
+    const overdueDiff = Math.abs(diffSeconds);
+    if (overdueDiff < 60) {
+      return '已逾期（不到1分钟）';
+    } else if (overdueDiff < 3600) {
+      const minutes = Math.floor(overdueDiff / 60);
+      return `已逾期 ${minutes} 分`;
+    } else if (overdueDiff < 86400) {
+      const hours = Math.floor(overdueDiff / 3600);
+      const minutes = Math.floor((overdueDiff % 3600) / 60);
+      return minutes > 0 ? `已逾期 ${hours} 时 ${minutes} 分` : `已逾期 ${hours} 时`;
+    } else {
+      const days = Math.floor(overdueDiff / 86400);
+      const hours = Math.floor((overdueDiff % 86400) / 3600);
+      return hours > 0 ? `已逾期 ${days} 天 ${hours} 时` : `已逾期 ${days} 天`;
+    }
+  }
+  
+  // 未逾期 - 显示剩余时间
+  if (diffSeconds < 60) {
+    return '剩余不到 1 分';
+  } else if (diffSeconds < 3600) {
+    const minutes = Math.floor(diffSeconds / 60);
+    return `剩余 ${minutes} 分`;
+  } else if (diffSeconds < 86400) {
+    const hours = Math.floor(diffSeconds / 3600);
+    const minutes = Math.floor((diffSeconds % 3600) / 60);
+    return minutes > 0 ? `剩余 ${hours} 时 ${minutes} 分` : `剩余 ${hours} 时`;
+  } else {
+    const days = Math.floor(diffSeconds / 86400);
+    const hours = Math.floor((diffSeconds % 86400) / 3600);
+    return hours > 0 ? `剩余 ${days} 天 ${hours} 时` : `剩余 ${days} 天`;
+  }
+}
+
+// 获取截止时间状态样式类
+function getDeadlineStatusClass(): string {
+  if (!props.todo?.deadline) return '';
+  
+  const diffSeconds = calculateDeadlineDiffSeconds();
+  const daysDiff = Math.floor(diffSeconds / (60 * 60 * 24));
+  
+  if (diffSeconds < 0) {
+    return 'overdue'; // 已逾期
+  } else if (daysDiff === 0) {
+    return 'urgent'; // 今天到期
+  } else if (daysDiff <= 1) {
+    return 'urgent'; // 明天到期
+  } else if (daysDiff <= 3) {
+    return 'warning'; // 3天内到期
+  } else {
+    return 'normal'; // 正常
+  }
 }
 
 // 获取时间指示器文本
@@ -147,12 +231,12 @@ function getTimeIndicator(): string {
   
   // 如果有截止时间
   if (props.todo.deadline) {
-    const daysDiff = calculateDeadlineDiff();
+    const diffSeconds = calculateDeadlineDiffSeconds();
+    const daysDiff = Math.floor(diffSeconds / (60 * 60 * 24));
     
-    if (daysDiff < 0) {
-      // 已逾期
-      const overdueDays = Math.abs(daysDiff);
-      return `逾期${overdueDays}天`;
+    if (diffSeconds < 0) {
+      // 已逾期 - 不在这里显示，移到截止时间下面
+      return '';
     } else if (daysDiff === 0) {
       return '今天到期';
     } else if (daysDiff === 1) {
@@ -178,7 +262,8 @@ function getTimeIndicatorClass(): string {
   if (!props.todo) return '';
   
   if (props.todo.deadline) {
-    const daysDiff = calculateDeadlineDiff();
+    const diffSeconds = calculateDeadlineDiffSeconds();
+    const daysDiff = Math.floor(diffSeconds / (60 * 60 * 24));
     
     if (daysDiff < 0) {
       return 'overdue'; // 逾期
@@ -339,6 +424,39 @@ watch(() => props.position, (newPos) => {
   font-size: 0.68rem;
 }
 
+.overdue-text {
+  color: #dc2626;
+  font-weight: 600;
+  font-size: 0.68rem;
+}
+
+.deadline-status {
+  font-weight: 600;
+  font-size: 0.68rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.deadline-status.overdue {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+}
+
+.deadline-status.urgent {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.1);
+}
+
+.deadline-status.warning {
+  color: #ca8a04;
+  background: rgba(202, 138, 4, 0.1);
+}
+
+.deadline-status.normal {
+  color: #059669;
+  background: rgba(5, 150, 105, 0.1);
+}
+
 .time-indicator {
   margin-left: auto;
   font-size: 0.65rem;
@@ -469,6 +587,10 @@ body.dark-theme .info-text {
   color: #e0e0e0;
 }
 
+body.dark-theme .overdue-text {
+  color: #fca5a5;
+}
+
 body.dark-theme .menu-divider {
   background: rgba(255, 255, 255, 0.08);
 }
@@ -539,5 +661,25 @@ body.dark-theme .time-indicator.created {
 body.dark-theme .time-indicator.priority-high {
   background: rgba(255, 152, 0, 0.15);
   color: #ffb74d;
+}
+
+body.dark-theme .deadline-status.overdue {
+  color: #fca5a5;
+  background: rgba(252, 165, 165, 0.15);
+}
+
+body.dark-theme .deadline-status.urgent {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.15);
+}
+
+body.dark-theme .deadline-status.warning {
+  color: #fde047;
+  background: rgba(253, 224, 71, 0.15);
+}
+
+body.dark-theme .deadline-status.normal {
+  color: #6ee7b7;
+  background: rgba(110, 231, 183, 0.15);
 }
 </style>
