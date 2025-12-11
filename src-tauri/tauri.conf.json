@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "DeskHive",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "identifier": "com.iamlzy.deskhive",
   "build": {
     "frontendDist": "../dist",
@@ -20,7 +20,7 @@
         "fullscreen": false,
         "decorations": false,
         "alwaysOnTop": false,
-        "visible": false,
+        "visible": true,
         "skipTaskbar": true,
         "transparent": true,
         "focus": true

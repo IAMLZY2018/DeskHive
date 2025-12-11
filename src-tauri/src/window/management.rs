@@ -12,11 +12,9 @@ pub async fn toggle_main_window(app: tauri::AppHandle) -> Result<(), String> {
             }
             Ok(false) => {
                 let _ = window.show();
-                // 根据设置决定是否获取焦点（静默启动）
+                // 始终获取焦点
                 let settings = load_app_settings(app.clone()).await.unwrap_or_default();
-                if !settings.silent_start {
-                    let _ = window.set_focus();
-                }
+                let _ = window.set_focus();
                 
                 // 如果窗口层级是"置于桌面"，需要重新应用该设置
                 // 因为 show() 和 set_focus() 可能会改变窗口层级
@@ -44,11 +42,9 @@ pub async fn toggle_main_window(app: tauri::AppHandle) -> Result<(), String> {
             }
             Err(_) => {
                 let _ = window.show();
-                // 根据设置决定是否获取焦点（静默启动）
+                // 始终获取焦点
                 let settings = load_app_settings(app.clone()).await.unwrap_or_default();
-                if !settings.silent_start {
-                    let _ = window.set_focus();
-                }
+                let _ = window.set_focus();
                 
                 // 如果窗口层级是"置于桌面"，需要重新应用该设置
                 if settings.window_level == "always_on_bottom" {
@@ -143,11 +139,9 @@ pub async fn minimize_to_tray(app: tauri::AppHandle) -> Result<(), String> {
 pub async fn restore_from_tray(app: tauri::AppHandle) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.show();
-        // 根据设置决定是否获取焦点（静默启动）
+        // 始终获取焦点
         let settings = load_app_settings(app.clone()).await.unwrap_or_default();
-        if !settings.silent_start {
-            let _ = window.set_focus();
-        }
+        let _ = window.set_focus();
         
         // 如果窗口层级是"置于桌面"，需要重新应用该设置
         if settings.window_level == "always_on_bottom" {

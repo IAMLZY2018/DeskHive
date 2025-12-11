@@ -261,17 +261,8 @@ pub fn run() {
                     }
                 });
                 
-                // 确保位置设置完成后再显示窗口
-                let _ = window.show();
-                
-                // 根据设置决定是否获取焦点（静默启动）
-                if let Some(ref settings) = loaded_settings {
-                    if !settings.silent_start {
-                        let _ = window.set_focus();
-                    }
-                } else {
-                    let _ = window.set_focus();
-                }
+                // 窗口已经在配置中设置为可见，直接获取焦点即可
+                let _ = window.set_focus();
                 
                 // 延迟应用透明度和窗口层级设置，确保窗口完全初始化
                 if let Some(settings) = loaded_settings {

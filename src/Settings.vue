@@ -157,19 +157,6 @@
                 ></div>
               </div>
             </div>
-            <div v-if="settings.auto_start" class="setting-item">
-              <div>
-                <div class="setting-label">静默启动</div>
-                <div class="setting-description">开机后延时启动且不自动获取焦点，防止电脑卡顿</div>
-              </div>
-              <div class="setting-control">
-                <div 
-                  class="toggle-switch" 
-                  :class="{ active: settings.silent_start }" 
-                  @click="settings.silent_start = !settings.silent_start"
-                ></div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -298,7 +285,6 @@
                 <p>• 禁止拖动：开启后无法拖动窗口，防止误操作</p>
                 <p>• 窗口层级：选择"置于顶层"或"置于桌面"</p>
                 <p>• 开机自启：系统启动时自动运行应用</p>
-                <p>• 静默启动：开机后延时启动且不抢占焦点，防止卡顿</p>
                 
                 <h3>💡 实用技巧</h3>
                 <p>• 托盘图标：左键点击快速显示/隐藏窗口</p>
