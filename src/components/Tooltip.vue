@@ -46,9 +46,16 @@ function handleMouseEnter() {
     const rect = wrapperRef.value.getBoundingClientRect();
     const tooltipHeight = 60; // 估计的提示框高度（增加更多余量以避免遮挡）
     const spaceAbove = rect.top;
+    const windowHeight = window.innerHeight;
+    const spaceBelow = windowHeight - rect.bottom;
     
-    // 如果上方空间不足，显示在下方
-    showBelow.value = spaceAbove < tooltipHeight;
+    // 优先判断：如果上方空间不足60px，显示在下方
+    // 或者如果下方空间更充足（大于上方空间），也显示在下方
+    if (spaceAbove < tooltipHeight || spaceBelow > spaceAbove) {
+      showBelow.value = true;
+    } else {
+      showBelow.value = false;
+    }
   }
   
   tooltipTimer.value = window.setTimeout(() => {
