@@ -1,19 +1,16 @@
 # DeskHive 一个纯粹的桌面TODO记事本
 
 <div align="center">
-
-<p align="center">
-  <img src="logo.svg" alt="DeskHive Logo" width="128" height="128"/>
-</p>
+![](https://typeropic.oss-cn-beijing.aliyuncs.com/cp/image-20251211170320430.png)
 
 <p align="center" style="display: flex; align-items: center; justify-content: center; gap: 30px;">
-  <strong style="font-size: 48px; margin: 0;">DeskHive</strong>
   <a href="https://www.feijimiao.cn/deskhive" style="text-decoration: none;">
     <span style="display: inline-block; background: linear-gradient(135deg, #6EE748 0%, #5fc940 100%); color: white; padding: 12px 28px; border-radius: 8px; font-size: 18px; font-weight: bold; box-shadow: 0 4px 15px rgba(110, 231, 72, 0.3); transition: all 0.3s ease;">
       🌐 官网下载
     </span>
   </a>
 </p>
+
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/DeskHive)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-orange.svg)](https://tauri.app/)
