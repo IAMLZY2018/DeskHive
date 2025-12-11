@@ -327,7 +327,7 @@
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M14 3V5H17.59L7.76 14.83L9.17 16.24L19 6.41V10H21V3M19 19H5V5H12V3H5C3.89 3 3 3.9 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V12H19V19Z" fill="currentColor"/>
                     </svg>
-                    点击访问
+                    给作者留言
                   </button>
                 </div>
                 
@@ -368,38 +368,52 @@
                 <span style="color: #6d6d70;">{{ appVersion }}</span>
               </div>
             </div>
+            <div class="setting-item">
+              <div>
+                <div class="setting-label">检查更新</div>
+                <div class="setting-description">访问官网查看最新版本</div>
+              </div>
+              <div class="setting-control">
+                <button class="check-update-btn" @click="checkUpdate">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2M12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20M16.59 7.58L10 14.17L7.41 11.59L6 13L10 17L18 9L16.59 7.58Z" fill="currentColor"/>
+                  </svg>
+                  检查新版本
+                </button>
+              </div>
+            </div>
           </div>
 
           <div class="section-title" style="margin-top: 24px;">版本更新</div>
           <div class="setting-group">
             <div class="setting-item">
               <div class="update-content">
-                <h3>v0.3.0 (2025-11-22)</h3>
+                <h3>v1.0.0 (2025-12-11)</h3>
                 <h4>✨ 新增功能</h4>
-                <p>• 任务拖动排序：支持分组内和跨分组拖动任务</p>
-                <p>• 分组排序：可通过上下箭头调整分组顺序</p>
-                <p>• 时间提示：悬停时间指示器显示详细信息</p>
-                <p>• 完成动画：优化任务完成时的视觉效果</p>
-                <p>• 分组动画：添加分组移动的平滑过渡效果</p>
+                <p>• 时间轴视图：全新的任务时间树展示方式，按时间线查看任务</p>
+                <p>• 截止时间通知：支持定时系统通知，可自定义提前提醒时间</p>
+                <p>• 通知设置：可配置是否启用截止时间通知和提前提醒分钟数</p>
+                <p>• 窗口焦点优化：托盘图标和设置按钮点击时强制获取焦点</p>
+                <p>• 已完成任务优化：右键菜单简化，移除不必要的编辑选项</p>
                 
                 <h4>🎨 界面优化</h4>
-                <p>• 重新设计时间指示器样式和颜色</p>
-                <p>• 优化已完成分组的高度和间距</p>
-                <p>• 改进任务完成状态的视觉反馈</p>
-                <p>• 添加自定义 Tooltip 组件</p>
-                <p>• 优化分组标题和操作按钮布局</p>
+                <p>• 页面样式全面优化，更美观简洁</p>
+                <p>• 修复高分辨率屏幕显示异常问题</p>
+                <p>• 优化 Tooltip 提示框位置算法，智能避免遮挡</p>
+                <p>• 改进"置于桌面"模式下的窗口显示逻辑</p>
+                <p>• 优化设置窗口的焦点获取体验</p>
                 
                 <h4>🐛 问题修复</h4>
-                <p>• 修复跨组拖动任务的问题</p>
-                <p>• 修复提示框被分组遮挡的问题</p>
-                <p>• 移除按截止时间自动排序的逻辑</p>
-                <p>• 修复分组内拖动回到原位的问题</p>
-                <p>• 优化拖动时的视觉反馈</p>
+                <p>• 修复托盘点击需要两次才能显示的问题</p>
+                <p>• 修复"置于桌面"模式下窗口无法获取焦点的问题</p>
+                <p>• 修复设置窗口已打开时点击无反应的问题</p>
+                <p>• 修复第一个任务的提示框被遮挡的问题</p>
+                <p>• 优化窗口显示和隐藏的稳定性</p>
                 
-                <h4>📝 文档更新</h4>
-                <p>• 更新 README 使用说明</p>
-                <p>• 完善设置页面的使用指南</p>
-                <p>• 添加详细的功能说明和操作指引</p>
+                <h4>🔧 功能调整</h4>
+                <p>• 托盘菜单"显示/隐藏"改为"显示"，统一为获取焦点</p>
+                <p>• 已完成任务右键菜单移除"编辑"、"设置截止时间"等选项</p>
+                <p>• 使用 Windows API 强制获取窗口焦点，提升用户体验</p>
               </div>
             </div>
           </div>
@@ -658,6 +672,11 @@ async function loadAppVersion() {
 // 打开博客链接
 function openBlog() {
   window.open('https://www.feijimiao.cn/contact', '_blank')
+}
+
+// 检查新版本
+function checkUpdate() {
+  window.open('https://www.feijimiao.cn/deskhive', '_blank')
 }
 
 
@@ -1614,6 +1633,48 @@ body.dark-theme .blog-btn {
 body.dark-theme .blog-btn:hover {
   background: #0056cc;
   box-shadow: 0 4px 12px rgba(0, 122, 255, 0.5);
+}
+
+/* 检查更新按钮 */
+.check-update-btn {
+  padding: 6px 16px;
+  background: #34c759;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(52, 199, 89, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.check-update-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.check-update-btn:hover {
+  background: #28a745;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(52, 199, 89, 0.4);
+}
+
+.check-update-btn:active {
+  transform: translateY(0);
+}
+
+body.dark-theme .check-update-btn {
+  background: #34c759;
+  box-shadow: 0 2px 6px rgba(52, 199, 89, 0.4);
+}
+
+body.dark-theme .check-update-btn:hover {
+  background: #28a745;
+  box-shadow: 0 4px 10px rgba(52, 199, 89, 0.5);
 }
 
 /* 第二行：二维码并排 */
