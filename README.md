@@ -3,12 +3,7 @@
 <div align="center">
 
 <p align="center">
-  <svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
-    <rect x="4" y="4" width="120" height="120" rx="32" fill="#000000"/>
-    <path d="M62 14.5L22 37.5V90.5L62 113.5V86.5L46 77.5V50.5L62 41.5V14.5Z" fill="white"/>
-    <path d="M66 14.5V41.5L82 50.5V77.5L66 86.5V113.5L106 90.5V37.5L66 14.5Z" fill="#6EE748"/>
-    <path d="M52 64L60 72L76 56" stroke="#6EE748" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  </svg>
+  <img src="logo.svg" alt="DeskHive Logo" width="128" height="128"/>
 </p>
 
 <p align="center" style="display: flex; align-items: center; justify-content: center; gap: 30px;">
