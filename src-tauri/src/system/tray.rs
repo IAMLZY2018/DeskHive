@@ -1,18 +1,18 @@
 use tauri::{menu::{MenuBuilder, MenuItemBuilder}, tray::{TrayIconBuilder, TrayIconEvent}};
 
-use crate::window::management::{toggle_main_window, open_settings_window, show_main_window};
+use crate::window::management::{open_settings_window, show_main_window};
 use crate::quit_app;
 
 // 创建系统托盘菜单和事件处理
 pub fn create_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     // 创建系统托盘菜单
-    let show_hide = MenuItemBuilder::with_id("show_hide", "显示/隐藏").build(app)?;
+    let show = MenuItemBuilder::with_id("show", "显示").build(app)?;
     let reset_position = MenuItemBuilder::with_id("reset_position", "重置窗口位置").build(app)?;
     let settings = MenuItemBuilder::with_id("settings", "设置").build(app)?;
     let quit = MenuItemBuilder::with_id("quit", "退出").build(app)?;
     
     let menu = MenuBuilder::new(app)
-        .items(&[&show_hide, &reset_position, &settings, &quit])
+        .items(&[&show, &reset_position, &settings, &quit])
         .build()?;
 
     // 创建系统托盘图标
@@ -34,10 +34,10 @@ pub fn create_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         })
         .on_menu_event(|app, event| {
             match event.id().as_ref() {
-                "show_hide" => {
+                "show" => {
                     let app_handle = app.clone();
                     tauri::async_runtime::spawn(async move {
-                        let _ = toggle_main_window(app_handle).await;
+                        let _ = show_main_window(app_handle).await;
                     });
                 }
                 "reset_position" => {
