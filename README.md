@@ -1,8 +1,10 @@
 # DeskHive 一个纯粹的桌面TODO记事本
 
 <div align="center">
-![](https://typeropic.oss-cn-beijing.aliyuncs.com/cp/image-20251211170320430.png)
 
+<p align="center">
+  <img src="deskhive.png" alt="DeskHive Logo" width="100%"/>
+</p>
 <p align="center" style="display: flex; align-items: center; justify-content: center; gap: 30px;">
   <a href="https://www.feijimiao.cn/deskhive" style="text-decoration: none;">
     <span style="display: inline-block; background: linear-gradient(135deg, #6EE748 0%, #5fc940 100%); color: white; padding: 12px 28px; border-radius: 8px; font-size: 18px; font-weight: bold; box-shadow: 0 4px 15px rgba(110, 231, 72, 0.3); transition: all 0.3s ease;">
