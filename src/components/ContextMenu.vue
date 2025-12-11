@@ -17,9 +17,9 @@
           {{ getTimeIndicator() }}
         </span>
       </div>
-      <div v-if="props.todo?.completed && calculateDaysCreated() >= 1" class="info-row">
+      <div v-if="props.todo?.completed" class="info-row">
         <span class="info-label">耗时</span>
-        <span class="info-text">{{ calculateDaysCreated() }}天</span>
+        <span class="info-text">{{ getCompletedDaysText() }}</span>
       </div>
       <div v-if="!props.todo?.completed" class="info-row">
         <span class="info-label">创建</span>
@@ -130,7 +130,16 @@ function formatDeadlineTime(timestamp: number): string {
 // 计算已创建天数（响应式）
 const daysCreatedComputed = computed(() => {
   if (!props.todo) return 0;
-  // 依赖 currentTimestamp 以实现自动更新
+  
+  // 如果任务已完成，使用完成时间计算耗时
+  if (props.todo.completed && props.todo.completedAt) {
+    const completedTime = props.todo.completedAt * 1000;
+    const createdTime = props.todo.createdAt * 1000;
+    const diffMs = completedTime - createdTime;
+    return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  }
+  
+  // 未完成的任务，使用当前时间计算已创建天数
   const now = currentTimestamp?.value || Date.now();
   const createdTime = props.todo.createdAt * 1000;
   const diffMs = now - createdTime;
@@ -139,6 +148,12 @@ const daysCreatedComputed = computed(() => {
 
 function calculateDaysCreated(): number {
   return daysCreatedComputed.value;
+}
+
+// 获取已完成任务的耗时文本
+function getCompletedDaysText(): string {
+  const days = calculateDaysCreated();
+  return days < 1 ? '当天完成' : `${days}天`;
 }
 
 // 计算完成后的天数

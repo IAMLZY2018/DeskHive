@@ -752,7 +752,7 @@ function showToastMessage(message: string, type: 'error' | 'success' | 'warning'
   
   setTimeout(() => {
     showToast.value = false;
-  }, 3000);
+  }, 1000);
 }
 
 // 上移分组

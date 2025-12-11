@@ -1,20 +1,30 @@
 # DeskHive 一个纯粹的桌面TODO记事本
 
 <div align="center">
-<a href="https://www.feijimiao.cn/deskhive">
-  <img src="https://img.shields.io/badge/🌐_官网下载-6EE748?style=for-the-badge&labelColor=000000&logoColor=white" alt="官网下载" />
-</a>
 
------------------------------------------------------------------------
+<p align="center">
+  <svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+    <rect x="4" y="4" width="120" height="120" rx="32" fill="#000000"/>
+    <path d="M62 14.5L22 37.5V90.5L62 113.5V86.5L46 77.5V50.5L62 41.5V14.5Z" fill="white"/>
+    <path d="M66 14.5V41.5L82 50.5V77.5L66 86.5V113.5L106 90.5V37.5L66 14.5Z" fill="#6EE748"/>
+    <path d="M52 64L60 72L76 56" stroke="#6EE748" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </svg>
+</p>
 
-![image-20251209075736214](https://typeropic.oss-cn-beijing.aliyuncs.com/cp/image-20251209075736214.png)
-
-**一个轻量级、高效的桌面待办事项管理工具**
-
-[![Version](https://img.shields.io/badge/version-0.3.1-blue.svg)](https://github.com/yourusername/DeskHive)
+<p align="center" style="display: flex; align-items: center; justify-content: center; gap: 30px;">
+  <strong style="font-size: 48px; margin: 0;">DeskHive</strong>
+  <a href="https://www.feijimiao.cn/deskhive" style="text-decoration: none;">
+    <span style="display: inline-block; background: linear-gradient(135deg, #6EE748 0%, #5fc940 100%); color: white; padding: 12px 28px; border-radius: 8px; font-size: 18px; font-weight: bold; box-shadow: 0 4px 15px rgba(110, 231, 72, 0.3); transition: all 0.3s ease;">
+      🌐 官网下载
+    </span>
+  </a>
+</p>
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/DeskHive)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-orange.svg)](https://tauri.app/)
 [![Vue](https://img.shields.io/badge/Vue-3.5-brightgreen.svg)](https://vuejs.org/)
+
+![image-20251211163624553](https://typeropic.oss-cn-beijing.aliyuncs.com/cp/image-20251211163624553.png)
 
 [中文](#中文) | [English](#english)
 
@@ -52,6 +62,8 @@ DeskHive 是一个基于 **Vue 3** 和 **Tauri** 构建的现代化桌面待办�
   - 🔴 红色：已超过截止时间
   - 🟡 黄色：任务创建天数提醒
 - 🕐 悬停显示详细时间信息
+- 🌳 时间轴视图：按时间线展示所有任务
+- 🔔 截止时间通知：可自定义提前提醒时间
 
 #### 🎨 界面设计
 - 🌈 现代化、简洁的 UI 设计
@@ -71,7 +83,7 @@ DeskHive 是一个基于 **Vue 3** 和 **Tauri** 构建的现代化桌面待办�
 
 #### 下载安装
 
-1. 前往 [Releases](https://github.com/yourusername/DeskHive/releases) 页面
+1. 前往 [Releases](https://github.com/yourusername/DeskHive/releases) 页面，或者进入官网：[点击跳转](https://www.feijimiao.cn/deskhive)
 2. 下载最新版本的安装包（`.msi` 文件）
 3. 双击安装包，按照提示完成安装
 4. 启动 DeskHive，开始管理您的任务！
@@ -114,6 +126,8 @@ DeskHive 是一个基于 **Vue 3** 和 **Tauri** 构建的现代化桌面待办�
 | **设置截止时间** | 右键任务 → "📅 设置截止时间" |
 | **移除截止时间** | 右键任务 → "🗑️ 移除截止时间" |
 | **查看时间详情** | 悬停时间指示器 |
+| **切换时间轴视图** | 点击顶部"时间轴"按钮 |
+| **配置通知提醒** | 设置 → 通知 → 启用截止时间通知 |
 
 #### 拖动功能
 
@@ -189,23 +203,49 @@ DeskHive/
 
 ### 📝 更新日志
 
+#### v1.0.0 (2025-12-11) - 正式版发布 🎉
+
+**✨ 新增功能**
+- 🌳 时间轴视图：全新的任务时间树展示方式，按时间线查看任务
+- 🔔 截止时间通知：支持定时系统通知，可自定义提前提醒时间
+- ⚙️ 通知设置：可配置是否启用截止时间通知和提前提醒分钟数
+- 🎯 窗口焦点优化：托盘图标和设置按钮点击时强制获取焦点
+- 📝 已完成任务优化：右键菜单简化，移除不必要的编辑选项
+- �  检查更新：设置页面新增"检查新版本"按钮
+
+**🎨 界面优化**
+- 页面样式全面优化，更美观简洁
+- 修复高分辨率屏幕显示异常问题
+- 优化 Tooltip 提示框位置算法，智能避免遮挡
+- 改进"置于桌面"模式下的窗口显示逻辑
+- 优化设置窗口的焦点获取体验
+- Toast 通知显示时长优化为 1 秒
+
+**🐛 问题修复**
+- 修复托盘点击需要两次才能显示的问题
+- 修复"置于桌面"模式下窗口无法获取焦点的问题
+- 修复设置窗口已打开时点击无反应的问题
+- 修复第一个任务的提示框被遮挡的问题
+- 修复已完成任务耗时显示为负数的问题
+- 优化窗口显示和隐藏的稳定性
+
+**🔧 功能调整**
+- 托盘菜单"显示/隐藏"改为"显示"，统一为获取焦点
+- 已完成任务右键菜单移除"编辑"、"设置截止时间"等选项
+- 当天完成的任务显示"当天完成"而不是"耗时0天"
+- 使用 Windows API 强制获取窗口焦点，提升用户体验
+
 #### v0.3.0 (2025-11-27)
 
 **✨ 新增功能**
 - 快速创建分组：输入 `/分组名` 直接创建
 - 优化时间指示器位置：移到任务条最右侧
 - 截止时间弹窗缩小：更符合整体风格
-- 改进"全部完成"页面显示逻辑
 
 **🐛 问题修复**
 - 修复输入 `/分组名` 还会弹窗的问题
 - 修复任务列表显示过宽的问题
-- 改进应用退出逻辑，减少安装时卡住的可能性
-- 修复空分组提示框占据空间的问题
-
-**📝 文档更新**
-- 更新设置页面的使用说明
-- 完善 README 文档
+- 改进应用退出逻辑
 
 #### v0.2.0 (2025-11-22)
 
@@ -213,18 +253,11 @@ DeskHive/
 - 任务拖动排序：支持分组内和跨分组拖动
 - 分组排序：可通过上下箭头调整分组顺序
 - 时间提示：悬停时间指示器显示详细信息
-- 完成动画：优化任务完成时的视觉效果
 
 **🎨 界面优化**
 - 重新设计时间指示器样式和颜色
 - 优化已完成分组的高度和间距
-- 改进任务完成状态的视觉反馈
 - 添加自定义 Tooltip 组件
-
-**🐛 问题修复**
-- 修复跨组拖动任务的问题
-- 修复提示框被分组遮挡的问题
-- 移除按截止时间自动排序的逻辑
 
 ### 🤝 贡献指南
 

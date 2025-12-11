@@ -64,7 +64,7 @@
       :delay="300"
     >
       <div class="completed-indicator">
-        耗时{{ calculateDaysCreated(props.todo.createdAt) }}天
+        {{ getCompletedDaysText() }}
       </div>
     </Tooltip>
     <Tooltip 
@@ -118,7 +118,15 @@ const currentTimestamp = inject<Ref<number>>('currentTimestamp');
 
 // 计算已创建天数（响应式）
 const daysCreated = computed(() => {
-  // 依赖 currentTimestamp 以实现自动更新
+  // 如果任务已完成，使用完成时间计算耗时
+  if (props.todo.completed && props.todo.completedAt) {
+    const completedTime = props.todo.completedAt * 1000;
+    const createdTime = props.todo.createdAt * 1000;
+    const diffMs = completedTime - createdTime;
+    return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  }
+  
+  // 未完成的任务，使用当前时间计算已创建天数
   const now = currentTimestamp?.value || Date.now();
   const createdTime = props.todo.createdAt * 1000;
   const diffMs = now - createdTime;
@@ -235,8 +243,16 @@ function getDaysIndicatorTooltip(): string {
   return `已创建 ${days} 天`;
 }
 
+function getCompletedDaysText(): string {
+  const days = calculateDaysCreated(props.todo.createdAt);
+  return days < 1 ? '当天完成' : `耗时${days}天`;
+}
+
 function getCompletedDaysTooltip(): string {
   const days = calculateDaysCreated(props.todo.createdAt);
+  if (days < 1) {
+    return '当天创建并完成';
+  }
   return `从创建到完成耗时 ${days} 天`;
 }
 
